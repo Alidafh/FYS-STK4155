@@ -1,5 +1,14 @@
 # Regression analysis and resampling methods
 
+
+## How to run:
+Run the analysis using
+
+'''
+source run.sh
+'''
+
+
 ## Credits
 
 ## TO-DO:
