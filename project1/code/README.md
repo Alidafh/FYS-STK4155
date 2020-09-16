@@ -4,9 +4,9 @@
 ## How to run:
 Run the analysis using
 
-'''
+```
 source run.sh
-'''
+```
 
 
 ## Credits
