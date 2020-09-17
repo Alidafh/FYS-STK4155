@@ -12,7 +12,9 @@ source run.sh
 ## Credits
 
 ## TO-DO:
-- Ordinary least squres on the Franke function
+- Ordinary least squares on the Franke function
+  - Scale data
+  - Split data into training set and a test set
 - Bias-variance trade-off and resampling techniques
 - Cross-validation as resampling techniques
 - Ridge regression on the Franke function with resampling
