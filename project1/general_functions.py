@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
+import plotting as plot
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -18,7 +17,6 @@ def FrankeFunction(x,y):
     term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
     term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
     return term1 + term2 + term3 + term4
-
 
 def GenerateData(nData, start, stop, noise_str=0, seed=""):
     """
@@ -49,17 +47,7 @@ def GenerateData(nData, start, stop, noise_str=0, seed=""):
         noise = noise_str*np.random.randn(len(x), 1)
         z += noise
 
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(x,y,z,cmap=cm.coolwarm, linewidth=0, antialiased=False)
-    plt.title('Franke Function')
-    ax.set_xlabel(r"$x$")
-    ax.set_ylabel(r"$y$")
-    ax.set_zlabel(r"$f(x,y)$")
-    #plt.savefig("output/figures/franke_nData{}_noise{}.pdf".format(nData, noise_str), scale=0.1)
-    plt.savefig("output/figures/franke_nData{}_noise{}.png".format(nData, noise_str), scale=0.1)
-    print("     Figure saved in: output/figures/franke_nData{}_noise{}.pdf\n".format(nData, noise_str))
-    #plt.show()
+    plot.plot_3D(x,y,z, "Franke Function", "franke_nData{}_noise{}".format(nData, noise_str))
     return x, y, z
 
 def PolyDesignMatrix(x,y, degree):
@@ -74,7 +62,7 @@ def PolyDesignMatrix(x,y, degree):
     TODO: Cleanup and comment
     """
 
-    x = x.ravel()       # Easier to use arrays with shape (m, 1) where m = n**2
+    x = x.ravel()   # Easier to use arrays with shape (m, 1) where m = n**2
     y = y.ravel()
 
     m = len(x)
@@ -82,13 +70,14 @@ def PolyDesignMatrix(x,y, degree):
     X = np.ones((m, p))
     print("Generating polynomial design matrix of size (m, p) =", np.shape(X))
 
+    # fill colums of X with the polynomials [1  x  y  x**2  y**2  xy ...]
     for i in range(1, degree+1):
         j = int(((i)*(i+1))/2)
         for k in range(i+1):
             X[:,j+k] = x**(i-k)*y**(k)
+
     return X
 
 if __name__ == '__main__':
     x, y, z = GenerateData(2, 0, 1, 0.1, "debug")
     X = PolyDesignMatrix(x,y,2)
-    
