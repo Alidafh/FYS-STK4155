@@ -21,3 +21,6 @@ source run.sh
 - Lasso Regression on the Franke function with resampling
 - Indroducing real data and preparing the data analysis
 - OLS, Ridge and Lasso regression with resampling
+
+
+## Changes
