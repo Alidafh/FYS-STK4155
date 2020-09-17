@@ -10,6 +10,7 @@ FILE2=datafiles/SRTM_data_Norway_2.tif
 
 if [ -f "$FILE1" -a -f "$FILE2" ]; then
   echo "  "
+  python main.py
 else
   echo "Datafiles: $FILE1 and $FILE2 does not exist"
 fi

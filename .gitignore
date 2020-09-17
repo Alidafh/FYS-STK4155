@@ -2,8 +2,8 @@
 # Folders and files to ignore for THIS project
 hw*/
 test*
-*/__pycache__/*
-
+*__pycache__/*
+project1/code/__pycache__/
 
 # Prerequisites
 *.d
