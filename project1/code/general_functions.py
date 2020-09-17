@@ -2,10 +2,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from sklearn.preprocessing import PolynomialFeatures
 ###############################################################################
 
 def FrankeFunction(x,y):
+    """
+    Gives the values f(x,y) of the franke function
+    --------------------------------
+    Input
+        x: numpy array or scalar
+        y: numpy array or scalar
+    --------------------------------
+    """
     term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
     term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
     term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
@@ -21,7 +28,7 @@ def GenerateData(nData, start, stop, noise_str=0, seed=""):
         nData: number of datapoints
         start: minimum x,y
         stop: maximum x,y
-        noiseStrength: the strength of the noise
+        noise_str: the strength of the noise, default is zero
         seed: if set to "debug" random numbers are the same for each turn
     --------------------------------
     TODO: Change back to saving plot in pdf format
@@ -35,16 +42,16 @@ def GenerateData(nData, start, stop, noise_str=0, seed=""):
     y = np.arange(start, stop, steps)
     x, y = np.meshgrid(x,y)
 
-    print("Generating data with x,y:[{:},{:}] with {:} datapoints(step size {:.2e})".format(start, stop, nData, steps))
-    data = FrankeFunction(x, y)
+    print("Generating data for the Franke function with m = {:.0f} datapoints".format(len(x)**2))
+    z = FrankeFunction(x, y)
     if noise_str != 0:
         print("     Adding noise with {:} x normal distribution".format(noise_str))
         noise = noise_str*np.random.randn(len(x), 1)
-        data += noise
+        z += noise
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(x,y,data,cmap=cm.coolwarm, linewidth=0, antialiased=False)
+    surf = ax.plot_surface(x,y,z,cmap=cm.coolwarm, linewidth=0, antialiased=False)
     plt.title('Franke Function')
     ax.set_xlabel(r"$x$")
     ax.set_ylabel(r"$y$")
@@ -53,7 +60,35 @@ def GenerateData(nData, start, stop, noise_str=0, seed=""):
     plt.savefig("output/figures/franke_nData{}_noise{}.png".format(nData, noise_str), scale=0.1)
     print("     Figure saved in: output/figures/franke_nData{}_noise{}.pdf\n".format(nData, noise_str))
     #plt.show()
-    return x, y, data
+    return x, y, z
+
+def PolyDesignMatrix(x,y, degree):
+    """
+    Generates a design matrix of size (m,p) using a polynomial of chosen degree
+    --------------------------------
+    Input
+        x: numpy array with shape (n,n)
+        y: numpy array with shape (n,n)
+        degree: the degree of the polynomial
+    --------------------------------
+    TODO: Cleanup and comment
+    """
+
+    x = x.ravel()       # Easier to use arrays with shape (m, 1) where m = n**2
+    y = y.ravel()
+
+    m = len(x)
+    p = int(((degree+2)*(degree+1))/2)  # number of terms in beta
+    X = np.ones((m, p))
+    print("Generating polynomial design matrix of size (m, p) =", np.shape(X))
+
+    for i in range(1, degree+1):
+        j = int(((i)*(i+1))/2)
+        for k in range(i+1):
+            X[:,j+k] = x**(i-k)*y**(k)
+    return X
 
 if __name__ == '__main__':
-    x, y, data = GenerateData(5, 0, 1, 0.1, "debug")
+    x, y, z = GenerateData(2, 0, 1, 0.1, "debug")
+    X = PolyDesignMatrix(x,y,2)
+    
