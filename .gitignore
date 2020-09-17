@@ -2,6 +2,7 @@
 # Folders and files to ignore for THIS project
 hw*/
 test*
+*/__pycache__/*
 
 
 # Prerequisites
