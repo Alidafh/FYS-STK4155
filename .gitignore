@@ -1,7 +1,7 @@
 
 # Folders and files to ignore for THIS project
 hw*/
-test_*
+test*
 
 
 # Prerequisites
