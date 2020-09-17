@@ -75,7 +75,6 @@ def PolyDesignMatrix(x,y, degree):
         j = int(((i)*(i+1))/2)
         for k in range(i+1):
             X[:,j+k] = x**(i-k)*y**(k)
-
     return X
 
 if __name__ == '__main__':
