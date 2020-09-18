@@ -21,5 +21,6 @@ def plot_3D(x, y, z, title, filename):
     ax.set_ylabel(r"$y$")
     ax.set_zlabel(r"$z$")
     #plt.savefig("output/figures/{}.pdf".format(filename), scale=0.1)
-    plt.savefig("output/figures/{}.png".format(filename), scale=0.1)
+    #plt.savefig("output/figures/{}.png".format(filename), scale=0.1)
     print("     Figure saved in: output/figures/{}.pdf\n".format(filename))
+    #plt.show()
