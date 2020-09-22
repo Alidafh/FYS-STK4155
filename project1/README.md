@@ -1,8 +1,12 @@
 # Regression analysis and resampling methods
 
 ## Overview of files:
-Files in this routine
-plotting.py  
+Files in this routine\
+plotting.py: Contains the functions used to create figures\
+general_functions.py: Contains the analysis functions\
+main.py: the main script
+run.sh: Simple bash script to run main.py
+clean.sh: Bash script which deletes the output folders etc. in case a clean run is wanted.    
 
 ## How to run:
 Run the analysis using
@@ -10,6 +14,7 @@ Run the analysis using
 ```
 source run.sh
 ```
+
 If they do not exist already, the following folders are created:
 - output/figures
 
@@ -18,9 +23,11 @@ If code is sourced from someone else
 
 ### TO-DO:
 a) Ordinary least squares on the Franke function
-  - Scale data
-  - Split data into training set and a test set
-  - Need function for OLS
+  - [x] Generate data for the franke function
+  - [x] Function to generate Design matrix
+  - [x] Split data into training set and a test set
+  - [ ] Scale data
+  - [ ] Function for OLS
 
 b) Bias-variance trade-off and resampling techniques\
 c) Cross-validation as resampling techniques\
