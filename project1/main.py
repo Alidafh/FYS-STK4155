@@ -7,22 +7,12 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 x, y, z = func.GenerateData(100, 0, 1, 0.01, "debug")
-
-features = func.PolyDesignMatrix(x,y,degree=2)
-
-x = x.ravel()
-y = y.ravel()
-z = z.ravel()
-
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33)
-
-print(np.shape(x))
-print(np.shape(x_train), np.shape(x_test))
+X_features = func.PolyDesignMatrix(x, y, degree=2)
+X_train, X_test, z_train, z_test = train_test_split(X_features, z.ravel(), test_size=0.33)
+beta, z_train_predict = func.OLS(z_train, X_train)
+R2, MSE, var, bias = func.metrics(z_train, z_train_predict)
 
 
-
-
-#df = pd.DataFrame(features)
 
 
 """

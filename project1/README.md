@@ -27,7 +27,8 @@ a) Ordinary least squares on the Franke function
   - [x] Function to generate Design matrix
   - [x] Split data into training set and a test set
   - [ ] Scale data
-  - [ ] Function for OLS
+  - [x] Function for OLS
+  - [x] MSE, R2-score and variance
 
 b) Bias-variance trade-off and resampling techniques\
 c) Cross-validation as resampling techniques\
