@@ -2,8 +2,8 @@
 import numpy as np
 import plotting as plot
 
-from sklearn.metrics import r2_score
-
+from sklearn.metrics import r2_score, mean_squared_error
+#sklearn.metrics.mean_squared_error(y_true, y_pred,
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -70,7 +70,7 @@ def PolyDesignMatrix(x,y, degree):
     m = len(x)
     p = int(((degree+2)*(degree+1))/2)  # number of terms in beta
     X = np.ones((m, p))
-    print("Generating {:.0f}nd degree polynomial design matrix of size (n, p) =".format(degree), np.shape(X))
+    #print("Generating {:.0f}nd degree polynomial design matrix of size (n, p) =".format(degree), np.shape(X))
 
     for i in range(1, degree+1):
         j = int(((i)*(i+1))/2)
@@ -79,9 +79,9 @@ def PolyDesignMatrix(x,y, degree):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
 
-def metrics(z_true, z_approx):
+def metrics(z_true, z_pred):
     """
-    Calculate the R^2 score, mean square error, variance and bias
+    Calculate the R^2 score, mean square error, and variance
     --------------------------------
     Input
         z_true: The true response value
@@ -92,12 +92,17 @@ def metrics(z_true, z_approx):
     if len(z_true.shape) > 1:   # Fix shape of the z_true array
         z_true = z_true.ravel()
 
-    print("Calculating R2-score, mean squared error, variance and bias")
-    R2 = 1 - ((np.sum((z_true-z_approx)**2))/(np.sum((z_true - np.mean(z_true))**2)))
-    MSE = (1.0/(np.size(z_true))) *np.sum((z_true - z_approx)**2)
-    var = 0
-    bias = 0
-    return R2, MSE, var, bias
+    n = z_true.size
+    #print("Calculating R2-score, mean squared error, variance and bias")
+
+    R2 = 1 - ((np.sum((z_true-z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    #r2 = r2_score(z_true, z_pred)
+    MSE = np.sum((z_true - z_pred)**2)/n
+    #mse2 = mean_squared_error(z_true, z_approx)
+    var = np.mean(np.var(z_pred, keepdims=True))
+
+    print("     R2, MSE, variance: {:.2f}, {:.2f},{:.2f}\n".format(R2, MSE,var))
+    return R2, MSE, var
 
 
 def OLS(z, X):
@@ -115,13 +120,13 @@ def OLS(z, X):
     print("Prefomring OLS regression")
     beta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(z)
     z_approx = X @ beta
+    print("     Best fit parameters:", np.array_str(beta, precision=2, suppress_small=True))
+    #print("")
     return beta, z_approx
 
 
 if __name__ == '__main__':
     x, y, z = GenerateData(20, 0, 1, 0.1, "debug")
     X = PolyDesignMatrix(x,y,2)
-    print(np.shape(X))
     beta, z_approx = OLS(z, X)
     R2, MSE, var, bias = metrics(z, z_approx)
-    print(R2, MSE, var, bias)
