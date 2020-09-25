@@ -2,7 +2,8 @@
 import numpy as np
 import plotting as plot
 
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
+#sklearn.metrics.explained_variance_score(y_true, y_pred,
 #sklearn.metrics.mean_squared_error(y_true, y_pred,
 ###############################################################################
 
@@ -91,17 +92,27 @@ def metrics(z_true, z_pred):
     """
     if len(z_true.shape) > 1:   # Fix shape of the z_true array
         z_true = z_true.ravel()
+        z_red = z_pred.rave()
 
     n = z_true.size
     #print("Calculating R2-score, mean squared error, variance and bias")
 
-    R2 = 1 - ((np.sum((z_true-z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
     #r2 = r2_score(z_true, z_pred)
     MSE = np.sum((z_true - z_pred)**2)/n
     #mse2 = mean_squared_error(z_true, z_approx)
     var = np.mean(np.var(z_pred, keepdims=True))
+    bias = np.mean( (z_true - np.mean(z_pred, keepdims=True))**2 )
 
-    print("     R2, MSE, variance: {:.2f}, {:.2f},{:.2f}\n".format(R2, MSE,var))
+    print("     R2, MSE, variance: {:.3f}, {:.3f}, {:.3f}\n".format(R2, MSE,var))
+    print("")
+    error = np.mean( np.mean((z_true - z_pred)**2, keepdims=True) )
+    bias = np.mean( (z_true - np.mean(z_pred, keepdims=True))**2 )
+    variance = np.mean( np.var(z_pred, keepdims=True) )
+    print('Error:', error)
+    print('Bias^2:', bias)
+    print('Var:', variance)
+    print('{} >= {} + {} = {}'.format(error, bias, variance, bias+variance))
     return R2, MSE, var
 
 
@@ -129,4 +140,4 @@ if __name__ == '__main__':
     x, y, z = GenerateData(20, 0, 1, 0.1, "debug")
     X = PolyDesignMatrix(x,y,2)
     beta, z_approx = OLS(z, X)
-    R2, MSE, var, bias = metrics(z, z_approx)
+    R2, MSE, var= metrics(z, z_approx)
