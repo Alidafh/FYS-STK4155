@@ -106,13 +106,7 @@ def metrics(z_true, z_pred):
 
     print("     R2, MSE, variance: {:.3f}, {:.3f}, {:.3f}\n".format(R2, MSE,var))
     print("")
-    error = np.mean( np.mean((z_true - z_pred)**2, keepdims=True) )
-    bias = np.mean( (z_true - np.mean(z_pred, keepdims=True))**2 )
-    variance = np.mean( np.var(z_pred, keepdims=True) )
-    print('Error:', error)
-    print('Bias^2:', bias)
-    print('Var:', variance)
-    print('{} >= {} + {} = {}'.format(error, bias, variance, bias+variance))
+
     return R2, MSE, var
 
 
