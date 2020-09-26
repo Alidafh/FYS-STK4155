@@ -1,7 +1,7 @@
 # Regression analysis and resampling methods
 
 ## Overview of files:
-Files in this routine\
+
 plotting.py: Contains the functions for creating figures\
 general_functions.py: Contains the analysis functions\
 helpers.py: Supergeneral functions such as SVD etc.\
@@ -35,6 +35,7 @@ a) Ordinary least squares on the Franke function
 
 b) Bias-variance trade-off and resampling techniques\
   - [ ] Bootstrap
+
 c) Cross-validation as resampling techniques\
 d) Ridge regression on the Franke function with resampling\
 e) Lasso Regression on the Franke function with resampling\
@@ -45,5 +46,5 @@ g) OLS, Ridge and Lasso regression with resampling\
 ### Work-distribution
 
 ### Notes
-Alida: as long as n>p the two OLS functions returns the same values (both calculate the pseudoinverse I guess). Having trouble with the
-Alida: I started working on the bootstrapping
+Alida: as long as n>p the two OLS functions returns the same values (both calculate the pseudoinverse I guess). Having trouble with the confidence intervals\
+Alida: I started working on the bootstrapping\
