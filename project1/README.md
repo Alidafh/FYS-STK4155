@@ -26,7 +26,7 @@ a) Ordinary least squares on the Franke function
   - [x] Generate data for the franke function
   - [x] Function to generate Design matrix
   - [x] Split data into training set and a test set
-  - [ ] Scale data
+  - [x] Scale data
   - [x] Function for OLS
   - [x] MSE, R2-score and variance
 
@@ -41,3 +41,4 @@ g) OLS, Ridge and Lasso regression with resampling\
 ### Workdistribution
 
 ### Notes
+Alida: implemented OLS_SVD that uses SVD insted, but the variance of beta is different than in the original OLS function. I don't get why..

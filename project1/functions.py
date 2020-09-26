@@ -3,11 +3,8 @@ import numpy as np
 import plotting as plot
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
-#sklearn.metrics.explained_variance_score(y_true, y_pred,
-#sklearn.metrics.mean_squared_error(y_true, y_pred,
-from numba import jit
-import scipy as scl
 from sklearn.preprocessing import StandardScaler
+import scipy as scl
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -40,21 +37,16 @@ def GenerateData(nData, noise_str=0, seed=""):
         np.random.seed(42)
         print("Running in debug mode")
 
-    x = np.random.rand(int(np.sqrt(nData)), 1)
-    y = np.random.rand(int(np.sqrt(nData)), 1)
-    x,y = np.meshgrid(x,y)
+    x = np.random.rand(nData, 1)
+    y = np.random.rand(nData, 1)
 
     print("Generating data for the Franke function with n = {:.0f} datapoints".format(nData))
     z = FrankeFunction(x, y)
     if noise_str != 0:
-        noise = noise_str * np.random.randn(int(np.sqrt(nData)), 1)
+        noise = noise_str * np.random.randn(nData, 1)
         z += noise
 
-    x = x.ravel()
-    y = y.ravel()
-    z = z.ravel()
     return x, y, z
-
 
 def PolyDesignMatrix(x, y, degree):
     """
@@ -85,6 +77,15 @@ def PolyDesignMatrix(x, y, degree):
     return X
 
 def scale_X(train, test):
+    """
+    Scales the training and test data using sklearn StandardScaler
+    --------------------------------
+    Input
+        train: The training set
+        test: The test set
+    --------------------------------
+    returns train_scl and test_scl
+    """
     scaler = StandardScaler()
     scaler.fit(train[:,1:])
     train_scl =  np.ones(train.shape)
@@ -95,14 +96,15 @@ def scale_X(train, test):
 
 def metrics(z_true, z_pred, test=""):
     """
-    Calculate the R^2 score, mean square error, and variance
+    Calculate the R^2 score, mean square error, and variance. The calculated
+    R2-score and MSE are compared to the results from sklearn.
     --------------------------------
     Input
         z_true: The true response value
         z_approx: The approximation found using regression
     --------------------------------
     return: R2, MSE, var, bias
-    TODO:
+    TODO: quit if difference is too large?
     """
     n = z_true.size
     # Calculate the r2-score, mean squared error, variance and bias
@@ -111,17 +113,62 @@ def metrics(z_true, z_pred, test=""):
     var = np.mean(np.var(z_pred, keepdims=True))
     bias = np.mean((z_true - np.mean(z_pred, keepdims=True))**2)
 
-    if test == "test":
-        r2_sklearn = r2_score(z_true, z_pred)
-        mse_sklearn = mean_squared_error(z_true, z_pred)
+    r2_sklearn = r2_score(z_true, z_pred)
+    mse_sklearn = mean_squared_error(z_true, z_pred)
+    # Double check answers:
+    if np.abs(R2-r2_sklearn) > 0.001:
+        print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
+
+    if np.abs(MSE-mse_sklearn) > 0.001:
+        print("     Diff MSE: {:.2f}".format(MSE-mse_sklearn))
 
     return R2, MSE, var, bias
 
+def OLS_SVD(z, X):
+    """
+    Preforming ordinary least squares fit to find the regression parameters
+    using a signular value decomposition. Also calculates the 95% confidence
+    interval of the fitted parameters.
+    --------------------------------
+    Input
+        z: response variable
+        X: Design matrix
+    --------------------------------
+    TODO: Make class called regression instead?
+    """
+    U, D, Vt = scl.linalg.svd(X)
+    V = Vt.T
+    diagonal = np.zeros([V.shape[1], U.shape[1]])
+    diagonal_var = np.zeros([V.shape[0], V.shape[1]])
+    np.fill_diagonal(diagonal, D**(-1))
+    np.fill_diagonal(diagonal_var, D**(-2))
 
+    beta = (V @ diagonal @ U.T) @ z
+    z_pred = X @ beta
+
+    # Problem: if num of datapoints is smaller than the number of parameters the
+    # estimated sigma is negative and this code does not work. Temporarely solved
+    # by setting sigma to zero. Will prob introduce a lot of bias tho.
+
+    sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+    if sigma2 < 0:
+        print("The number of parameters exceeds the number of datapoints")
+        sigma2 = 0
+
+    var_beta = sigma2 * (np.diag(V @ diagonal_var @ Vt)[np.newaxis]).T
+    std_beta = np.sqrt(var_beta)
+
+    conf_inter = np.zeros((len(beta), 2)) # Matrix of zeros with dimention (p,2)
+    for i in range(len(beta)):
+        conf_inter[i, 0] = np.mean(beta[i]) - 2*std_beta[i]
+        conf_inter[i, 1] = np.mean(beta[i]) + 2*std_beta[i]
+    return beta, conf_inter
 
 def OLS(z, X):
     """
-    Preforming ordinary least squares fit
+    Preforming ordinary least squares fit to find the regression parameters beta,
+    Uses the numpy pseudoinverse of X for inverting the matrix, also calculates
+    the confidence interval of the parameters.
     --------------------------------
     Input
         z: response variable
@@ -131,37 +178,34 @@ def OLS(z, X):
     """
     #beta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(z)
     beta = np.linalg.pinv(X) @ z
-
-    #z_pred= X @ beta
+    z_pred = X @ beta
 
     # Find 95% contidence intervals for the beta values
-    #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
-    #var_beta = sigma2 * np.linalg.inv(X.T.dot(X)).diagonal()
-    #std_beta = np.sqrt(var_beta)
+    sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+    if sigma2 < 0:
+        print("The number of parameters exceeds the number of datapoints")
+        sigma2 = 0
 
-    conf_inter = np.zeros((len(beta), 2))       # Matrix of zeros with dimention (p,2)
-    #for i in range(len(beta)):
-        #std_beta = np.sqrt(var_beta[i,i])
-    #    conf_inter[i, 0] = np.mean(beta) - 2*std_beta[i]
-    #    conf_inter[i, 1] = np.mean(beta) + 2*std_beta[i]
+    var_beta = sigma2 * np.linalg.inv(X.T.dot(X)).diagonal()
+    std_beta = np.sqrt(var_beta)
+
+    conf_inter = np.zeros((len(beta), 2))  # Matrix of zeros with dimension (p,2)
+    for i in range(len(beta)):
+        conf_inter[i, 0] = beta[i] - 2*std_beta[i]
+        conf_inter[i, 1] = beta[i] + 2*std_beta[i]
 
     return beta, conf_inter
 
+
 if __name__ == '__main__':
-    x, y, z = GenerateData(20, 0, 1, 0.1, "debug")
-    X = PolyDesignMatrix(x,y,2)
-    x_train, x_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
-    x_train_s = x_train - np.mean(x_train)
-    x_test_s = x_test - np.mean(x_test)
+    x, y, z = GenerateData(100, 0.1, "debug")
+    X = PolyDesignMatrix(x, y, 4)
+    beta, conf_beta = OLS_SVD(z, X)
+    #print(conf_beta)
+    print("---------------")
+    b2, ci2 = OLS(z,X)
+    #print(ci2)
 
-    scaler = StandardScaler()
-    scaler.fit(X_train[:,1:])
-    X_train_scaled = scaler.transform(X_train[:,1:])
-    #X_test_scaled = scaler.transform(X_test)
-
-    n = len(X_train_scaled[:,1])
-    ones = np.ones((n,1))
-
-    X_train_new = np.hstack((ones, X_train_scaled))
-
-    print(x_train_s)
+    #for i in range(len(beta)):
+    #    print(ci2[i,0] - conf_beta[i,0])
+    #    print(ci2[i,1] - conf_beta[i,1])
