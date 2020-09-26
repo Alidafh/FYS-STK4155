@@ -7,6 +7,23 @@ fi
 
 python main.py
 
+#echo -n "Do you want to run a) [y/n]?"
+#read type
+
+#if [ "$type" == "y" ]; then
+#  echo "Running part a)"
+#  echo "--------------------------------------------------"
+#  python main.py 0
+#fi
+#
+#if [ "$type" == "n" ]; then
+#  echo "Skipping part a)"
+#  echo "--------------------------------------------------"
+#  python main.py 1
+#fi
+
+
+
 #FILE1=datafiles/SRTM_data_Norway_1.tif
 #FILE2=datafiles/SRTM_data_Norway_2.tif
 
