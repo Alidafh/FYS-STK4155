@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
 from sklearn.preprocessing import StandardScaler
 import scipy as scl
+from helpers import SVDinv
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -36,11 +37,11 @@ def GenerateData(nData, noise_str=0, seed=""):
     if seed == "debug":
         np.random.seed(42)
         print("Running in debug mode")
+        print("Generating data for the Franke function with n = {:.0f} datapoints\n".format(nData))
 
     x = np.random.rand(nData, 1)
     y = np.random.rand(nData, 1)
 
-    print("Generating data for the Franke function with n = {:.0f} datapoints".format(nData))
     z = FrankeFunction(x, y)
     if noise_str != 0:
         noise = noise_str * np.random.randn(nData, 1)
@@ -94,7 +95,7 @@ def scale_X(train, test):
     test_scl[:,1:] = scaler.transform(test[:,1:])
     return train_scl, test_scl
 
-def metrics(z_true, z_pred, test=""):
+def metrics(z_true, z_pred, test=False):
     """
     Calculate the R^2 score, mean square error, and variance. The calculated
     R2-score and MSE are compared to the results from sklearn.
@@ -102,69 +103,68 @@ def metrics(z_true, z_pred, test=""):
     Input
         z_true: The true response value
         z_approx: The approximation found using regression
+        test: Test the calculations with the sklearn values (default is False)
     --------------------------------
     return: R2, MSE, var, bias
     TODO: quit if difference is too large?
     """
-    n = z_true.size
+    n = len(z_true)
     # Calculate the r2-score, mean squared error, variance and bias
-    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
-    MSE = np.sum((z_true - z_pred)**2)/n
-    var = np.mean(np.var(z_pred, keepdims=True))
-    bias = np.mean((z_true - np.mean(z_pred, keepdims=True))**2)
+    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true, keepdims=True))**2)))
+    MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
+    var = np.mean(np.var(z_pred, axis=1, keepdims=True))
+    bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
+    if test == True:
+        r2_sklearn = r2_score(z_true.ravel(), z_pred.ravel())
+        mse_sklearn = mean_squared_error(z_true.ravel(), z_pred.ravel())
+        # Double check answers:
+        if np.abs(R2-r2_sklearn) > 0.001:
+            print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
 
-    r2_sklearn = r2_score(z_true, z_pred)
-    mse_sklearn = mean_squared_error(z_true, z_pred)
-    # Double check answers:
-    if np.abs(R2-r2_sklearn) > 0.001:
-        print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
-
-    if np.abs(MSE-mse_sklearn) > 0.001:
-        print("     Diff MSE: {:.2f}".format(MSE-mse_sklearn))
+        if np.abs(MSE-mse_sklearn) > 0.001:
+            print("     Diff MSE: {:.2f}".format(MSE-mse_sklearn))
 
     return R2, MSE, var, bias
 
-def OLS_SVD(z, X):
+def OLS_SVD(z, X, conf = False):
     """
     Preforming ordinary least squares fit to find the regression parameters
-    using a signular value decomposition. Also calculates the 95% confidence
-    interval of the fitted parameters.
+    using a signular value decomposition. Also, if prompted it calculates the
+    95% confidence interval of the fitted parameters.
     --------------------------------
     Input
         z: response variable
         X: Design matrix
+        conf: True if you want 2*std(beta)
     --------------------------------
     TODO: Make class called regression instead?
     """
-    U, D, Vt = scl.linalg.svd(X)
+    U, D, Vt = np.linalg.svd(X)
     V = Vt.T
     diagonal = np.zeros([V.shape[1], U.shape[1]])
-    diagonal_var = np.zeros([V.shape[0], V.shape[1]])
     np.fill_diagonal(diagonal, D**(-1))
-    np.fill_diagonal(diagonal_var, D**(-2))
+    beta = (V @ diagonal @ U.T) @ z     # Same as pinv
 
-    beta = (V @ diagonal @ U.T) @ z
-    z_pred = X @ beta
+    if conf == True:
+        # Problem: if num of datapoints is smaller than the number of parameters the
+        # estimated sigma is negative and this code does not work. Temporarely solved
+        # by setting sigma to zero. Will introduce a lot of bias tho??
+        diagonal_var = np.zeros([V.shape[0], V.shape[1]])
+        np.fill_diagonal(diagonal_var, D**(-2))
 
-    # Problem: if num of datapoints is smaller than the number of parameters the
-    # estimated sigma is negative and this code does not work. Temporarely solved
-    # by setting sigma to zero. Will prob introduce a lot of bias tho.
+        z_pred = X @ beta
+        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        if sigma2 <= 0:
+            print("ERROR: n = {} < p = {}: n-p-1 = {}". format(len(z), len(beta), len(z)-len(beta)-1))
+            sigma2 = np.abs(sigma2)
 
-    sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
-    if sigma2 < 0:
-        print("The number of parameters exceeds the number of datapoints")
-        sigma2 = 0
+        var_beta = sigma2 * (np.diag(V @ diagonal_var @ Vt)[np.newaxis]).T
+        std_beta = np.sqrt(var_beta)
+        conf = 2* std_beta
+        return beta, conf.ravel()
+    return beta
 
-    var_beta = sigma2 * (np.diag(V @ diagonal_var @ Vt)[np.newaxis]).T
-    std_beta = np.sqrt(var_beta)
-
-    conf_inter = np.zeros((len(beta), 2)) # Matrix of zeros with dimention (p,2)
-    for i in range(len(beta)):
-        conf_inter[i, 0] = np.mean(beta[i]) - 2*std_beta[i]
-        conf_inter[i, 1] = np.mean(beta[i]) + 2*std_beta[i]
-    return beta, conf_inter
-
-def OLS(z, X):
+def OLS(z, X, conf = False):
     """
     Preforming ordinary least squares fit to find the regression parameters beta,
     Uses the numpy pseudoinverse of X for inverting the matrix, also calculates
@@ -176,36 +176,33 @@ def OLS(z, X):
     --------------------------------
     TODO: Make class called regression instead?
     """
-    #beta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(z)
     beta = np.linalg.pinv(X) @ z
-    z_pred = X @ beta
 
-    # Find 95% contidence intervals for the beta values
-    sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
-    if sigma2 < 0:
-        print("The number of parameters exceeds the number of datapoints")
-        sigma2 = 0
+    if conf == True:
+        z_pred = X @ beta
+        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
 
-    var_beta = sigma2 * np.linalg.inv(X.T.dot(X)).diagonal()
-    std_beta = np.sqrt(var_beta)
+        # Problem: if num of datapoints is smaller than the number of parameters the
+        # estimated sigma is negative and this code does not work. Temporarely solved
+        # by setting sigma to zero. Will introduce a lot of bias tho??
+        if sigma2 <= 0:
+            print("ERROR: n = {} < p = {}: n-p-1 = {}". format(len(z), len(beta), len(z)-len(beta)-1))
+            sigma2 = np.abs(sigma2)
 
-    conf_inter = np.zeros((len(beta), 2))  # Matrix of zeros with dimension (p,2)
-    for i in range(len(beta)):
-        conf_inter[i, 0] = beta[i] - 2*std_beta[i]
-        conf_inter[i, 1] = beta[i] + 2*std_beta[i]
+        var_beta = sigma2 * SVDinv(X.T @ X).diagonal()
+        std_beta = np.sqrt(var_beta)
+        conf = 2*std_beta
 
-    return beta, conf_inter
+        return beta, conf
+    return beta
 
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(100, 0.1, "debug")
-    X = PolyDesignMatrix(x, y, 4)
-    beta, conf_beta = OLS_SVD(z, X)
-    #print(conf_beta)
+    x, y, z = GenerateData(10, 0.1, "debug")
+    X = PolyDesignMatrix(x, y, 1)
+    #beta = OLS(z, X)
+    beta, conf = OLS(z, X, True)
+    b2, ci2 = OLS_SVD(z,X, True)
+    print(beta, conf)
     print("---------------")
-    b2, ci2 = OLS(z,X)
-    #print(ci2)
-
-    #for i in range(len(beta)):
-    #    print(ci2[i,0] - conf_beta[i,0])
-    #    print(ci2[i,1] - conf_beta[i,1])
+    print(beta, ci2)
