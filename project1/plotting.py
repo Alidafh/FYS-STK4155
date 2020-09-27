@@ -4,7 +4,7 @@ from matplotlib import cm
 import functions as func
 import numpy as np
 
-def plot_franke(title, filename):
+def plot_franke(title, filename, noise=0):
     """
     Plots the franke function and saves it in the folder: output/figures/
     --------------------------------
@@ -19,7 +19,7 @@ def plot_franke(title, filename):
     y = np.arange(0, 1, 0.05)
     x, y = np.meshgrid(x,y)
 
-    z = func.FrankeFunction(x,y)
+    z = func.FrankeFunction(x,y) + np.random.normal(0, noise, len(x))
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -28,10 +28,10 @@ def plot_franke(title, filename):
     ax.set_xlabel(r"$x$", fontsize = 12, fontname = "serif")
     ax.set_ylabel(r"$y$", fontsize = 12, fontname = "serif")
     ax.set_zlabel(r"$z$", fontsize = 12, fontname = "serif")
-    #plt.savefig("output/figures/{}.pdf".format(filename), scale=0.1)
-    plt.savefig("output/figures/{}.png".format(filename), scale=0.1)
-    print("    Figure saved in: output/figures/{}.pdf\n".format(filename))
-    #plt.show()
+    #plt.savefig("output/figures/{}.pdf".format(filename))
+    fig.savefig("output/figures/{:}_{:}.png".format(filename, noise), scale=0.1)
+    print("    Figure saved in: output/figures/{:}_{:}.pdf\n".format(filename, noise))
+    plt.close()
 
 def plot_MSE(x, test_error, train_error, rType = "", c=""):
     """
@@ -55,9 +55,10 @@ def plot_MSE(x, test_error, train_error, rType = "", c=""):
     plt.legend()
     plt.xlabel("Model complexity ({})".format(c.split("_")[0]), fontsize = 12, fontname = "serif")
     plt.ylabel("MSE", fontsize = 12, fontname = "serif")
-    plt.savefig("output/figures/MSE_{}_{}.png".format(rType, c))
-    print("    Figure saved in: output/figures/MSE_{}_{}.png\n".format(rType, c))
-    #plt.show()
+    #plt.savefig("output/figures/MSE_{}_{}.pdf".format(rType, c))
+    fig.savefig("output/figures/MSE_{}_{}.png".format(rType, c))
+    print("    Figure saved in: output/figures/MSE_{}_{}.pdf\n".format(rType, c))
+    plt.close()
 
 def bias_variance(x, mse, var, bias, rType = "", c=""):
     """
@@ -81,9 +82,56 @@ def bias_variance(x, mse, var, bias, rType = "", c=""):
     plt.plot(x, var, "tab:blue", label="Variance")
     plt.plot(x, mse, "tab:red", label="MSE")
     plt.legend()
+    plt.semilogy()
     plt.xlabel("Model complexity ({})".format(c.split("_")[0]), fontsize = 12, fontname = "serif")
-    plt.savefig("output/figures/bias_variance_{}_{}.png".format(rType, c))
-    print("    Figure saved in: output/figures/bias_variance_{}_{}.png\n".format(rType, c))
+    #fig.savefig("output/figures/bias_variance_{}_{}.pdf".format(rType, c))
+    fig.savefig("output/figures/bias_variance_{}_{}.png".format(rType, c))
+    print("    Figure saved in: output/figures/bias_variance_{}_{}.pdf\n".format(rType, c))
+    plt.close()
+
+
+def plot_beta(beta, conf_beta, d):
+    """
+    Plots the parameters with errorbars corresponding to the confidence interval
+    --------------------------------
+    Input
+        beta: the regression parameters
+        conf_beta: the std of the regression parameters
+        d: the polynomial degree
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
+
+    print("Plotting the regression parameters with confidence intervals")
+    fig, ax = plt.subplots()
+    ax.grid()
+    plt.title("OLS parameters using polynomial degree {:.0f} ".format(d), fontsize = 12, fontname = "serif")
+    x = np.arange(len(beta))
+    plt.errorbar(x, beta, yerr=conf_beta, markersize=4, linewidth=1, capsize=5, capthick=1, ecolor="black", fmt='o')
+    xlabels = [r"$\beta_"+"{:.0f}$".format(i) for i in range(len(beta))]
+    ax.set_xticks(x)
+    ax.set_xticklabels(xlabels)
+    #fig.savefig("output/figures/beta_degree{:.0f}.pdf".format(d))
+    fig.savefig("output/figures/beta_degree_{:.0f}.png".format(d))
+    print("    Figure saved in: output/figures/beta_degree_{:.0f}.pdf\n".format(d))
+    plt.close()
+
+def plot_kFold_var(x, var, k, rType="", varN=""):
+    print("Plotting the MSE with {:.0f} folds".format(k))
+    fig = plt.figure()
+    plt.grid()
+    plt.title("{:} {:} (k={:.0f})".format(rType, varN, k), fontsize = 12, fontname = "serif")
+    label = ["k={}".format(i) for i in range(1, k+1)]
+    plt.plot(x, var)
+    #plt.semilogy()
+    plt.legend(label)
+    plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
+    plt.ylabel("{}".format(varN), fontsize = 12, fontname = "serif")
+    #fig.savefig("output/figures/bias_variance_{}_{}.pdf".format(rType, c))
+    fig.savefig("output/figures/{:}_{:}_k{:.0f}.png".format(rType, varN, k))
+    print("    Figure saved in: output/figures/{:}_{:}_k{:.0f}.png".format(rType, varN, k))
+    plt.close()
+
 
 if __name__ == '__main__':
     #plot_franke("Illustration of the Franke Function", "franke_func_illustration")
