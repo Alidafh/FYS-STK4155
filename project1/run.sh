@@ -5,6 +5,11 @@ if [ ! -d output/figures ]; then
   echo "created folder: output/figures"
 fi
 
+if [ ! -d output/outfiles ]; then
+  mkdir -p output/outfiles;
+  echo "created folder: output/outfiles"
+fi
+
 python main.py
 
 #echo -n "Do you want to run a) [y/n]?"
