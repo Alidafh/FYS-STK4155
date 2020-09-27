@@ -4,26 +4,40 @@ import pandas as pd
 from imageio import imread
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
 import functions as func
 import plotting as plot
+import tools as tools
+import sys
+#!/usr/bin/python
+import numpy as np
+import pandas as pd
+from imageio import imread
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
+import functions as func
+import plotting as plot
+import tools as tools
 import sys
 
-
+x, y, z = func.GenerateData(100, 0.01, "debug")
 ###############################################################################
-def part_a(degree):
+def part_a(x, y, z, degree=5):
     print ("------------------------------------------------------")
     print ("                      PART A                          ")
     print ("------------------------------------------------------")
 
-    plot.plot_franke("Illustration of the Franke Function", "franke_illustration")
-    x, y, z = func.GenerateData(100, 0.1, "debug")
+    plot.plot_franke("Illustration of the Franke Function", "franke_illustration", 0.1)
+
     X = func.PolyDesignMatrix(x, y, degree)
 
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
     X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
     print("Fitting with OLS:")
-    beta, conf_beta = func.OLS_SVD(z_train, X_train_scl, conf=True)
+    beta, var_beta = func.OLS_SVD(z_train, X_train_scl, var=True)
+    conf_beta = 1.96*np.sqrt(var_beta)  # 95% confidence
 
     z_train_fit = X_train_scl @ beta
     z_test_pred = X_test_scl @ beta
@@ -36,21 +50,21 @@ def part_a(degree):
     print ("    MSE : {:.3f}".format(MSE_train))
     print ("    Beta:", np.array_str(beta.ravel(), precision=2, suppress_small=True))
     print ("    Conf:", np.array_str(conf_beta, precision=2, suppress_small=True))
+    print ("")
     #print ("----------------------")
-    print("")
+    plot.plot_beta(beta.ravel(), conf_beta, degree)
 
-part_a(2)
+part_a(x,y,z,3)
 
 ###############################################################################
 
-print ("------------------------------------------------------")
-print ("                      PART B                          ")
-print ("------------------------------------------------------")
+def part_b_noresample(x, y, z, d=5):
+    print ("------------------------------------------------------")
+    print ("                      PART B                          ")
+    print ("                   no resampling                      ")
+    print ("------------------------------------------------------")
 
-def part_b_noresample(d):
-    print("Preforming OLS-regression using polynomials up to {} degrees, no resample\n".format(d))
-    x, y, z = func.GenerateData(100, 0.01, "debug")
-    #d = 20  # maximum number of polynomial degrees
+    print("Preforming OLS-regression using polynomials up to {} degrees\n".format(d))
     mse_test = np.zeros(d)
     mse_train = np.zeros(d)
     degrees = np.arange(1, d+1)
@@ -73,81 +87,114 @@ def part_b_noresample(d):
         mse_test[i] = MSE_test
 
     plot.plot_MSE(degrees, mse_test, mse_train, "OLS", "degrees_{}".format(d))
-    print("-------------------------------------\n")
 
-
-part_b_noresample(20)
+part_b_noresample(x,y,z,10)
 ###############################################################################
 
-from sklearn.utils import resample
+def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, write=False):
+    print ("------------------------------------------------------")
+    print ("                      PART B                          ")
+    print ("                    resampling                        ")
+    print ("------------------------------------------------------")
 
-d = 5 # maximum number of polynomial degrees
-n_bootstraps = 100   # number of bootsraps
-print("Preforming OLS-regression using polynomials up to {:.0f} degrees with n_bootstrap={:.0f}\n".format(d, n_bootstraps))
+    print("Preforming OLS-regression using polynomials up to {:.0f} degrees with n_bootstrap={:.0f}\n".format(d, n_bootstraps))
 
-x, y, z = func.GenerateData(100, 0.01, "debug")
+    # Initialize arrays of shape (degrees, )
+    bias = np.zeros(d)
+    variance = np.zeros(d)
+    mse = np.zeros(d)
+    r2_score = np.zeros(d)
 
-# Initialize arrays of shape (degrees, )
-bias = np.zeros(d)
-variance = np.zeros(d)
-mse = np.zeros(d)
-error = np.zeros(d)
-r2_score = np.zeros(d)
+    degrees = np.arange(1, d+1) # array of degrees
 
-degrees = np.arange(1, d+1) # array of degrees
+    if write==True:
+        f = open("output/outfiles/bootstrap_metrics_{:.0f}_{:.0f}.txt".format(len(z), n_bootstraps),"w+")
+        print("Writing metrics to file:")
+        print("   output/outfiles/bootstrap_metrics_{:.0f}_{:.0f}.txt\n".format(len(z), n_bootstraps))
+        f.write("Polydegree   R2   MSE   Variance   Bias\n")
 
-for i in range(d):
-    """ Loop over degrees"""
-    X = func.PolyDesignMatrix(x, y, degrees[i])
+    for i in range(d):
+        """ Loop over degrees"""
+        X = func.PolyDesignMatrix(x, y, degrees[i])
 
-    # Split and scale data
-    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
-    X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
-    #z_test_pred = np.empty((z_test.shape[0], n_bootstraps))
-    z_test_pred = np.empty((len(z_test), n_bootstraps))
-    for j in range(n_bootstraps):
-        """ Loop over bootstraps"""
-        tmp_X_train, tmp_z_train = resample(X_train, z_train)
-        tmp_beta = func.OLS_SVD(tmp_z_train, tmp_X_train)
-        z_test_pred[:,j] = X_test_scl @ tmp_beta.ravel()
+        # Split and scale data
+        X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+        X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
+        z_test_pred = np.empty((z_test.shape[0], n_bootstraps))
 
-    # Calculate the stuff
-    r2_score[i], mse[i], variance[i], bias[i] = func.metrics(z_test, z_test_pred)
+        for j in range(n_bootstraps):
+            """ Loop over bootstraps"""
+            tmp_X_train, tmp_z_train = resample(X_train, z_train)
+            tmp_beta = func.OLS_SVD(tmp_z_train, tmp_X_train)
+            z_test_pred[:,j] = X_test_scl @ tmp_beta.ravel()
 
-plot.bias_variance(degrees, mse, variance, bias, rType = "OLS", c = "degrees_{}".format(d))
-print("-------------------------------------")
+        # Calculate the stuff
+        r2_score[i], mse[i], variance[i], bias[i] = func.metrics(z_test, z_test_pred)
+        if write==True:
+            f.write("{:.0f}   {:.5e}  {:.5e}  {:.5e}  {:.5e}\n".format(degrees[i], r2_score[i], mse[i], variance[i], bias[i]))
 
-
+    plot.bias_variance(degrees, mse, variance, bias, rType = "OLS", c = "degrees_{:.0f}_ndata_{:.0f}_nboot_{:.0f}".format(d, len(z), n_bootstraps))
 
 
+part_b_bootstrap(x, y, z, d=10, n_bootstraps=100, write=True)
 
-"""
-plt.figure()
-#plt.plot(degrees, mse_train, degrees, mse_test)
-plt.plot(degrees, bias_test,  degrees, variance_test, degrees, mse_test)
-plt.legend(["bias", "variance", "MSE"])
-plt.xlabel("complexity")
-plt.ylabel(" y-axis")
-plt.show()
-"""
+###############################################################################
 
-"""
-plt.figure()
-#plt.plot(degrees, mse_train, degrees, mse_test)
-plt.plot(degrees, bias_train, degrees, bias_test, degrees, variance_train, degrees, variance_test)
-plt.legend(["bias train", "bias test", "var train", "var test"])
-plt.xlabel("complexity")
-plt.ylabel(" y-axis")
-plt.show()
+def kFold(x, y, z, d=5, k=5):
+    """
+    --------------------------------
+    Input
+    --------------------------------
+    """
+    print ("------------------------------------------------------")
+    print ("                      PART C                          ")
+    print ("                      k-fold                          ")
+    print ("------------------------------------------------------")
+    degrees = np.arange(1, d+1)
+    mse = np.zeros((d,k))        # array of mse where each row corresponds
+    bias = np.zeros((d,k))       # to a degree and each colunm is the fold nb
+    rs2 = np.zeros((d,k))
+    var = np.zeros((d,k))
 
-plt.figure()
-plt.plot(degrees, mse_train, degrees, mse_test)
-#plt.plot(degrees, bias_train, degrees, bias_test, degrees, variance_train, degrees, variance_test)
-plt.legend(["train", "test"])
-plt.xlabel("complexity")
-plt.ylabel("MSE")
-plt.show()
-"""
+    a = 0
+    for j in range(d):
+        """loop over degrees"""
+        degree = degrees[j]
+        b = 0
+        for i in range(1, k+1):
+            """loop over folds"""
+            train_index, test_index = tools.foldIndex(x, i, k)
+            #print(test_index, train_index)
+            x_train = x[train_index]
+            y_train = y[train_index]
+            z_train = z[train_index]
+
+            x_test = x[test_index]
+            y_test = y[test_index]
+            z_test = z[test_index]
+
+            X_train = func.PolyDesignMatrix(x_train, y_train, degree)
+            X_test = func.PolyDesignMatrix(x_test, y_test, degree)
+
+            beta = func.OLS_SVD(z_train, X_train)
+
+            z_fit = X_train @ beta
+            z_pred = X_test @ beta
+
+            rs2[a,b], mse[a,b], var[a,b], bias[a,b]= func.metrics(z_test, z_pred)
+
+            b +=1
+        a +=1
+
+    plot.plot_kFold_var(degrees, mse, k, rType="OLS", varN="MSE")
+
+
+kFold(x,y,z, d=5, k=5)
+
+
+
+
+
 ############################# DO NOT ERASE ####################################
 ########################### (Without asking) ####################################
 
