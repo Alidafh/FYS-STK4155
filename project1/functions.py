@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
 from sklearn.preprocessing import StandardScaler
 import scipy as scl
-from helpers import SVDinv
+from tools import SVDinv
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -44,7 +44,8 @@ def GenerateData(nData, noise_str=0, seed=""):
 
     z = FrankeFunction(x, y)
     if noise_str != 0:
-        noise = noise_str * np.random.randn(nData, 1)
+        #noise = noise_str * np.random.randn(nData, 1)
+        noise = np.random.normal(0, noise_str, z.shape)
         z += noise
 
     return x, y, z
@@ -126,16 +127,16 @@ def metrics(z_true, z_pred, test=False):
 
     return R2, MSE, var, bias
 
-def OLS_SVD(z, X, conf = False):
+def OLS_SVD(z, X, var = False):
     """
     Preforming ordinary least squares fit to find the regression parameters
     using a signular value decomposition. Also, if prompted it calculates the
-    95% confidence interval of the fitted parameters.
+    variance of the fitted parameters
     --------------------------------
     Input
         z: response variable
         X: Design matrix
-        conf: True if you want 2*std(beta)
+        var: True if you want to calculate the variance
     --------------------------------
     TODO: Make class called regression instead?
     """
@@ -145,10 +146,11 @@ def OLS_SVD(z, X, conf = False):
     np.fill_diagonal(diagonal, D**(-1))
     beta = (V @ diagonal @ U.T) @ z     # Same as pinv
 
-    if conf == True:
-        # Problem: if num of datapoints is smaller than the number of parameters the
-        # estimated sigma is negative and this code does not work. Temporarely solved
-        # by setting sigma to zero. Will introduce a lot of bias tho??
+    if var == True:
+        # Problem: if n datapoints is smaller than the number of parameters
+        # the estimated sigma is negative and this code does not work.
+        # Temporarely solved by setting sigma to zero. Will introduce bias tho??
+
         diagonal_var = np.zeros([V.shape[0], V.shape[1]])
         np.fill_diagonal(diagonal_var, D**(-2))
 
@@ -159,16 +161,14 @@ def OLS_SVD(z, X, conf = False):
             sigma2 = np.abs(sigma2)
 
         var_beta = sigma2 * (np.diag(V @ diagonal_var @ Vt)[np.newaxis]).T
-        std_beta = np.sqrt(var_beta)
-        conf = 2* std_beta
-        return beta, conf.ravel()
+        return beta, var_beta.ravel()
     return beta
 
-def OLS(z, X, conf = False):
+def OLS(z, X, var = False):
     """
-    Preforming ordinary least squares fit to find the regression parameters beta,
-    Uses the numpy pseudoinverse of X for inverting the matrix, also calculates
-    the confidence interval of the parameters.
+    Preforming ordinary least squares fit to find the regression parameters
+    beta. Uses the numpy pseudoinverse of X for inverting the matrix.
+    If prompted it calculates the variance of the fitted parameters
     --------------------------------
     Input
         z: response variable
@@ -178,22 +178,18 @@ def OLS(z, X, conf = False):
     """
     beta = np.linalg.pinv(X) @ z
 
-    if conf == True:
+    if var == True:
+        # Problem: if n datapoints is smaller than the number of parameters
+        # the estimated sigma is negative and this code does not work.
+        # Temporarely solved by setting sigma to zero. Will introduce bias tho??
         z_pred = X @ beta
         sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
-
-        # Problem: if num of datapoints is smaller than the number of parameters the
-        # estimated sigma is negative and this code does not work. Temporarely solved
-        # by setting sigma to zero. Will introduce a lot of bias tho??
         if sigma2 <= 0:
             print("ERROR: n = {} < p = {}: n-p-1 = {}". format(len(z), len(beta), len(z)-len(beta)-1))
             sigma2 = np.abs(sigma2)
 
         var_beta = sigma2 * SVDinv(X.T @ X).diagonal()
-        std_beta = np.sqrt(var_beta)
-        conf = 2*std_beta
-
-        return beta, conf
+        return beta, var_beta
     return beta
 
 
