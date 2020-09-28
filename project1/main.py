@@ -22,6 +22,7 @@ import tools as tools
 import sys
 
 x, y, z = func.GenerateData(100, 0.01, "debug")
+
 ###############################################################################
 def part_a(x, y, z, degree=5):
     print ("------------------------------------------------------")
@@ -33,6 +34,7 @@ def part_a(x, y, z, degree=5):
     X = func.PolyDesignMatrix(x, y, degree)
 
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+
     X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
     print("Fitting with OLS:")
@@ -120,8 +122,8 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, write=False):
         # Split and scale data
         X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
         X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
-        z_test_pred = np.empty((z_test.shape[0], n_bootstraps))
 
+        z_test_pred = np.empty((z_test.shape[0], n_bootstraps))  # matrix shape (z_test, boostraps)
         for j in range(n_bootstraps):
             """ Loop over bootstraps"""
             tmp_X_train, tmp_z_train = resample(X_train, z_train)
@@ -140,7 +142,7 @@ part_b_bootstrap(x, y, z, d=10, n_bootstraps=100, write=True)
 
 ###############################################################################
 
-def kFold(x, y, z, d=5, k=5):
+def kFold(x, y, z, d=5, k=5, shuffle = False):
     """
     --------------------------------
     Input
@@ -150,36 +152,37 @@ def kFold(x, y, z, d=5, k=5):
     print ("                      PART C                          ")
     print ("                      k-fold                          ")
     print ("------------------------------------------------------")
+
     degrees = np.arange(1, d+1)
-    mse = np.zeros((d,k))        # array of mse where each row corresponds
-    bias = np.zeros((d,k))       # to a degree and each colunm is the fold nb
-    rs2 = np.zeros((d,k))
+
+    mse = np.zeros((d,k))        # arrays of statistics  where each row
+    bias = np.zeros((d,k))       # corresponds to a degree and each colunm
+    rs2 = np.zeros((d,k))        # is corresponds to the fold number
     var = np.zeros((d,k))
 
     a = 0
     for j in range(d):
         """loop over degrees"""
         degree = degrees[j]
+        X = func.PolyDesignMatrix(x, y, degree)
+        if shuffle == True: np.random.shuffle(X) # Shuffle the rows
         b = 0
         for i in range(1, k+1):
             """loop over folds"""
             train_index, test_index = tools.foldIndex(x, i, k)
-            #print(test_index, train_index)
-            x_train = x[train_index]
-            y_train = y[train_index]
+
+            X_train = X[train_index]
             z_train = z[train_index]
 
-            x_test = x[test_index]
-            y_test = y[test_index]
+            X_test = X[test_index]
             z_test = z[test_index]
 
-            X_train = func.PolyDesignMatrix(x_train, y_train, degree)
-            X_test = func.PolyDesignMatrix(x_test, y_test, degree)
+            X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
-            beta = func.OLS_SVD(z_train, X_train)
+            beta = func.OLS_SVD(z_train, X_train_scl)
 
-            z_fit = X_train @ beta
-            z_pred = X_test @ beta
+            z_fit = X_train_scl @ beta
+            z_pred = X_test_scl @ beta
 
             rs2[a,b], mse[a,b], var[a,b], bias[a,b]= func.metrics(z_test, z_pred)
 
@@ -189,8 +192,7 @@ def kFold(x, y, z, d=5, k=5):
     plot.plot_kFold_var(degrees, mse, k, rType="OLS", varN="MSE")
 
 
-kFold(x,y,z, d=5, k=5)
-
+kFold(x,y,z, d=5, k=5, shuffle=True)
 
 
 

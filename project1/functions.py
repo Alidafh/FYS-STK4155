@@ -16,6 +16,7 @@ def FrankeFunction(x,y):
         x: numpy array or scalar
         y: numpy array or scalar
     --------------------------------
+    TO DO: FINISHED
     """
     term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
     term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
@@ -32,8 +33,13 @@ def GenerateData(nData, noise_str=0, seed=""):
         noise_str: the strength of the noise, default is zero
         seed: if set to "debug" random numbers are the same for each turn
     --------------------------------
-    TODO: Change back to saving plot in pdf format, unmute print statements?
+    return
+        x: random numpy array [0,1]
+        y: random numpy array [0,1]
+        z: data from the franke function at given x and y values
+    TO DO: FINISHED
     """
+
     if seed == "debug":
         np.random.seed(42)
         print("Running in debug mode")
@@ -43,8 +49,8 @@ def GenerateData(nData, noise_str=0, seed=""):
     y = np.random.rand(nData, 1)
 
     z = FrankeFunction(x, y)
+
     if noise_str != 0:
-        #noise = noise_str * np.random.randn(nData, 1)
         noise = np.random.normal(0, noise_str, z.shape)
         z += noise
 
@@ -61,7 +67,8 @@ def PolyDesignMatrix(x, y, degree):
     --------------------------------
     Returns
         X: Design matrix
-    TODO: Cleanup and comment
+
+    TO DO: FINISHED
     """
     if len(x.shape) > 1:    # Easier to use arrays with shape (n, 1) where n = m**2
         x = x.ravel()
@@ -98,7 +105,7 @@ def scale_X(train, test):
 
 def metrics(z_true, z_pred, test=False):
     """
-    Calculate the R^2 score, mean square error, and variance. The calculated
+    Calculate the R^2 score, mean square error, and variance and bias. The calculated
     R2-score and MSE are compared to the results from sklearn.
     --------------------------------
     Input
@@ -138,7 +145,7 @@ def OLS_SVD(z, X, var = False):
         X: Design matrix
         var: True if you want to calculate the variance
     --------------------------------
-    TODO: Make class called regression instead?
+    TODO: Fix the variance problem, expressions in hastie et al. (3.8)
     """
     U, D, Vt = np.linalg.svd(X)
     V = Vt.T
@@ -194,11 +201,9 @@ def OLS(z, X, var = False):
 
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(10, 0.1, "debug")
+    x, y, z = GenerateData(4, 0.1, "debug")
     X = PolyDesignMatrix(x, y, 1)
-    #beta = OLS(z, X)
-    beta, conf = OLS(z, X, True)
-    b2, ci2 = OLS_SVD(z,X, True)
-    print(beta, conf)
-    print("---------------")
-    print(beta, ci2)
+    print(X)
+    print("------------------")
+    np.random.shuffle(X)
+    print(X)

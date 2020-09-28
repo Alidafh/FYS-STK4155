@@ -18,32 +18,6 @@ def SVDinv(A):
     invA = np.matmul(V,np.matmul(invD,UT))
     return invA
 
-def GenerateDataOld(nData, noise_str=0, seed=""):
-    """
-    Generates data for the Franke function with x,y:[start,stop]
-    --------------------------------
-    Input
-        nData: number of datapoints
-        noise_str: the strength of the noise, default is zero
-        seed: if set to "debug" random numbers are the same for each turn
-    --------------------------------
-    TODO: Change back to saving plot in pdf format, unmute print statements?
-    """
-    if seed == "debug":
-        np.random.seed(42)
-        print("Running in debug mode")
-        print("Generating data for the Franke function with n = {:.0f} datapoints\n".format(nData))
-
-    x = np.arange(0, 1, 1./nData)
-    y = np.arange(0, 1, 1./nData)
-    x,y = np.meshgrid(x,y)
-
-    z = FrankeFunction(x, y)
-    if noise_str != 0:
-        noise = noise_str * np.random.randn(nData, 1)
-        z += noise
-
-    return x, y, z
 
 def foldIndex(dataset,i, k):
     """
@@ -55,7 +29,7 @@ def foldIndex(dataset,i, k):
     b = (n*(i)//k)
     test_index = indices[a:b]
     size_test = test_index.size
-    size_train = int(np.abs(n-size_test))
+    size_train = int(np.abs(n - size_test))
     train_index = np.zeros(int(np.abs(n-size_test)), dtype=int)
     train_index[:a] = indices[:a]
     train_index[a:] = indices[b:]
