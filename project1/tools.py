@@ -51,11 +51,12 @@ def foldIndex(dataset,i, k):
     """
     n = len(dataset)
     indices = np.arange(n)
-    train_s = n*(k-1)//k
     a = n*(i-1)//k
     b = (n*(i)//k)
     test_index = indices[a:b]
-    train_index = np.zeros(int(train_s), dtype=int)
+    size_test = test_index.size
+    size_train = int(np.abs(n-size_test))
+    train_index = np.zeros(int(np.abs(n-size_test)), dtype=int)
     train_index[:a] = indices[:a]
     train_index[a:] = indices[b:]
     return train_index, test_index
