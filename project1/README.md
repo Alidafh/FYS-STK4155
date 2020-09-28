@@ -45,7 +45,7 @@ d) Ridge regression on the Franke function with resampling\
   - [ ] Function that does Ridge regression
 
 e) Lasso Regression on the Franke function with resampling\
-  - [ ] Function that does Lasso regression
+  - [ ] DO lasso stuff
 
 f) Introducing real data and preparing the data analysis\
 g) OLS, Ridge and Lasso regression with resampling\
