@@ -155,10 +155,10 @@ def kFold(x, y, z, d=5, k=5, shuffle = False):
 
     degrees = np.arange(1, d+1)
 
-    mse = np.zeros((d,k))        # arrays of statistics  where each row
-    bias = np.zeros((d,k))       # corresponds to a degree and each colunm
-    rs2 = np.zeros((d,k))        # is corresponds to the fold number
-    var = np.zeros((d,k))
+    mse_kFold = np.zeros((d,k))        # arrays of statistics  where each row
+    bias_kFold = np.zeros((d,k))       # corresponds to a degree and each colunm
+    rs2_kFold = np.zeros((d,k))        # is corresponds to the fold number
+    var_kFold = np.zeros((d,k))
 
     a = 0
     for j in range(d):
@@ -184,13 +184,18 @@ def kFold(x, y, z, d=5, k=5, shuffle = False):
             z_fit = X_train_scl @ beta
             z_pred = X_test_scl @ beta
 
-            rs2[a,b], mse[a,b], var[a,b], bias[a,b]= func.metrics(z_test, z_pred)
+            rs2_kFold[a,b], mse_kFold[a,b], var_kFold[a,b], bias_kFold[a,b]= func.metrics(z_test, z_pred)
 
             b +=1
         a +=1
 
-    plot.plot_kFold_var(degrees, mse, k, rType="OLS", varN="MSE")
-
+    plot.plot_kFold_var(degrees, mse_kFold, k, rType="OLS", varN="MSE")
+    
+    estimated_rs2_KFold = np.mean(rs2_kFold, axis = 1)
+    estimated_mse_KFold = np.mean(mse_kFold, axis = 1)
+    estimated_var_KFold = np.mean(var_kFold, axis = 1)
+    estimated_bias_KFold = np.mean(bias_kFold, axis = 1)
+    return estimated_rs2_KFold, estimated_mse_KFold, estimated_var_KFold, estimated_bias_KFold
 
 kFold(x,y,z, d=5, k=5, shuffle=True)
 

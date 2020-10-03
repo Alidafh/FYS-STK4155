@@ -116,7 +116,19 @@ def plot_beta(beta, conf_beta, d):
     print("    Figure saved in: output/figures/beta_degree_{:.0f}.pdf\n".format(d))
     plt.close()
 
-def plot_kFold_var(x, var, k, rType="", varN=""):
+def plot_kFold_deg(x, var, k, rType="", varN=""):
+    """
+    Plots the chosen k-fold variable as a function of degrees 
+    --------------------------------
+    Input
+        x: degrees
+        var: the variable you want to plot
+        k: number of folds
+        rType: string, regression type
+        varN: string, name of variable
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
     print("Plotting the MSE with {:.0f} folds".format(k))
     fig = plt.figure()
     plt.grid()
