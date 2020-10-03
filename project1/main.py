@@ -9,19 +9,9 @@ import functions as func
 import plotting as plot
 import tools as tools
 import sys
-#!/usr/bin/python
-import numpy as np
-import pandas as pd
-from imageio import imread
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
-import functions as func
-import plotting as plot
-import tools as tools
-import sys
 
 x, y, z = func.GenerateData(100, 0.01, "debug")
+# with 100 datapoints the maximum degree is 9
 
 ###############################################################################
 def part_a(x, y, z, degree=5):
@@ -48,13 +38,15 @@ def part_a(x, y, z, degree=5):
     R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred)
     #print ("----------------------")
     print ("    Deg : {}".format(degree))
-    print ("    RS2 : {:.3f}".format(R2_train))
-    print ("    MSE : {:.3f}".format(MSE_train))
+    print ("    RS2 : {:.3f} (train: {:.3f})".format(R2_test, R2_train))
+    print ("    MSE : {:.3f} (train: {:.3f})".format(MSE_test, MSE_train))
+    print ("    Var : {:.3f} (train: {:.3f})".format(var_test, var_train))
+    print ("    Bias: {:.3f} (train: {:.3f})".format(bias_test, bias_train))
     print ("    Beta:", np.array_str(beta.ravel(), precision=2, suppress_small=True))
     print ("    Conf:", np.array_str(conf_beta, precision=2, suppress_small=True))
     print ("")
     #print ("----------------------")
-    plot.plot_beta(beta.ravel(), conf_beta, degree)
+    plot.OLS_beta_conf(beta, conf_beta, degree)
 
 part_a(x,y,z,3)
 
@@ -85,15 +77,18 @@ def part_b_noresample(x, y, z, d=5):
 
         R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit)
         R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred)
+
         mse_train[i] = MSE_train
         mse_test[i] = MSE_test
 
-    plot.plot_MSE(degrees, mse_test, mse_train, "OLS", "degrees_{}".format(d))
+    info = "ndata{:.0f}_d{:.0f}".format(len(z), d)
+    plot.OLS_test_train(degrees, mse_test, mse_train, err_type ="MSE", info="", log=True)
 
-part_b_noresample(x,y,z,10)
+part_b_noresample(x,y,z,d=10)
+
 ###############################################################################
 
-def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, write=False):
+def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
     print ("------------------------------------------------------")
     print ("                      PART B                          ")
     print ("                    resampling                        ")
@@ -103,50 +98,50 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, write=False):
 
     # Initialize arrays of shape (degrees, )
     bias = np.zeros(d)
-    variance = np.zeros(d)
+    var = np.zeros(d)
     mse = np.zeros(d)
     r2_score = np.zeros(d)
-
     degrees = np.arange(1, d+1) # array of degrees
-
-    if write==True:
-        f = open("output/outfiles/bootstrap_metrics_{:.0f}_{:.0f}.txt".format(len(z), n_bootstraps),"w+")
-        print("Writing metrics to file:")
-        print("   output/outfiles/bootstrap_metrics_{:.0f}_{:.0f}.txt\n".format(len(z), n_bootstraps))
-        f.write("Polydegree   R2   MSE   Variance   Bias\n")
 
     for i in range(d):
         """ Loop over degrees"""
         X = func.PolyDesignMatrix(x, y, degrees[i])
 
         # Split and scale data
-        X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+        X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.2)
         X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
-        z_test_pred = np.empty((z_test.shape[0], n_bootstraps))  # matrix shape (z_test, boostraps)
+        z_pred = np.empty((z_test.shape[0], n_bootstraps))
         for j in range(n_bootstraps):
             """ Loop over bootstraps"""
             tmp_X_train, tmp_z_train = resample(X_train, z_train)
             tmp_beta = func.OLS_SVD(tmp_z_train, tmp_X_train)
-            z_test_pred[:,j] = X_test_scl @ tmp_beta.ravel()
+            z_pred[:,j] = X_test_scl @ tmp_beta.ravel()
 
-        # Calculate the stuff
-        r2_score[i], mse[i], variance[i], bias[i] = func.metrics(z_test, z_test_pred)
-        if write==True:
-            f.write("{:.0f}   {:.5e}  {:.5e}  {:.5e}  {:.5e}\n".format(degrees[i], r2_score[i], mse[i], variance[i], bias[i]))
+        r2_score[i], mse[i], var[i], bias[i] = func.metrics(z_test, z_pred, test=True)
 
-    plot.bias_variance(degrees, mse, variance, bias, rType = "OLS", c = "degrees_{:.0f}_ndata_{:.0f}_nboot_{:.0f}".format(d, len(z), n_bootstraps))
+    # Plotting
+    info = "data{:.0f}_degree{:.0f}_bootstrap{:.0f}".format(len(z), d, n_bootstraps)
+    plot.OLS_bias_variance(degrees, mse, var, bias, info, log=True)
 
+    #plot.OLS_metric(degrees, r2_score, "R2-score", info)
 
-part_b_bootstrap(x, y, z, d=10, n_bootstraps=100, write=True)
+part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
 
 ###############################################################################
 
-def kFold(x, y, z, d=5, k=5, shuffle = False):
+def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
     """
+    Uses folding to split the data
     --------------------------------
     Input
+        x,y,z: the data
+        d: maximum number of degrees
+        k: number of folds
+        shuffle: if the data should be randomized, default is False
     --------------------------------
+    TO DO: The calcualted MSE and Bias (calculated using metrics) is identical..
+            must find out why..
     """
     print ("------------------------------------------------------")
     print ("                      PART C                          ")
@@ -155,22 +150,22 @@ def kFold(x, y, z, d=5, k=5, shuffle = False):
 
     degrees = np.arange(1, d+1)
 
-    mse_kFold = np.zeros((d,k))        # arrays of statistics  where each row
-    bias_kFold = np.zeros((d,k))       # corresponds to a degree and each colunm
-    rs2_kFold = np.zeros((d,k))        # is corresponds to the fold number
-    var_kFold = np.zeros((d,k))
+    mse_kFold = np.zeros((d,k))        # arrays of statistics with d rows and
+    bias_kFold = np.zeros((d,k))       # k columns. Each row corresponds to a
+    rs2_kFold = np.zeros((d,k))        # degree and each colunm corresponds to
+    var_kFold = np.zeros((d,k))        # to the fold number
 
-    a = 0
+    deg_i = 0
     for j in range(d):
         """loop over degrees"""
         degree = degrees[j]
         X = func.PolyDesignMatrix(x, y, degree)
+        #np.random.seed(42)
         if shuffle == True: np.random.shuffle(X) # Shuffle the rows
-        b = 0
+        fold_i = 0
         for i in range(1, k+1):
-            """loop over folds"""
+            """loop over folds and calculate the fitted and predicted z values"""
             train_index, test_index = tools.foldIndex(x, i, k)
-
             X_train = X[train_index]
             z_train = z[train_index]
 
@@ -184,22 +179,37 @@ def kFold(x, y, z, d=5, k=5, shuffle = False):
             z_fit = X_train_scl @ beta
             z_pred = X_test_scl @ beta
 
-            rs2_kFold[a,b], mse_kFold[a,b], var_kFold[a,b], bias_kFold[a,b]= func.metrics(z_test, z_pred)
+            rs2_kFold[deg_i,fold_i], mse_kFold[deg_i,fold_i], var_kFold[deg_i,fold_i], bias_kFold[deg_i,fold_i]= func.metrics(z_test, z_pred, test=True)
 
-            b +=1
-        a +=1
+            fold_i +=1
+        deg_i +=1
 
-    plot.plot_kFold_var(degrees, mse_kFold, k, rType="OLS", varN="MSE")
-    
-    estimated_rs2_KFold = np.mean(rs2_kFold, axis = 1)
-    estimated_mse_KFold = np.mean(mse_kFold, axis = 1)
-    estimated_var_KFold = np.mean(var_kFold, axis = 1)
-    estimated_bias_KFold = np.mean(bias_kFold, axis = 1)
-    return estimated_rs2_KFold, estimated_mse_KFold, estimated_var_KFold, estimated_bias_KFold
+    plot.OLS_allfolds(degrees, mse_kFold, k, rType="OLS", varN="MSE", log=True)
+    plot.OLS_allfolds(degrees, rs2_kFold, k, rType="OLS", varN="R2")
+    plot.OLS_allfolds(degrees, var_kFold, k, rType="OLS", varN="Variance",log=True)
+    plot.OLS_allfolds(degrees, bias_kFold, k, rType="OLS", varN="Bias",log=True)
 
-kFold(x,y,z, d=5, k=5, shuffle=True)
+    # np.mean(matrix, axis=1) takes the mean of the numbers in each row
+    #
+    #   M = [[m11  m12 ... m1k]
+    #        [m21  m22 ... m2k]
+    #        [ .    .       . ]
+    #        [md1  md2 ... mdk]]
+    #
+    # np.mean(M, axis=1) = 1/k * [sum_i(m1i)  sum_i(m2i) ... sum_i(mdi)]
+
+    est_rs2_kFold = np.mean(rs2_kFold, axis = 1)
+    est_mse_kFold = np.mean(mse_kFold, axis = 1)
+    est_var_kFold = np.mean(var_kFold, axis = 1)
+    est_bias_kFold = np.mean(bias_kFold, axis = 1)
+
+    info = "data{:.0f}_degree{:.0f}_kFold{:.0f}".format(len(z), d, k)
+    plot.OLS_bias_variance(degrees, est_mse_kFold, est_var_kFold, est_bias_kFold, info, log=True)
+    plot.OLS_metric(degrees, est_rs2_kFold, "R2-score", info, log=False)
 
 
+part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
+#part_c_kFold(x,y,z, d=10, k=5)
 
 
 ############################# DO NOT ERASE ####################################

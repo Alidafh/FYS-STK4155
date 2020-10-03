@@ -105,35 +105,56 @@ def scale_X(train, test):
 
 def metrics(z_true, z_pred, test=False):
     """
-    Calculate the R^2 score, mean square error, and variance and bias.
+    Calculate the R^2 score, mean square error, variance and bias.
+    If the predicted values has shape (n,1), it tests the calculated MSE and R2
+    values against results from Scikitlearn. If the predicted values have shape
+    (n,m) it checks that the calculated bias+variance <= MSE. Nothing is printed
+    if you pass the test.
     --------------------------------
     Input
         z_true: The true response value
         z_approx: The approximation found using regression
-        test: Test the calculations with the sklearn values (default is False)
+        test: If you want to test the calculations (default is False)
     --------------------------------
     return: R2, MSE, var, bias
-    TODO: quit if difference is too large?
+    TODO: When using this with bootstrap, the calculated R2 score is waay off
+          and when using it with kFold the bias and the MSE are identical
+          #R2 = 1-((z_true-z_pred).T@(z_true-z_pred))/((z_true-np.mean(z_true)).T@(z_true-np.mean(z_true)))
     """
-    n = len(z_true)
-    # Calculate the r2-score, mean squared error, variance and bias
-    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true, keepdims=True))**2)))
-    MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
-    var = np.mean(np.var(z_pred,axis=1, keepdims=True))
-    if len(z_pred[0,:]) == 1:
-        var = np.mean(np.var(z_pred, keepdims=True))
-    bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
-    if test == True:
-        r2_sklearn = r2_score(z_true.ravel(), z_pred.ravel())
-        mse_sklearn = mean_squared_error(z_true.ravel(), z_pred.ravel())
-        # Double check answers:
-        if np.abs(R2-r2_sklearn) > 0.001:
-            print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
 
-        if np.abs(MSE-mse_sklearn) > 0.001:
-            print("     Diff MSE: {:.2f}".format(MSE-mse_sklearn))
+    #if np.shape(z_pred) != (len(z_true), 1)
+    n = len(z_true)
+    R2= 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
+    bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
+    var = np.mean(np.var(z_pred, axis=1, keepdims=True))
+    if np.shape(z_pred) == (n, 1):
+        var = np.mean(np.var(z_pred, axis=0, keepdims=True))
+
+    if test == True:
+        if np.shape(z_pred) == (len(z_pred), 1):
+            #print("Testing with sklearn:")
+            r2_sklearn = r2_score(z_true, z_pred)
+            mse_sklearn = mean_squared_error(z_true, z_pred)
+
+            if np.abs(R2-r2_sklearn) > 0.001:
+                print("Testing with sklearn:")
+                print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
+
+            if np.abs(MSE-mse_sklearn) > 0.001:
+                print("     Diff MSE: {:.2f}\n".format(MSE-mse_sklearn))
+        else:
+            if np.abs((bias+var) - MSE) > 1e-6:
+                print("Test:")
+                print("bias+variance > mse:")
+                print("-------------")
+                print("MSE: ", MSE)
+                print("bias:", bias)
+                print("var: ", var)
+                print("-------------\n")
 
     return R2, MSE, var, bias
+    #return r2_sklearn, mse_sklearn, var, bias
 
 def OLS_SVD(z, X, var = False):
     """
@@ -148,6 +169,9 @@ def OLS_SVD(z, X, var = False):
     --------------------------------
     TODO: Fix the variance problem, expressions in hastie et al. (3.8)
     """
+    #if np.shape(z) == (len(z), 1):
+    #    z = z.ravel()
+
     U, D, Vt = np.linalg.svd(X)
     V = Vt.T
     diagonal = np.zeros([V.shape[1], U.shape[1]])
@@ -202,9 +226,4 @@ def OLS(z, X, var = False):
 
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(4, 0.1, "debug")
-    X = PolyDesignMatrix(x, y, 1)
-    print(X)
-    print("------------------")
-    np.random.shuffle(X)
-    print(X)
+    print(OLS_SVD.__doc__)
