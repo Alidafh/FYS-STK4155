@@ -105,8 +105,7 @@ def scale_X(train, test):
 
 def metrics(z_true, z_pred, test=False):
     """
-    Calculate the R^2 score, mean square error, and variance and bias. The calculated
-    R2-score and MSE are compared to the results from sklearn.
+    Calculate the R^2 score, mean square error, and variance and bias.
     --------------------------------
     Input
         z_true: The true response value
@@ -120,7 +119,9 @@ def metrics(z_true, z_pred, test=False):
     # Calculate the r2-score, mean squared error, variance and bias
     R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true, keepdims=True))**2)))
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
-    var = np.mean(np.var(z_pred, axis=1, keepdims=True))
+    var = np.mean(np.var(z_pred,axis=1, keepdims=True))
+    if len(z_pred[0,:]) == 1:
+        var = np.mean(np.var(z_pred, keepdims=True))
     bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
     if test == True:
         r2_sklearn = r2_score(z_true.ravel(), z_pred.ravel())
