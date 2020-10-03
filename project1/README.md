@@ -10,10 +10,10 @@
 - clean.sh: Bash script which deletes the output folders etc. in case a clean run is wanted.
 
 ## How to run:
-Run the analysis using
+Run the analysis with the command
 
 ```
-source run.sh
+$ source run.sh
 ```
 
 If they do not exist already, the following folders are created:
@@ -25,7 +25,7 @@ If they do exist, this script will save figures and data in the existing folders
 The script clean.sh removes the folders created by run.sh and can be executed by writing:
 
 ```
-source clean.sh
+$ source clean.sh
 ```
 
 **NOTE**: clean.sh deletes the output folders. If you already have a personal folder named output which is unrelated to this project, you should rename it.
