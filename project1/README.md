@@ -2,12 +2,12 @@
 
 ## Overview of files:
 
-- plotting.py: Contains the graphic functions\
-- functions.py: Contains the analysis functions\
-- tools.py: general tools such as SVD etc.\
-- main.py: the main script\
-- run.sh: Simple bash script to run main.py\
-- clean.sh: Bash script which deletes the output folders etc. in case a clean run is wanted.\    
+- plotting.py: Contains the graphic functions
+- functions.py: Contains the analysis functions
+- tools.py: general tools such as SVD etc.
+- main.py: the main script
+- run.sh: Simple bash script to run main.py
+- clean.sh: Bash script which deletes the output folders etc. in case a clean run is wanted.
 
 ## How to run:
 Run the analysis using
@@ -20,7 +20,7 @@ If they do not exist already, the following folders are created:
 - output/figures
 - output/outfiles
 
-If they do exist, this script will save figures and data in the existing folders.\
+If they do exist, this script will save figures and data in the existing folders.
 
 The script clean.sh removes the folders created by run.sh and can be executed by writing:
 
@@ -28,7 +28,7 @@ The script clean.sh removes the folders created by run.sh and can be executed by
 source clean.sh
 ```
 
-NOTE: clean.sh *DELETES* the output folders, if you already have a personal folder named output which is unrelated to this project, you should rename it to something else.\
+**NOTE**: clean.sh deletes the output folders. If you already have a personal folder named output which is unrelated to this project, you should rename it.
 
 ## Credit
 
