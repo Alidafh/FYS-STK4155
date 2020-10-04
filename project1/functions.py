@@ -2,7 +2,7 @@
 import numpy as np
 import plotting as plot
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
+from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 import scipy as scl
 from tools import SVDinv
@@ -156,10 +156,10 @@ def metrics(z_true, z_pred, test=False):
     return R2, MSE, var, bias
     #return r2_sklearn, mse_sklearn, var, bias
 
-def OLS_SVD(z, X, var = False):
+def OLS(z, X, var = False):
     """
     Preforming ordinary least squares fit to find the regression parameters
-    using a signular value decomposition. Also, if prompted it calculates the
+    using a signgular value decomposition. Also, if prompted it calculates the
     variance of the fitted parameters
     --------------------------------
     Input
@@ -167,10 +167,12 @@ def OLS_SVD(z, X, var = False):
         X: Design matrix
         var: True if you want to calculate the variance
     --------------------------------
-    TODO: Fix the variance problem, expressions in hastie et al. (3.8)
+    TODO: Finished
     """
-    #if np.shape(z) == (len(z), 1):
-    #    z = z.ravel()
+    n = len(z)
+    p = len(X[0,:])
+    if p > n:
+        print("Probably should use a different method? ")
 
     U, D, Vt = np.linalg.svd(X)
     V = Vt.T
@@ -179,15 +181,12 @@ def OLS_SVD(z, X, var = False):
     beta = (V @ diagonal @ U.T) @ z     # Same as pinv
 
     if var == True:
-        # Problem: if n datapoints is smaller than the number of parameters
-        # the estimated sigma is negative and this code does not work.
-        # Temporarely solved by setting sigma to zero. Will introduce bias tho??
-
         diagonal_var = np.zeros([V.shape[0], V.shape[1]])
         np.fill_diagonal(diagonal_var, D**(-2))
 
         z_pred = X @ beta
-        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
         if sigma2 <= 0:
             print("ERROR: n = {} < p = {}: n-p-1 = {}". format(len(z), len(beta), len(z)-len(beta)-1))
             sigma2 = np.abs(sigma2)
@@ -196,7 +195,7 @@ def OLS_SVD(z, X, var = False):
         return beta, var_beta.ravel()
     return beta
 
-def OLS(z, X, var = False):
+def OLS2(z, X, var = False):
     """
     Preforming ordinary least squares fit to find the regression parameters
     beta. Uses the numpy pseudoinverse of X for inverting the matrix.
@@ -211,9 +210,6 @@ def OLS(z, X, var = False):
     beta = np.linalg.pinv(X) @ z
 
     if var == True:
-        # Problem: if n datapoints is smaller than the number of parameters
-        # the estimated sigma is negative and this code does not work.
-        # Temporarely solved by setting sigma to zero. Will introduce bias tho??
         z_pred = X @ beta
         sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
         if sigma2 <= 0:
