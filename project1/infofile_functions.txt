@@ -100,7 +100,7 @@ FUNCTIONS
             beta: The estimated Ridge regression parameters with shape (p,1)
             (var_beta: The variance of the parameters (p,1), returned if var=True)
             --------------------------------
-        TODO: finish variance
+        TODO: check if it should be 1/(n-p) instead of 1/(n-p-1)
     
     metrics(z_true, z_pred, test=False)
         Calculate the R^2 score, mean square error, variance and bias.
