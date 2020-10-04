@@ -6,6 +6,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 import scipy as scl
 from tools import SVDinv
+import sys
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -156,7 +157,7 @@ def metrics(z_true, z_pred, test=False):
     return R2, MSE, var, bias
     #return r2_sklearn, mse_sklearn, var, bias
 
-def OLS(z, X, var = False):
+def OLS_SVD(z, X, var = False):
     """
     Preforming ordinary least squares fit to find the regression parameters
     using a signgular value decomposition. Also, if prompted it calculates the
@@ -165,55 +166,65 @@ def OLS(z, X, var = False):
     Input
         z: response variable
         X: Design matrix
-        var: True if you want to calculate the variance
+        var: To calculate the variance set this to True (default is False)
     --------------------------------
     TODO: Finished
     """
-    n = len(z)
-    p = len(X[0,:])
-    if p > n:
-        print("Probably should use a different method? ")
 
     U, D, Vt = np.linalg.svd(X)
     V = Vt.T
     diagonal = np.zeros([V.shape[1], U.shape[1]])
     np.fill_diagonal(diagonal, D**(-1))
-    beta = (V @ diagonal @ U.T) @ z     # Same as pinv
+    beta = (V @ diagonal @ U.T) @ z
+
+    if len(z) < len(beta):
+        print("ERROR: n = {} < p = {}". format(len(z), len(beta)))
+        #print("Remember that OLS is not well defined for p > n!")
 
     if var == True:
         diagonal_var = np.zeros([V.shape[0], V.shape[1]])
         np.fill_diagonal(diagonal_var, D**(-2))
 
         z_pred = X @ beta
-        #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
-        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
+        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
         if sigma2 <= 0:
-            print("ERROR: n = {} < p = {}: n-p-1 = {}". format(len(z), len(beta), len(z)-len(beta)-1))
             sigma2 = np.abs(sigma2)
 
         var_beta = sigma2 * (np.diag(V @ diagonal_var @ Vt)[np.newaxis]).T
         return beta, var_beta.ravel()
     return beta
 
-def OLS2(z, X, var = False):
+def OLS(z, X, var = False):
     """
     Preforming ordinary least squares fit to find the regression parameters
-    beta. Uses the numpy pseudoinverse of X for inverting the matrix.
-    If prompted it calculates the variance of the fitted parameters
+    beta. If prompted it calculates the variance of the fitted parameters.
+    An error message will be printed if the design matrix has high dimentionality,
+    p > n, but the parameters are still calculated. As this would give a negative
+    variance, a temporary workaround is to take the absolute value of sigma^2.
     --------------------------------
     Input
         z: response variable
         X: Design matrix
+        var: To calculate the variance set this to True (default is False)
     --------------------------------
-    TODO: Make class called regression instead?
+    TODO: Find out if the absoultevalue thing in variance calculations is legit.
     """
-    beta = np.linalg.pinv(X) @ z
+
+    #beta = np.linalg.pinv(X) @ z
+    beta = np.linalg.pinv(X.T @ X) @ X.T @ z
+
+    if len(z) < len(beta):
+        print("ERROR: n = {} < p = {}". format(len(z), len(beta)))
+        print("Remember that OLS is not well defined for p > n!\n")
 
     if var == True:
+        # Calculate the variance of the regression parameter
         z_pred = X @ beta
+
         sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
         if sigma2 <= 0:
-            print("ERROR: n = {} < p = {}: n-p-1 = {}". format(len(z), len(beta), len(z)-len(beta)-1))
             sigma2 = np.abs(sigma2)
 
         var_beta = sigma2 * SVDinv(X.T @ X).diagonal()
@@ -221,5 +232,36 @@ def OLS2(z, X, var = False):
     return beta
 
 
+def Ridge(z, X, lamb, var=False):
+    """
+    Preforming Pridge regression to find the regression parameters. If prompted
+    it calculates the variance of the fitted parameters.
+    --------------------------------
+    Input
+        z: response variable
+        X: design matrix
+        lamb: penalty parameter
+        var: to calculate the variance set this to True (default is False)
+    --------------------------------
+    TODO: finish variance
+    """
+    I = np.eye(X.shape[1])
+    beta = np.linalg.pinv( X.T @ X + lamb*I) @ X.T @ z
+
+    if var==True:
+        var_beta = 0
+        return beta, var_beta
+
+    return beta
+
+
+
 if __name__ == '__main__':
-    print(OLS_SVD.__doc__)
+    x, y, z = GenerateData(10, 0.01, "debug")
+    X = PolyDesignMatrix(x, y, 2)
+
+    # Test if the returned beta's are the same for small lambdas:
+    beta_ridge, var_ridge = Ridge(z, X, 0.0000001, True)
+    beta_ols, var_ols = OLS(z,X, True)
+    print("Ridge: ", np.array_str(beta_ridge.ravel(), precision=2, suppress_small=True))
+    print("OLS:   ", np.array_str(beta_ols.ravel(), precision=2, suppress_small=True))
