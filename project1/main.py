@@ -28,7 +28,7 @@ def part_a(x, y, z, degree=5):
     X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
     print("Fitting with OLS:")
-    beta, var_beta = func.OLS_SVD(z_train, X_train_scl, var=True)
+    beta, var_beta = func.OLS(z_train, X_train_scl, var=True)
     conf_beta = 1.96*np.sqrt(var_beta)  # 95% confidence
 
     z_train_fit = X_train_scl @ beta
@@ -70,7 +70,7 @@ def part_b_noresample(x, y, z, d=5):
         X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
         X_train_scl, X_test_scl = func.scale_X(X_train, X_test) # Scale data
 
-        beta = func.OLS_SVD(z_train, X_train_scl)
+        beta = func.OLS(z_train, X_train_scl)
 
         z_train_fit = X_train_scl @ beta
         z_test_pred = X_test_scl @ beta
@@ -84,7 +84,7 @@ def part_b_noresample(x, y, z, d=5):
     info = "ndata{:.0f}_d{:.0f}".format(len(z), d)
     plot.OLS_test_train(degrees, mse_test, mse_train, err_type ="MSE", info="", log=True)
 
-part_b_noresample(x,y,z,d=10)
+#part_b_noresample(x,y,z,d=10)
 
 ###############################################################################
 
@@ -115,7 +115,7 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
         for j in range(n_bootstraps):
             """ Loop over bootstraps"""
             tmp_X_train, tmp_z_train = resample(X_train, z_train)
-            tmp_beta = func.OLS_SVD(tmp_z_train, tmp_X_train)
+            tmp_beta = func.OLS(tmp_z_train, tmp_X_train)
             z_pred[:,j] = X_test_scl @ tmp_beta.ravel()
 
         r2_score[i], mse[i], var[i], bias[i] = func.metrics(z_test, z_pred, test=True)
@@ -126,7 +126,7 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
 
     #plot.OLS_metric(degrees, r2_score, "R2-score", info)
 
-part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
+#part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
 
 ###############################################################################
 
@@ -174,7 +174,7 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
 
             X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
-            beta = func.OLS_SVD(z_train, X_train_scl)
+            beta = func.OLS(z_train, X_train_scl)
 
             z_fit = X_train_scl @ beta
             z_pred = X_test_scl @ beta
@@ -208,7 +208,7 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
     plot.OLS_metric(degrees, est_rs2_kFold, "R2-score", info, log=False)
 
 
-part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
+#part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
 #part_c_kFold(x,y,z, d=10, k=5)
 
 
