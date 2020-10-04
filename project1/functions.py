@@ -143,6 +143,7 @@ def metrics(z_true, z_pred, test=False):
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
     bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
     var = np.mean(np.var(z_pred, axis=1, keepdims=True))
+
     if np.shape(z_pred) == (n, 1):
         var = np.mean(np.var(z_pred, axis=0, keepdims=True))
 
@@ -244,7 +245,9 @@ def OLS(z, X, var = False):
         z_pred = X @ beta
         sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
         #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
+
         if sigma2 <= 0: sigma2 = np.abs(sigma2)
+
         var_beta = sigma2 * SVDinv(X.T @ X).diagonal()
 
         return beta, var_beta.reshape(len(var_beta),1)
@@ -266,14 +269,20 @@ def Ridge(z, X, lamb, var=False):
         beta: The estimated Ridge regression parameters with shape (p,1)
         (var_beta: The variance of the parameters (p,1), returned if var=True)
         --------------------------------
-    TODO: finish variance
+    TODO: check if it should be 1/(n-p) instead of 1/(n-p-1)
     """
-    I = np.eye(X.shape[1])
+
+    I = np.eye(X.shape[1])  # Identity matrix - (p,p)
     beta = np.linalg.pinv( X.T @ X + lamb*I) @ X.T @ z
 
     if var==True:
-        var_beta = 0
-        return beta, var_beta
+        z_pred = X @ beta
+        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
+
+        a = np.linalg.pinv( X.T @ X + lamb*I)
+        var_beta = sigma2 * (a @ (X.T @ X) @ a.T).diagonal()
+        return beta, var_beta.reshape(len(var_beta), 1)
 
     return beta
 
@@ -281,8 +290,13 @@ def Ridge(z, X, lamb, var=False):
 if __name__ == '__main__':
     x, y, z = GenerateData(10, 0.01, "debug")
     X = PolyDesignMatrix(x, y, 2)
+
     # Test if the returned beta's are the same for small lambdas:
-    beta_ridge, var_ridge = Ridge(z, X, 0.0000001, True)
+    beta_ridge, var_ridge = Ridge(z, X, 0.0000000001, True)
     beta_ols, var_ols = OLS(z,X, True)
+
     print("Ridge: ", np.array_str(beta_ridge.ravel(), precision=2, suppress_small=True))
     print("OLS:   ", np.array_str(beta_ols.ravel(), precision=2, suppress_small=True))
+
+    print("Ridge: ", np.array_str(var_ridge.ravel(), precision=2, suppress_small=True))
+    print("OLS:   ", np.array_str(var_ols.ravel(), precision=2, suppress_small=True))

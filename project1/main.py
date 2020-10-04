@@ -10,8 +10,9 @@ import plotting as plot
 import tools as tools
 import sys
 
+#x, y, z = func.GenerateData(100, 0, "debug")
 x, y, z = func.GenerateData(100, 0.01, "debug")
-# with 100 datapoints the maximum degree is 9
+
 
 ###############################################################################
 def part_a(x, y, z, degree=5):
@@ -43,10 +44,11 @@ def part_a(x, y, z, degree=5):
     print ("    Var : {:.3f} (train: {:.3f})".format(var_test, var_train))
     print ("    Bias: {:.3f} (train: {:.3f})".format(bias_test, bias_train))
     print ("    Beta:", np.array_str(beta.ravel(), precision=2, suppress_small=True))
-    print ("    Conf:", np.array_str(conf_beta, precision=2, suppress_small=True))
+    print ("    Conf:", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
     print ("")
     #print ("----------------------")
-    plot.OLS_beta_conf(beta, conf_beta, degree)
+
+    plot.OLS_beta_conf(beta, conf_beta, degree, len(z))
 
 part_a(x,y,z,3)
 
@@ -84,7 +86,7 @@ def part_b_noresample(x, y, z, d=5):
     info = "ndata{:.0f}_d{:.0f}".format(len(z), d)
     plot.OLS_test_train(degrees, mse_test, mse_train, err_type ="MSE", info="", log=True)
 
-#part_b_noresample(x,y,z,d=10)
+part_b_noresample(x,y,z,d=10)
 
 ###############################################################################
 
@@ -126,7 +128,7 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
 
     #plot.OLS_metric(degrees, r2_score, "R2-score", info)
 
-#part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
+part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
 
 ###############################################################################
 
@@ -178,16 +180,18 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
 
             z_fit = X_train_scl @ beta
             z_pred = X_test_scl @ beta
-
+            print("-----------")
+            print(np.shape(z_test))
+            print(np.shape(z_pred))
             rs2_kFold[deg_i,fold_i], mse_kFold[deg_i,fold_i], var_kFold[deg_i,fold_i], bias_kFold[deg_i,fold_i]= func.metrics(z_test, z_pred, test=True)
 
             fold_i +=1
         deg_i +=1
 
-    plot.OLS_allfolds(degrees, mse_kFold, k, rType="OLS", varN="MSE", log=True)
-    plot.OLS_allfolds(degrees, rs2_kFold, k, rType="OLS", varN="R2")
-    plot.OLS_allfolds(degrees, var_kFold, k, rType="OLS", varN="Variance",log=True)
-    plot.OLS_allfolds(degrees, bias_kFold, k, rType="OLS", varN="Bias",log=True)
+    plot.OLS_allfolds(degrees, mse_kFold, k, len(z), rType="OLS", varN="MSE", log=True)
+    plot.OLS_allfolds(degrees, rs2_kFold, k, len(z), rType="OLS", varN="R2")
+    plot.OLS_allfolds(degrees, var_kFold, k, len(z), rType="OLS", varN="Variance",log=True)
+    plot.OLS_allfolds(degrees, bias_kFold, k, len(z), rType="OLS", varN="Bias",log=True)
 
     # np.mean(matrix, axis=1) takes the mean of the numbers in each row
     #
@@ -208,7 +212,7 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
     plot.OLS_metric(degrees, est_rs2_kFold, "R2-score", info, log=False)
 
 
-#part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
+part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
 #part_c_kFold(x,y,z, d=10, k=5)
 
 

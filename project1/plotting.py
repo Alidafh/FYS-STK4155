@@ -94,7 +94,7 @@ def OLS_bias_variance(x, mse, var, bias, info, log=False):
     print("    Figure saved in: output/figures/OLS_bias_variance_{}.pdf\n".format(info))
     #plt.close()
 
-def OLS_beta_conf(beta, conf_beta, d):
+def OLS_beta_conf(beta, conf_beta, d, n):
     """
     Plots the parameters with errorbars corresponding to the confidence interval
     --------------------------------
@@ -102,6 +102,7 @@ def OLS_beta_conf(beta, conf_beta, d):
         beta: the regression parameters
         conf_beta: the std of the regression parameters
         d: the polynomial degree
+        n: number of datapoints
     --------------------------------
     TODO: change back to saving in PDF format
     """
@@ -109,19 +110,20 @@ def OLS_beta_conf(beta, conf_beta, d):
     print("Plotting the OLS regression parameters with confidence intervals")
     fig, ax = plt.subplots()
     ax.grid()
+
     plt.title("OLS parameters using polynomial degree {:.0f} ".format(d), fontsize = 12, fontname = "serif")
     x = np.arange(len(beta))
-    plt.errorbar(x, beta, yerr=conf_beta, markersize=4, linewidth=1, capsize=5, capthick=1, ecolor="black", fmt='o')
+    plt.errorbar(x, beta, yerr=conf_beta.ravel(), markersize=4, linewidth=1, capsize=5, capthick=1, ecolor="black", fmt='o')
     xlabels = [r"$\beta_"+"{:.0f}$".format(i) for i in range(len(beta))]
     ax.set_xticks(x)
     ax.set_xticklabels(xlabels)
 
-    #fig.savefig("output/figures/OLS_parameters_degree_{:.0f}.png".format(d))
-    fig.savefig("output/figures/OLS_parameters_degree_{:.0f}.png".format(d))
-    print("    Figure saved in: output/figures/OLS_beta_degree_{:.0f}.pdf\n".format(d))
+    #fig.savefig("output/figures/OLS_parameters_degree_{:.0f}_ndata{:.0f}.pdf".format(d, n))
+    fig.savefig("output/figures/OLS_parameters_degree_{:.0f}_ndata{:.0f}.png".format(d, n))
+    print("    Figure saved in: output/figures/OLS_beta_degree_{:.0f}_ndata{:.0f}.pdf\n".format(d, n))
     plt.close()
 
-def OLS_allfolds(x, var, k, rType="", varN="", log=False):
+def OLS_allfolds(x, var, k, n, rType="", varN="", log=False):
     """
     Plots the chosen variable var as a function of degrees for all k folds
     used in k-fold. Saves the image in output/figures
@@ -147,8 +149,8 @@ def OLS_allfolds(x, var, k, rType="", varN="", log=False):
     plt.ylabel("{}".format(varN), fontsize = 12, fontname = "serif")
 
     #fig.savefig("output/figures/OLS_allfolds_{:.0f}_{:}_{:}.pdf".format(k, rType, varN))
-    fig.savefig("output/figures/OLS_allfolds_{:.0f}_{:}_{:}.png".format(k, rType, varN))
-    print("    Figure saved in: output/figures/OLS_allfolds_{:.0f}_{:}_{:}.pdf\n".format(k, rType, varN))
+    fig.savefig("output/figures/OLS_allfolds_k{:.0f}_ndata{:.0f}_{:}_{:}.png".format(k, n, rType, varN))
+    print("    Figure saved in: output/figures/OLS_allfolds_k{:.0f}_ndata{:.0f}_{:}_{:}.pdf\n".format(k, n, rType, varN))
     plt.close()
 
 def OLS_metric(x, var, varN="", info="", log=False):
