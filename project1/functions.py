@@ -139,13 +139,14 @@ def metrics(z_true, z_pred, test=False):
           and when using it with kFold the bias and the MSE are identical
     """
     n = len(z_true)
-    R2= 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
     bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
     var = np.mean(np.var(z_pred, axis=1, keepdims=True))
 
     if np.shape(z_pred) == (n, 1):
         var = np.mean(np.var(z_pred, axis=0, keepdims=True))
+        bias = np.mean((z_true - np.mean(z_pred, axis=0, keepdims=True))**2)
 
     if test == True:
         if np.shape(z_pred) == (len(z_pred), 1):

@@ -162,7 +162,7 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
         """loop over degrees"""
         degree = degrees[j]
         X = func.PolyDesignMatrix(x, y, degree)
-        #np.random.seed(42)
+        np.random.seed(42)
         if shuffle == True: np.random.shuffle(X) # Shuffle the rows
         fold_i = 0
         for i in range(1, k+1):
@@ -180,9 +180,7 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
 
             z_fit = X_train_scl @ beta
             z_pred = X_test_scl @ beta
-            print("-----------")
-            print(np.shape(z_test))
-            print(np.shape(z_pred))
+
             rs2_kFold[deg_i,fold_i], mse_kFold[deg_i,fold_i], var_kFold[deg_i,fold_i], bias_kFold[deg_i,fold_i]= func.metrics(z_test, z_pred, test=True)
 
             fold_i +=1
