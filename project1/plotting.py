@@ -219,6 +219,10 @@ def kFold_all_metrics(x, est_metrics, info):
     plt.close()
 
 
+#Til test av pull request og greier
+
+5/7
+
 if __name__ == '__main__':
     #plot_franke("Illustration of the Franke Function", "franke_func_illustration")
     type = "OLS_degree5"
