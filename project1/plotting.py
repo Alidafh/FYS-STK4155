@@ -181,6 +181,8 @@ def OLS_metric(x, var, varN="", info="", log=False):
     plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
     plt.ylabel("{}".format(varN), fontsize = 12, fontname = "serif")
 
+
+
     plt.plot(x, var, label="{}".format(varN))
     plt.legend()
     if log==True: plt.semilogy()
@@ -189,8 +191,6 @@ def OLS_metric(x, var, varN="", info="", log=False):
     fig.savefig("output/figures/OLS_metric_{:}_{:}.png".format(varN, info))
     print("    Figure saved in: output/figures/OLS_{:}_{:}.pdf\n".format(varN, info))
     plt.close()
-
-
 def kFold_all_metrics(x, est_metrics, info):
     """
     Plots the metrics found using k-fold
