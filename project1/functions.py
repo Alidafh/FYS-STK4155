@@ -1,3 +1,7 @@
+#New test comment
+
+test_variable = 57 #just to test how git reacts to changes. 
+
 #!/usr/bin/python
 import numpy as np
 import plotting as plot
