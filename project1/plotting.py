@@ -30,14 +30,14 @@ def plot_franke(title, filename, noise=0):
     ax.set_ylabel(r"$y$", fontsize = 12, fontname = "serif")
     ax.set_zlabel(r"$z$", fontsize = 12, fontname = "serif")
     #plt.savefig("output/figures/{}.pdf".format(filename))
-    
+
     if not os.path.exists(os.path.dirname("output/figures/")):
         try:
             os.makedirs(os.path.dirname("output/figures/"))
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise
-    
+
     fig.savefig("output/figures/{:}_{:}.png".format(filename, noise), scale=0.1)
     print("    Figure saved in: output/figures/{:}_{:}.pdf\n".format(filename, noise))
     plt.close()
@@ -217,11 +217,6 @@ def kFold_all_metrics(x, est_metrics, info):
     print("    Figure saved in: output/figures/kFold_bias_variance_{}\n.pdf".format(info))
 
     plt.close()
-
-
-#Til test av pull request og greier
-
-5/7
 
 if __name__ == '__main__':
     #plot_franke("Illustration of the Franke Function", "franke_func_illustration")

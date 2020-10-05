@@ -91,10 +91,6 @@ part_b_noresample(x,y,z,d=10)
 
 ###############################################################################
 
-#Til test av pull request og greier
-
-4+4
-
 
 def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
     print ("------------------------------------------------------")

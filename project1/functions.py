@@ -287,9 +287,6 @@ def Ridge(z, X, lamb, var=False):
 
     return beta
 
-#Til test av pull request og greier
-
-19*129
 
 if __name__ == '__main__':
     x, y, z = GenerateData(10, 0.01, "debug")
