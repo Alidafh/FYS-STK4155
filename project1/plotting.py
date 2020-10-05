@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import functions as func
 import numpy as np
+import os, errno
 
 def plot_franke(title, filename, noise=0):
     """
@@ -29,6 +30,14 @@ def plot_franke(title, filename, noise=0):
     ax.set_ylabel(r"$y$", fontsize = 12, fontname = "serif")
     ax.set_zlabel(r"$z$", fontsize = 12, fontname = "serif")
     #plt.savefig("output/figures/{}.pdf".format(filename))
+    
+    if not os.path.exists(os.path.dirname("output/figures/")):
+        try:
+            os.makedirs(os.path.dirname("output/figures/"))
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+    
     fig.savefig("output/figures/{:}_{:}.png".format(filename, noise), scale=0.1)
     print("    Figure saved in: output/figures/{:}_{:}.pdf\n".format(filename, noise))
     plt.close()
@@ -57,7 +66,7 @@ def OLS_test_train(x, test_error, train_error, err_type ="", info="", log=False)
     plt.plot(x, train_error,"tab:blue", label="Train Error")
     plt.legend()
 
-    if log==True:plt.semilogy()
+    if log==True: plt.semilogy()
 
     fig.savefig("output/figures/OLS_{:}_test_train_{:}.png".format(err_type, info))
     fig.savefig("output/figures/OLS_{:}_test_train_{:}.png".format(err_type, info))
