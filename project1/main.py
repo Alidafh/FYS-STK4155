@@ -10,7 +10,6 @@ import plotting as plot
 import tools as tools
 import sys
 
-#x, y, z = func.GenerateData(100, 0, "debug")
 x, y, z = func.GenerateData(100, 0.01, "debug")
 
 
@@ -50,11 +49,9 @@ def part_a(x, y, z, degree=5):
 
     plot.OLS_beta_conf(beta, conf_beta, degree, len(z))
 
-part_a(x,y,z,3)
+#part_a(x,y,z,3)
 
 ###############################################################################
-
-
 def part_b_noresample(x, y, z, d=5):
     print ("------------------------------------------------------")
     print ("                      PART B                          ")
@@ -66,20 +63,23 @@ def part_b_noresample(x, y, z, d=5):
     mse_train = np.zeros(d)
     degrees = np.arange(1, d+1)
 
+    var = np.zeros(d)
+    bias = np.zeros(d)
+
     for i in range(d):
         """ Loop over degrees"""
         X = func.PolyDesignMatrix(x, y, degrees[i])
 
         X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
-        X_train_scl, X_test_scl = func.scale_X(X_train, X_test) # Scale data
+        X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
 
         beta = func.OLS(z_train, X_train_scl)
 
         z_train_fit = X_train_scl @ beta
         z_test_pred = X_test_scl @ beta
 
-        R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit)
-        R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred)
+        R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit, test=True)
+        R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred, test=True)
 
         mse_train[i] = MSE_train
         mse_test[i] = MSE_test
@@ -87,16 +87,11 @@ def part_b_noresample(x, y, z, d=5):
     info = "ndata{:.0f}_d{:.0f}".format(len(z), d)
     plot.OLS_test_train(degrees, mse_test, mse_train, err_type ="MSE", info="", log=True)
 
-part_b_noresample(x,y,z,d=10)
+#part_b_noresample(x,y,z,d=10)
 
 ###############################################################################
 
-#Forsøk på å pushe rett fra master
-
-7*1994
-
-
-def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
+def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, RegType="OLS"):
     print ("------------------------------------------------------")
     print ("                      PART B                          ")
     print ("                    resampling                        ")
@@ -112,32 +107,17 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
     degrees = np.arange(1, d+1) # array of degrees
 
     for i in range(d):
-        """ Loop over degrees"""
-        X = func.PolyDesignMatrix(x, y, degrees[i])
-
-        # Split and scale data
-        X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.2)
-        X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
-
-        z_pred = np.empty((z_test.shape[0], n_bootstraps))
-        for j in range(n_bootstraps):
-            """ Loop over bootstraps"""
-            tmp_X_train, tmp_z_train = resample(X_train, z_train)
-            tmp_beta = func.OLS(tmp_z_train, tmp_X_train)
-            z_pred[:,j] = X_test_scl @ tmp_beta.ravel()
-
+        z_train, z_test, z_fit, z_pred = func.Bootstrap(x, y, z, degrees[i], n_bootstraps,"OLS", lamb=0)
         r2_score[i], mse[i], var[i], bias[i] = func.metrics(z_test, z_pred, test=True)
 
     # Plotting
     info = "data{:.0f}_degree{:.0f}_bootstrap{:.0f}".format(len(z), d, n_bootstraps)
     plot.OLS_bias_variance(degrees, mse, var, bias, info, log=True)
 
-    #plot.OLS_metric(degrees, r2_score, "R2-score", info)
+part_b_bootstrap(x, y, z, d=8, n_bootstraps=100, RegType="OLS")
 
-part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
 
 ###############################################################################
-
 def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
     """
     Uses folding to split the data
@@ -215,13 +195,119 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
     plot.OLS_bias_variance(degrees, est_mse_kFold, est_var_kFold, est_bias_kFold, info, log=True)
     plot.OLS_metric(degrees, est_rs2_kFold, "R2-score", info, log=False)
 
+#part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
 
-part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
-#part_c_kFold(x,y,z, d=10, k=5)
+###############################################################################
+def part_d_a(x, y, z, lamb, degree=5):
+    print ("------------------------------------------------------")
+    print ("                      PART D                          ")
+    print ("------------------------------------------------------")
+
+    X = func.PolyDesignMatrix(x, y, degree)
+    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+    X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
+
+    print("Fitting with Ridge:")
+    beta, var_beta = func.Ridge(z_train, X_train_scl, lamb, var=True)
+    conf_beta = 1.96*np.sqrt(var_beta)  # 95% confidence
+
+    z_train_fit = X_train_scl @ beta
+    z_test_pred = X_test_scl @ beta
+
+    R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit)
+    R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred)
+    #print ("----------------------")
+    print ("    Deg : {}".format(degree))
+    print ("    RS2 : {:.3f} (train: {:.3f})".format(R2_test, R2_train))
+    print ("    MSE : {:.3f} (train: {:.3f})".format(MSE_test, MSE_train))
+    print ("    Var : {:.3f} (train: {:.3f})".format(var_test, var_train))
+    print ("    Bias: {:.3f} (train: {:.3f})".format(bias_test, bias_train))
+    print ("    Beta:", np.array_str(beta.ravel(), precision=2, suppress_small=True))
+    print ("    Conf:", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
+    print ("")
+    #print ("----------------------")
+
+    plot.RIDGE_beta_conf(beta, conf_beta, degree, lamb, len(z))
+    return MSE_test
+
+#part_d_a(x, y, z, 0.01, degree=3)
+
+###############################################################################
+def part_d_noresamle(x,y,z,d, lamb):
+    print ("------------------------------------------------------")
+    print ("                      PART D                          ")
+    print ("                   no resampling                      ")
+    print ("------------------------------------------------------")
+
+    print("Preforming Ridge-regression using polynomials up to {} degrees and lambda {}\n".format(d, lamb))
+    mse_test = np.zeros(d)
+    mse_train = np.zeros(d)
+    degrees = np.arange(1, d+1)
+
+    var = np.zeros(d)
+    bias = np.zeros(d)
+
+    for i in range(d):
+        """ Loop over degrees"""
+        X = func.PolyDesignMatrix(x, y, degrees[i])
+
+        X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+        X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
+
+        beta = func.Ridge(z_train, X_train_scl, lamb)
+
+        z_train_fit = X_train_scl @ beta
+        z_test_pred = X_test_scl @ beta
+
+        R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit, test=True)
+        R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred, test=True)
+
+        mse_train[i] = MSE_train
+        mse_test[i] = MSE_test
+
+    info = "ndata{:.0f}_d{:.0f}".format(len(z), d)
+    plot.RIDGE_test_train(degrees, mse_test, mse_train, lamb, "MSE", info, log=True)
+
+#part_d_noresamle(x, y, z, 10, 0.0001)
+
+###############################################################################
+"""
+def simple_ridge(x, y, z, lamb, degree=5):
+    X = func.PolyDesignMatrix(x, y, degree)
+    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+    X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
+
+    beta, var_beta = func.Ridge(z_train, X_train_scl, lamb, var=True)
+    conf_beta = 1.96*np.sqrt(var_beta)  # 95% confidence
+
+    z_train_fit = X_train_scl @ beta
+    z_test_pred = X_test_scl @ beta
+
+    R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit)
+    R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred)
+
+    return MSE_test, var_test, bias_test
+
+nlambdas = 10
+lambdas = np.linspace(0, 20, nlambdas)
+mse_ridge = np.zeros(nlambdas)
+var_ridge = np.zeros(nlambdas)
+bias_ridge = np.zeros(nlambdas)
+for i in range(nlambdas):
+    mse_ridge[i], var_ridge[i], bias_ridge[i] = simple_ridge(x,y,z, lambdas[i], degree=3)
+
+
+plt.plot(lambdas, mse_ridge, "o")
+plt.plot(lambdas, var_ridge, "o")
+plt.plot(lambdas, bias_ridge, "o")
+plt.show()
+"""
+###############################################################################
+
 
 
 ############################# DO NOT ERASE ####################################
-########################### (Without asking) ####################################
+########################### (Without asking) ##################################
 
 """
 scaler = StandardScaler()

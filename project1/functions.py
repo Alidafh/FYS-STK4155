@@ -4,9 +4,11 @@ import plotting as plot
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
 import scipy as scl
 from tools import SVDinv
 import sys
+
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -269,7 +271,7 @@ def Ridge(z, X, lamb, var=False):
     Returns
         beta: The estimated Ridge regression parameters with shape (p,1)
         (var_beta: The variance of the parameters (p,1), returned if var=True)
-        --------------------------------
+    --------------------------------
     TODO: check if it should be 1/(n-p) instead of 1/(n-p-1)
     """
 
@@ -287,6 +289,40 @@ def Ridge(z, X, lamb, var=False):
 
     return beta
 
+def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
+    """
+    Bootstrap loop
+    --------------------------------
+    Input
+        x,
+        y,
+        z,
+        d,
+        n_bootstraps,
+        RegType,
+        lamb=0
+    --------------------------------
+    Returns
+        z_train, z_test, z_fit, z_pred
+    --------------------------------
+    TODO:
+    """
+    X = PolyDesignMatrix(x, y, d)
+    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.2)
+    X_train_scl, X_test_scl = scale_X(X_train, X_test)
+
+    z_pred = np.empty((z_test.shape[0], n_bootstraps))
+    z_fit = np.empty((z_train.shape[0], n_bootstraps))
+    for j in range(n_bootstraps):
+        """ Loop over bootstraps"""
+        tmp_X_train, tmp_z_train = resample(X_train, z_train)
+        tmp_X_test, tmp_z_test = resample(X_test, z_test)
+        if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
+        if RegType == "Ridge": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
+        z_pred[:,j] = X_test_scl @ tmp_beta.ravel()
+        z_fit[:,j] = X_train_scl @ tmp_beta.ravel()
+
+    return z_train, z_test, z_fit, z_pred
 
 if __name__ == '__main__':
     x, y, z = GenerateData(10, 0.01, "debug")
