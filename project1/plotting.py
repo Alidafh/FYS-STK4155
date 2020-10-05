@@ -44,7 +44,8 @@ def plot_franke(title, filename, noise=0):
 
 def OLS_test_train(x, test_error, train_error, err_type ="", info="", log=False):
     """
-    Plots the Mean Squared Error as a function of model complexity, saves figure in output/figures/
+    Plots the Mean Squared Error as a function of model complexity,
+    saves figure in output/figures/
     --------------------------------
     Input
         x: the model complexity
@@ -58,7 +59,7 @@ def OLS_test_train(x, test_error, train_error, err_type ="", info="", log=False)
     fig = plt.figure()
     plt.grid()
 
-    plt.title("{} Mean Squared Errors".format(err_type), fontsize = 12, fontname = "serif")
+    plt.title("OLS Mean Squared Errors", fontsize = 12, fontname = "serif")
     plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
     plt.ylabel("{}".format(err_type), fontsize = 12, fontname = "serif")
 
@@ -68,7 +69,7 @@ def OLS_test_train(x, test_error, train_error, err_type ="", info="", log=False)
 
     if log==True: plt.semilogy()
 
-    fig.savefig("output/figures/OLS_{:}_test_train_{:}.png".format(err_type, info))
+    #fig.savefig("output/figures/OLS_{:}_test_train_{:}.pdf".format(err_type, info))
     fig.savefig("output/figures/OLS_{:}_test_train_{:}.png".format(err_type, info))
     print("    Figure saved in: output/figures/OLS_{:}_test_train_{:}.pdf\n".format(err_type, info))
     plt.close()
@@ -181,8 +182,6 @@ def OLS_metric(x, var, varN="", info="", log=False):
     plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
     plt.ylabel("{}".format(varN), fontsize = 12, fontname = "serif")
 
-
-
     plt.plot(x, var, label="{}".format(varN))
     plt.legend()
     if log==True: plt.semilogy()
@@ -191,31 +190,67 @@ def OLS_metric(x, var, varN="", info="", log=False):
     fig.savefig("output/figures/OLS_metric_{:}_{:}.png".format(varN, info))
     print("    Figure saved in: output/figures/OLS_{:}_{:}.pdf\n".format(varN, info))
     plt.close()
-def kFold_all_metrics(x, est_metrics, info):
+
+def RIDGE_beta_conf(beta, conf_beta, d, lamb, n):
     """
-    Plots the metrics found using k-fold
+    Plots the parameters with errorbars corresponding to the confidence interval
     --------------------------------
     Input
-        x: degrees
-        vars: the est metrics
-        info: string of info for filename (type of regression etc.)
+        beta: the regression parameters
+        conf_beta: the std of the regression parameters
+        d: the polynomial degree
+        lamb: the value of lambda
+        n: number of datapoints
     --------------------------------
-    TODO: not done
+    TODO: change back to saving in PDF format
     """
-    print("Plotting the estimated MSE, Variance, and Bias from kFold")
 
+    print("Plotting the Ridge regression parameters with confidence intervals")
+    fig, ax = plt.subplots()
+    ax.grid()
+
+    plt.title(r"Ridge parameters, d={:.0f} and $\lambda = ${:.3f} ".format(d, lamb), fontsize = 12, fontname = "serif")
+    x = np.arange(len(beta))
+    plt.errorbar(x, beta, yerr=conf_beta.ravel(), markersize=4, linewidth=1, capsize=5, capthick=1, ecolor="black", fmt='o')
+    xlabels = [r"$\beta_"+"{:.0f}$".format(i) for i in range(len(beta))]
+    ax.set_xticks(x)
+    ax.set_xticklabels(xlabels)
+
+    #fig.savefig("output/figures/ridge_parameters_ndata{:.0f}_degree{:.0f}_lambda{:.3f}.pdf".format(n,d, lamb))
+    fig.savefig("output/figures/RIDGE_parameters_ndata{:.0f}_degree{:.0f}_lambda{:.3f}.png".format(n,d, lamb))
+    print("    Figure saved in: output/figures/RIDGE_parameters_ndata{:.0f}_degree{:.0f}_lambda{:.3f}.pdf".format(n,d, lamb))
+    plt.close()
+
+def RIDGE_test_train(x, test_error, train_error, lamb, err_type ="", info="", log=False):
+    """
+    Plots the Mean Squared Error as a function of model complexity,
+    saves figure in output/figures/
+    --------------------------------
+    Input
+        x: the model complexity
+        test_error/train_error: the mean squared error of test/train set
+        errr_type: MSE, var etc.
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
+
+    print("Plotting the {} of the training and test results".format(err_type))
     fig = plt.figure()
     plt.grid()
-    plt.title("MSE, Bias and variance using kFold", fontsize = 12, fontname = "serif")
 
-    plt.plot(x, est_metrics)
-    plt.legend(["MSE", "Variance", "Bias"])
+    plt.title(r"Ridge {:}, $\lambda={:.4f}$".format(err_type, lamb), fontsize = 12, fontname = "serif")
     plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
+    plt.ylabel("{}".format(err_type), fontsize = 12, fontname = "serif")
 
-    #fig.savefig("output/figures/kFold_bias_variance_{}.pdf".format(info))
-    fig.savefig("output/figures/kFold_bias_variance_{}.png".format(info))
-    print("    Figure saved in: output/figures/kFold_bias_variance_{}\n.pdf".format(info))
+    plt.plot(x, test_error, "tab:green", label="Test Error")
+    plt.plot(x, train_error,"tab:blue", label="Train Error")
+    plt.legend()
 
+    if log==True: plt.semilogy()
+
+    #fig.savefig("output/figures/RIDGE_{:}_test_train_{:}.pdf".format(err_type, info))
+    fig.savefig("output/figures/RIDGE_{:}_test_train_{:}_lambd{:}.png".format(err_type, info, lamb))
+    print("    Figure saved in: output/figures/RIDGE_{:}_test_train_{:}_lambd{:}.pdf\n".format(err_type, info, lamb))
     plt.close()
 
 if __name__ == '__main__':
