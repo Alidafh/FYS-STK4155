@@ -135,36 +135,6 @@ def OLS_beta_conf(beta, conf_beta, d, n):
     print("    Figure saved in: output/figures/OLS_beta_degree_{:.0f}_ndata{:.0f}.pdf\n".format(d, n))
     plt.close()
 
-def OLS_allfolds(x, var, k, n, rType="", varN="", log=False):
-    """
-    Plots the chosen variable var as a function of degrees for all k folds
-    used in k-fold. Saves the image in output/figures
-    --------------------------------
-    Input
-        x: degrees
-        var: the variable you want to plot
-        k: number of folds
-        rType: string, regression type
-        varN: string, name of variable
-    --------------------------------
-    TODO: change back to saving in PDF format
-    """
-    print("Plotting the {:} of all {:.0f} folds".format(varN,k))
-    fig = plt.figure()
-    plt.grid()
-    plt.title("{:} {:} (k={:.0f})".format(rType, varN, k), fontsize = 14, fontname = "serif")
-    label = ["k={}".format(i) for i in range(1, k+1)]
-    plt.plot(x, var)
-    if log==True: plt.semilogy()
-    plt.legend(label)
-    plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
-    plt.ylabel("{}".format(varN), fontsize = 12, fontname = "serif")
-
-    #fig.savefig("output/figures/OLS_allfolds_{:.0f}_{:}_{:}.pdf".format(k, rType, varN))
-    fig.savefig("output/figures/OLS_allfolds_k{:.0f}_ndata{:.0f}_{:}_{:}.png".format(k, n, rType, varN))
-    print("    Figure saved in: output/figures/OLS_allfolds_k{:.0f}_ndata{:.0f}_{:}_{:}.pdf\n".format(k, n, rType, varN))
-    plt.close()
-
 def OLS_metric(x, var, varN="", info="", log=False):
     """
     Plots the chosen variable as a function of degrees
@@ -191,48 +161,6 @@ def OLS_metric(x, var, varN="", info="", log=False):
     #fig.savefig("output/figures/OLS_{:}_{:}.png".format(varN, info))
     fig.savefig("output/figures/OLS_metric_{:}_{:}.png".format(varN, info))
     print("    Figure saved in: output/figures/OLS_{:}_{:}.pdf\n".format(varN, info))
-    plt.close()
-
-def metric_test_train(x, test_var, train_var, var_type ="", x_type="", reg_type="", info="", log=False):
-    """
-    Plots the chosen metric as a function of x for both test and training set
-    saves figure in output/figures/
-    --------------------------------
-    Input
-        x:
-        test_var/train_var: the variable to plot
-        var_type: MSE, variance, Bias, R2 var etc.
-        x_type: what you are plotting against
-    --------------------------------
-    TODO: change back to saving in PDF format
-    """
-
-    print("Plotting the {} results".format(var_type))
-
-    fig = plt.figure()
-    plt.grid()
-
-    titles = ["Explained R2-score", "Mean Squared Error", "Variance", "Bias"]
-    if var_type == "R2": plt.title(reg_type+ " " + titles[0], fontsize = 14, fontname = "serif")
-    if var_type == "MSE": plt.title(reg_type+ " " + titles[1], fontsize = 14, fontname = "serif")
-    if var_type == "VAR": plt.title(reg_type+ " " + titles[2], fontsize = 14, fontname = "serif")
-    if var_type == "BIAS": plt.title(reg_type+ " " + titles[3], fontsize = 14, fontname = "serif")
-
-    x_label = "Model Complexity (Degrees)"
-    if x_type == "data": x_label = "Size of dataset"
-
-    plt.xlabel(x_label, fontsize = 12, fontname = "serif")
-    plt.ylabel("{}".format(var_type), fontsize = 12, fontname = "serif")
-
-    plt.plot(x, test_var, "tab:green", label="Test")
-    plt.plot(x, train_var,"tab:blue", label="Train")
-    plt.legend()
-
-    if log==True: plt.semilogy()
-
-    #fig.savefig("output/figures/{:}_{:}_test_train_{:}.pdf".format(reg_type, var_type, info))
-    fig.savefig("output/figures/{:}_{:}_test_train_{:}.png".format(reg_type, var_type, info))
-    print("    Figure saved in: output/figures/{:}_{:}_test_train_{:}.png\n".format(reg_type, var_type, info))
     plt.close()
 
 def RIDGE_beta_conf(beta, conf_beta, d, lamb, n):
@@ -297,6 +225,11 @@ def RIDGE_test_train(x, test_error, train_error, lamb, err_type ="", info="", lo
     print("    Figure saved in: output/figures/RIDGE_{:}_test_train_{:}_lambd{:}.pdf\n".format(err_type, info, lamb))
     plt.close()
 
+
+###############################################################################
+#            Functions that work for both OLS and RIDGE
+###############################################################################
+
 def all_metrics_test_train(x, metrics_test, metrics_train, x_type="", reg_type="", other="", info=""):
     """
     --------------------------------
@@ -349,14 +282,13 @@ def all_metrics_test_train(x, metrics_test, metrics_train, x_type="", reg_type="
 
 def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", log=False):
     """
-    Plots the Bias, Variance and MSE as a function of degrees
+    Plots the Bias, Variance and MSE as a function of either
+    degrees: x_type = "degrees",
+    nummber of datapoints: x_type = "data"
+    lambdas: x_type = "lambda"
     --------------------------------
     Input
-        x: the model complexity
-        mse:
-        var:
-        bias:
-        info: info for the filename (number of datapoints etc.)
+        x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", log=False
     --------------------------------
     TODO: change back to saving in PDF format
     """
@@ -367,6 +299,7 @@ def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", 
 
     if x_type == "degrees": plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
     if x_type == "data": plt.xlabel("number of datapoints (n)", fontsize = 12, fontname = "serif")
+    if x_type == "lambda": plt.xlabel("$\lambda$ (log scale)", fontsize = 12, fontname = "serif")
 
     plt.plot(x, mse, "tab:red", label="MSE")
     plt.plot(x, var, "tab:blue", label="Variance")
@@ -375,11 +308,107 @@ def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", 
 
     if log==True: plt.semilogy()
 
-    #fig.savefig("output/figures/OLS_bias_variance_{}.pdf".format(info))
     fig.savefig("output/figures/{:}_bias_variance_{:}_{:}.png".format(RegType, x_type, info))
     print("    Figure saved in: output/figures/{:}_bias_variance_{:}_{:}.pdf\n".format(RegType,x_type, info))
 
+def compare_MSE(x, mse_kfold, mse_bs, rType = "OLS", lamb=0, info="", log=False):
+    """
+    --------------------------------
+    Input
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
 
+    print("Comparing MSE for k-fold and bootstrap methods")
+    fig = plt.figure()
+    plt.grid()
+
+    plt.title("{:} Mean Squared Errors ($\lambda$ = {:.6f} )".format(rType, lamb), fontsize = 14, fontname = "serif")
+    plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
+    plt.ylabel("MSE", fontsize = 12, fontname = "serif")
+
+    plt.plot(x, mse_kfold, "tab:green", label="k-Fold")
+    plt.plot(x, mse_bs,"tab:blue", label="Bootstrap")
+    plt.legend()
+
+    if log==True: plt.semilogy()
+
+    fig.savefig("output/figures/{:}_comparison_mse_lamb{:.6f}_{:}.png".format(rType, lamb, info))
+    print("    Figure saved in: output/figures/{:}_comparison_mse_lamb{:.6f}_{:}.png\n".format(rType, lamb, info))
+    plt.close()
+
+def allfolds(x, var, k, n, rType="", varN="", log=False, lamb=0):
+    """
+    Plots the chosen variable var as a function of degrees for all k folds
+    used in k-fold. Saves the image in output/figures
+    --------------------------------
+    Input
+        x: degrees
+        var: the variable you want to plot
+        k: number of folds
+        rType: string, regression type
+        varN: string, name of variable
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
+    print("Plotting the {:} of all {:.0f} folds".format(varN,k))
+    fig = plt.figure()
+    plt.grid()
+    plt.title("{:} {:} (k={:.0f})".format(rType, varN, k), fontsize = 14, fontname = "serif")
+    if rType=="RIDGE":
+        plt.title("{:} {:} (k={:.0f}, $\lambda={:.6f}$)".format(rType, varN, k, lamb), fontsize = 14, fontname = "serif")
+    label = ["k={}".format(i) for i in range(1, k+1)]
+    plt.plot(x, var)
+    if log==True: plt.semilogy()
+    plt.legend(label)
+    plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
+    plt.ylabel("{}".format(varN), fontsize = 12, fontname = "serif")
+
+    fig.savefig("output/figures/{:}_allfolds_k{:.0f}_ndata{:.0f}_{:}.png".format(rType, k, n, varN))
+    print("    Figure saved in: output/figures/{:}_allfolds_k{:.0f}_ndata{:.0f}_{:}.pdf\n".format(rType, k, n, varN))
+    plt.close()
+
+def metric_test_train(x, test_var, train_var, var_type ="", x_type="", reg_type="", info="", log=False):
+    """
+    Plots the chosen metric as a function of x for both test and training set
+    saves figure in output/figures/
+    --------------------------------
+    Input
+        x:
+        test_var/train_var: the variable to plot
+        var_type: MSE, variance, Bias, R2 var etc.
+        x_type: what you are plotting against
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
+
+    print("Plotting the {} results".format(var_type))
+
+    fig = plt.figure()
+    plt.grid()
+
+    titles = ["Explained R2-score", "Mean Squared Error", "Variance", "Bias"]
+    if var_type == "R2": plt.title(reg_type+ " " + titles[0], fontsize = 14, fontname = "serif")
+    if var_type == "MSE": plt.title(reg_type+ " " + titles[1], fontsize = 14, fontname = "serif")
+    if var_type == "VAR": plt.title(reg_type+ " " + titles[2], fontsize = 14, fontname = "serif")
+    if var_type == "BIAS": plt.title(reg_type+ " " + titles[3], fontsize = 14, fontname = "serif")
+
+    x_label = "Model Complexity (Degrees)"
+    if x_type == "data": x_label = "Size of dataset"
+
+    plt.xlabel(x_label, fontsize = 12, fontname = "serif")
+    plt.ylabel("{}".format(var_type), fontsize = 12, fontname = "serif")
+
+    plt.plot(x, test_var, "tab:green", label="Test")
+    plt.plot(x, train_var,"tab:blue", label="Train")
+    plt.legend()
+
+    if log==True: plt.semilogy()
+
+    #fig.savefig("output/figures/{:}_{:}_test_train_{:}.pdf".format(reg_type, var_type, info))
+    fig.savefig("output/figures/{:}_{:}_test_train_{:}.png".format(reg_type, var_type, info))
+    print("    Figure saved in: output/figures/{:}_{:}_test_train_{:}.png\n".format(reg_type, var_type, info))
+    plt.close()
 if __name__ == '__main__':
     #plot_franke("Illustration of the Franke Function", "franke_func_illustration")
     x = np.linspace(0, 10, 11)
