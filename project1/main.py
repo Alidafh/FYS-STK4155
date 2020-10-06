@@ -61,7 +61,7 @@ def part_b_noresample(x, y, z, d=5):
     print ("                   no resampling                      ")
     print ("------------------------------------------------------")
 
-    print("Preforming OLS-regression using polynomials up to {} degrees\n".format(d))
+    print("Performing OLS-regression using polynomials up to {} degrees\n".format(d))
     mse_test = np.zeros(d)
     mse_train = np.zeros(d)
     degrees = np.arange(1, d+1)
@@ -91,10 +91,6 @@ part_b_noresample(x,y,z,d=10)
 
 ###############################################################################
 
-#Til test av pull request og greier
-
-4+4
-
 
 def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
     print ("------------------------------------------------------")
@@ -102,7 +98,7 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
     print ("                    resampling                        ")
     print ("------------------------------------------------------")
 
-    print("Preforming OLS-regression using polynomials up to {:.0f} degrees with n_bootstrap={:.0f}\n".format(d, n_bootstraps))
+    print("Performing OLS-regression using polynomials up to {:.0f} degrees with n_bootstrap={:.0f}\n".format(d, n_bootstraps))
 
     # Initialize arrays of shape (degrees, )
     bias = np.zeros(d)
