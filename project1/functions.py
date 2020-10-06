@@ -335,6 +335,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
 
     return z_train, z_test, z_fit, z_pred
 
+
 if __name__ == '__main__':
     x, y, z = GenerateData(10, 0.01, "debug")
     X = PolyDesignMatrix(x, y, 2)
