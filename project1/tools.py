@@ -1,5 +1,4 @@
 import numpy as np
-
 def SVDinv(A):
     """
     Credit: Morten Hjort-Jensen
