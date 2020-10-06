@@ -6,7 +6,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 import scipy as scl
-from tools import SVDinv
+from tools import SVDinv, foldIndex
 import sys
 
 ###############################################################################
@@ -336,6 +336,8 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
         z_fit[:,j] = X_train_scl @ tmp_beta.ravel()
 
     return z_train, z_test, z_fit, z_pred
+
+
 
 if __name__ == '__main__':
     x, y, z = GenerateData(10, 0.01, "debug")
