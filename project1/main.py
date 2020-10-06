@@ -114,8 +114,51 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, RegType="OLS"):
     info = "data{:.0f}_degree{:.0f}_bootstrap{:.0f}".format(len(z), d, n_bootstraps)
     plot.OLS_bias_variance(degrees, mse, var, bias, info, log=True)
 
-part_b_bootstrap(x, y, z, d=8, n_bootstraps=100, RegType="OLS")
+#part_b_bootstrap(x, y, z, d=8, n_bootstraps=100, RegType="OLS")
 
+###############################################################################
+
+def part_b_data2(max, d=5, n_bootstraps=100, RegType="OLS"):
+    print ("------------------------------------------------------")
+    print ("                      PART B                          ")
+    print ("                   data-variation                     ")
+    print ("------------------------------------------------------")
+
+    ndata = np.arange(100, max+1, 10)
+    n = len(ndata)
+
+    metrics = np.zeros((4, n))
+    metrics_bs = np.zeros((4, n))
+
+    bias = np.zeros(n)
+    var = np.zeros(n)
+    mse = np.zeros(n)
+    rs2 = np.zeros(n)
+
+    for i in range(n):
+        # Without resampling
+        x_tmp, y_tmp, z_tmp = func.GenerateData(ndata[i], 0.01, "", False)
+
+        X_tmp = func.PolyDesignMatrix(x_tmp, y_tmp, d)
+        X_train, X_test, z_train, z_test = train_test_split(X_tmp, z_tmp, test_size=0.33)
+        X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
+        beta = func.OLS(z_train, X_train_scl)
+        z_fit = X_train_scl @ beta
+        z_pred = X_test_scl @ beta
+
+        metrics[:,i] = func.metrics(z_test, z_pred, test=True)
+
+        # With resampling
+        z_train_bs, z_test_bs, z_fit_bs, z_pred_bs = func.Bootstrap(x_tmp, y_tmp, z_tmp, d, n_bootstraps, "OLS", lamb=0)
+        metrics_bs[:,i] = func.metrics(z_test_bs, z_pred_bs, test=True)
+        metrics_bs[:,i] = func.metrics(z_train_bs, z_fit_bs, test=True)
+
+
+    plt.plot(ndata, metrics[0])
+    plt.plot(ndata, metrics_bs[0])
+    plt.show()
+
+part_b_data2(max=500, d=3, n_bootstraps=100, RegType="OLS")
 
 ###############################################################################
 def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):

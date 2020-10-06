@@ -31,7 +31,7 @@ def FrankeFunction(x,y):
     z = term1 + term2 + term3 + term4
     return z
 
-def GenerateData(nData, noise_str=0, seed=""):
+def GenerateData(nData, noise_str=0, seed="", pr=True):
     """
     Generates three numpy arrays x, y, z of size (nData, 1).
     The x and y arrays are randomly distributed numbers between 0 and 1.
@@ -55,6 +55,8 @@ def GenerateData(nData, noise_str=0, seed=""):
     if seed == "debug":
         np.random.seed(42)
         print("Running in debug mode")
+
+    if pr==True:
         print("Generating data for the Franke function with n = {:.0f} datapoints\n".format(nData))
 
     x = np.random.rand(nData, 1)
@@ -113,12 +115,19 @@ def scale_X(train, test):
     --------------------------------
     TO DO: FINISHED
     """
+    train_scl =  np.ones(train.shape)
+    test_scl = np.ones(test.shape)
+    train_scl[:,1:] = train[:,1:] - np.mean(train)
+    test_scl[:,1:]= test[:,1:] - np.mean(test)
+
+    """
     scaler = StandardScaler()
     scaler.fit(train[:,1:])
     train_scl =  np.ones(train.shape)
     test_scl = np.ones(test.shape)
     train_scl[:,1:] = scaler.transform(train[:,1:])
     test_scl[:,1:] = scaler.transform(test[:,1:])
+    """
     return train_scl, test_scl
 
 def metrics(z_true, z_pred, test=False):
@@ -141,7 +150,9 @@ def metrics(z_true, z_pred, test=False):
           and when using it with kFold the bias and the MSE are identical
     """
     n = len(z_true)
-    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    #R2 = 1 - (np.sum((z_true - np.mean(z_pred, axis=1, keepdims=True))**2))/(np.sum((z_true - np.mean(z_true))**2))
+
+    R2 = 1 - (np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2))
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
     bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
     var = np.mean(np.var(z_pred, axis=1, keepdims=True))
@@ -308,7 +319,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     TODO:
     """
     X = PolyDesignMatrix(x, y, d)
-    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.2)
+    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
     X_train_scl, X_test_scl = scale_X(X_train, X_test)
 
     z_pred = np.empty((z_test.shape[0], n_bootstraps))
