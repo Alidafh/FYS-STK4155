@@ -6,7 +6,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 import scipy as scl
-from tools import SVDinv
+from tools import SVDinv, foldIndex
 import sys
 
 ###############################################################################
@@ -150,7 +150,6 @@ def metrics(z_true, z_pred, test=False):
           and when using it with kFold the bias and the MSE are identical
     """
     n = len(z_true)
-    #R2 = 1 - (np.sum((z_true - np.mean(z_pred, axis=1, keepdims=True))**2))/(np.sum((z_true - np.mean(z_true))**2))
 
     R2 = 1 - (np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2))
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
@@ -305,13 +304,13 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     Bootstrap loop
     --------------------------------
     Input
-        x,
-        y,
-        z,
-        d,
-        n_bootstraps,
-        RegType,
-        lamb=0
+        x:
+        y:
+        z:
+        d: degree
+        n_bootstraps:
+        RegType: "OLS" or "Ridge"
+        lamb=0: the lambda value needs to be specified if using ridge
     --------------------------------
     Returns
         z_train, z_test, z_fit, z_pred
@@ -324,16 +323,20 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
 
     z_pred = np.empty((z_test.shape[0], n_bootstraps))
     z_fit = np.empty((z_train.shape[0], n_bootstraps))
+
     for j in range(n_bootstraps):
         """ Loop over bootstraps"""
+        #tmp_X_train, tmp_z_train = resample(X_train, z_train, replace=True)
+        #tmp_X_test, tmp_z_test = resample(X_test, z_test, replace=True)
         tmp_X_train, tmp_z_train = resample(X_train, z_train)
         tmp_X_test, tmp_z_test = resample(X_test, z_test)
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
-        if RegType == "Ridge": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
+        if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
         z_pred[:,j] = X_test_scl @ tmp_beta.ravel()
         z_fit[:,j] = X_train_scl @ tmp_beta.ravel()
 
     return z_train, z_test, z_fit, z_pred
+
 
 
 if __name__ == '__main__':
