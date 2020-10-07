@@ -216,6 +216,39 @@ part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
 #part_c_kFold(x,y,z, d=10, k=5)
 
 
+
+
+
+##################################################################################
+############################   Part e   ##########################################
+##################################################################################
+
+#Repeat once for bootstrap, and once for cross-validation
+
+# Repeat over each dimension
+# 1. Generate design matrix X
+# 2. Scale data
+
+# For each resample:
+# 2. Split data
+# 2. Scale Data
+# 3. Regression 
+# 5. Find predictions
+# 6. Find metrics
+
+# 8. Calculate variance of MESEs
+
+
+
+
+
+
+
+
+
+
+
+
 ############################# DO NOT ERASE ####################################
 ########################### (Without asking) ####################################
 

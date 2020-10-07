@@ -302,3 +302,41 @@ if __name__ == '__main__':
 
     print("Ridge: ", np.array_str(var_ridge.ravel(), precision=2, suppress_small=True))
     print("OLS:   ", np.array_str(var_ols.ravel(), precision=2, suppress_small=True))
+    
+
+def PolyDesignMatrix2(x, d):
+    """
+    Generates a design matrix of size (n,p) with monomials up to degree d as
+    the columns. As an example if d=2 the columns of the design matrixs will be
+    [1  x  y  x**2  y**2  xy]. Difference to PolydesignMatrix is just that puts
+    all of the response variables into one table, to make it compatible with 
+    the classes in classes.py. 
+    --------------------------------
+    Input
+        x: numpy array with shape (n,) or (n,1)
+        y: numpy array with shape (n,) or (n,1)
+        d: the degree of the polynomial (scalar)
+    --------------------------------
+    Returns
+        X: Design matrix of shape (n, p)
+    --------------------------------
+    TO DO: FINISHED
+    """
+    
+    x = x[0]
+    y = x[1]
+    
+    if len(x.shape) > 1:
+        x = x.ravel()
+        y = y.ravel()
+
+    n = len(x)
+    p = int(((d+2)*(d+1))/2)  # number of terms in beta
+    X = np.ones((n, p))       # Matrix of size (n,p) where all entries are zero
+
+    # fill colums of X with the polynomials [1  x  y  x**2  y**2  xy ...]
+    for i in range(1, d+1):
+        j = int(((i)*(i+1))/2)
+        for k in range(i+1):
+            X[:,j+k] = x**(i-k)*y**(k)
+    return X
