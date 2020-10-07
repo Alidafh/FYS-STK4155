@@ -9,6 +9,7 @@ import functions as func
 import plotting as plot
 import tools as tools
 import sys
+import classes as cl
 
 #x, y, z = func.GenerateData(100, 0, "debug")
 x, y, z = func.GenerateData(100, 0.01, "debug")
@@ -50,7 +51,7 @@ def part_a(x, y, z, degree=5):
 
     plot.OLS_beta_conf(beta, conf_beta, degree, len(z))
 
-part_a(x,y,z,3)
+#part_a(x,y,z,3)
 
 ###############################################################################
 
@@ -87,7 +88,7 @@ def part_b_noresample(x, y, z, d=5):
     info = "ndata{:.0f}_d{:.0f}".format(len(z), d)
     plot.OLS_test_train(degrees, mse_test, mse_train, err_type ="MSE", info="", log=True)
 
-part_b_noresample(x,y,z,d=10)
+#part_b_noresample(x,y,z,d=10)
 
 ###############################################################################
 
@@ -130,7 +131,7 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100):
 
     #plot.OLS_metric(degrees, r2_score, "R2-score", info)
 
-part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
+#part_b_bootstrap(x, y, z, d=10, n_bootstraps=100)
 
 ###############################################################################
 
@@ -212,8 +213,8 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
     plot.OLS_metric(degrees, est_rs2_kFold, "R2-score", info, log=False)
 
 
-part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
-#part_c_kFold(x,y,z, d=10, k=5)
+#part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
+#part_c_kFold(x,y,z, d=10, k=5) (not this one)
 
 
 
@@ -238,15 +239,63 @@ part_c_kFold(x,y,z, d=10, k=5, shuffle=True)
 
 # 8. Calculate variance of MESEs
 
+d = 5
 
 
+bias_bs = np.zeros(d)
+var_bs  = np.zeros(d)
+mse_bs  = np.zeros(d)
+r2_score_bs  = np.zeros(d)
+
+bias_cv_k = []
+var_cv_k = []
+mse_cv_k = []
+r2_score_cv_k = []
 
 
+bias_cv = np.zeros(d)
+var_cv  = np.zeros(d)
+mse_cv  = np.zeros(d)
+r2_score_cv  = np.zeros(d)
+
+bs = cl.Bootstrap_Analysis([x,y], z)
+bs.reg_func = func.lasso
+bs.reg_params = 0.01
 
 
+cv = cl.CV_Analysis([x,y], z)
+cv.reg_func = func.lasso
+cv.reg_params = 0.01
 
 
+for i in np.arange(1, d+1):
 
+    bs.dm_params = i
+    cv.dm_params = i
+    
+    bs.analysis()
+    cv.analysis()
+    
+    bias_bs[i-1] = bs.bias
+    var_bs[i-1] = bs.var
+    mse_bs[i-1] = bs.mse
+    r2_score_bs[i-1] = bs.r2_score
+
+    bias_cv_k.append(cv.bias_k)
+    var_cv_k.append(cv.var_k)
+    mse_cv_k.append(cv.mse_k)
+    r2_score_cv_k.append(cv.r2_score_k)
+
+    bias_cv[i-1] = cv.bias
+    var_cv[i-1] = cv.var
+    mse_cv[i-1] = cv.mse
+    r2_score_cv[i-1] = cv.r2_score
+
+
+bias_cv_k = np.array(bias_cv_k)
+var_cv_k  = np.array(var_cv_k )
+mse_cv_k  = np.array(mse_cv_k)
+r2_score_cv_k  = np.array(r2_score_cv_k)
 
 
 ############################# DO NOT ERASE ####################################

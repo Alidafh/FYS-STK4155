@@ -4,9 +4,11 @@ import plotting as plot
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Lasso
 import scipy as scl
 from tools import SVDinv
 import sys
+
 ###############################################################################
 
 def FrankeFunction(x,y):
@@ -340,3 +342,54 @@ def PolyDesignMatrix2(x, d):
         for k in range(i+1):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
+
+def OLS2(X, z, dummy, var = False):
+    """
+    Preforming ordinary least squares fit to find the regression parameters.
+    If prompted it also calculates the variance of the fitted parameters.
+    An error message will be printed if the design matrix has high
+    dimentionality, p > n, but the parameters are still calculated.
+    As this would give a negative variance, a temporary workaround is to take
+    the absolute value of sigma^2. Difference to OLS() is just that it has a dummy
+    variable, to make it compatible with the classes in classes.py. 
+    --------------------------------
+    Input
+        z: response variable
+        X: Design matrix
+        var: To calculate the variance set this to True (default is False)
+    --------------------------------
+    Returns
+    - var=False
+        beta: The estimated OLS regression parameters, shape (p,1)
+        (var_beta: The variance of the parameters (p,1), returned if var=True)
+    --------------------------------
+    TODO: Find out if the absoultevalue thing in variance calculations is legit.
+    """
+
+    #beta = np.linalg.pinv(X) @ z
+    beta = np.linalg.pinv(X.T @ X) @ X.T @ z # To be consistent with Ridge
+
+    if len(z) < len(beta):
+        print("ERROR: n = {} < p = {}". format(len(z), len(beta)))
+        print("Remember that OLS is not well defined for p > n!\n")
+
+    if var == True:
+        z_pred = X @ beta
+        sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta)-1)
+        #sigma2 = np.sum((z - z_pred)**2)/(len(z)-len(beta))
+
+        if sigma2 <= 0: sigma2 = np.abs(sigma2)
+
+        var_beta = sigma2 * SVDinv(X.T @ X).diagonal()
+
+        return beta, var_beta.reshape(len(var_beta),1)
+
+    return beta
+
+
+def lasso(dm, z, lam):
+    reg = Lasso(alpha=lam, fit_intercept = True, max_iter=100000)
+    reg.fit(dm,z)
+    # print(reg.intercept_)
+    return np.transpose(np.array([reg.coef_]))
+    
