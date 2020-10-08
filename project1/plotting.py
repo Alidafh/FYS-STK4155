@@ -41,7 +41,7 @@ def plot_franke(title, filename, noise=0):
             if exc.errno != errno.EEXIST:
                 raise
 
-    fig.savefig("output/figures/{:}_{:}.png".format(filename, noise), scale=0.1)
+    fig.savefig("output/figures/{:}_{:}.pdf".format(filename, noise), scale=0.1)
     print("    Figure saved in: output/figures/{:}_{:}.pdf\n".format(filename, noise))
     plt.close()
 
@@ -72,7 +72,7 @@ def OLS_test_train(x, test_error, train_error, err_type ="", info="", log=False)
 
     if log==True: plt.semilogy()
 
-    #fig.savefig("output/figures/OLS_{:}_test_train_{:}.pdf".format(err_type, info))
+    fig.savefig("output/figures/OLS_{:}_test_train_{:}.pdf".format(err_type, info))
     fig.savefig("output/figures/OLS_{:}_test_train_{:}.png".format(err_type, info))
     print("    Figure saved in: output/figures/OLS_{:}_test_train_{:}.pdf\n".format(err_type, info))
     plt.close()
@@ -102,9 +102,10 @@ def OLS_bias_variance(x, mse, var, bias, x_type="degrees", info="", log=False):
     plt.legend()
     if log==True: plt.semilogy()
 
-    #fig.savefig("output/figures/OLS_bias_variance_{}.pdf".format(info))
+    fig.savefig("output/figures/OLS_bias_variance_{:}_{:}.pdf".format(x_type, info))
     fig.savefig("output/figures/OLS_bias_variance_{:}_{:}.png".format(x_type, info))
     print("    Figure saved in: output/figures/OLS_bias_variance_{:}_{:}.pdf\n".format(x_type, info))
+    plt.close()
 
 def OLS_beta_conf(beta, conf_beta, d, n):
     """
@@ -130,8 +131,8 @@ def OLS_beta_conf(beta, conf_beta, d, n):
     ax.set_xticks(x)
     ax.set_xticklabels(xlabels)
 
-    #fig.savefig("output/figures/OLS_parameters_degree_{:.0f}_ndata{:.0f}.pdf".format(d, n))
-    fig.savefig("output/figures/OLS_parameters_degree_{:.0f}_ndata{:.0f}.png".format(d, n))
+    fig.savefig("output/figures/OLS_parameters_d{:.0f}_n{:.0f}.pdf".format(d, n))
+    fig.savefig("output/figures/OLS_parameters_d{:.0f}_n{:.0f}.png".format(d, n))
     print("    Figure saved in: output/figures/OLS_beta_degree_{:.0f}_ndata{:.0f}.pdf\n".format(d, n))
     plt.close()
 
@@ -409,15 +410,17 @@ def metric_test_train(x, test_var, train_var, var_type ="", x_type="", reg_type=
     fig.savefig("output/figures/{:}_{:}_test_train_{:}.png".format(reg_type, var_type, info))
     print("    Figure saved in: output/figures/{:}_{:}_test_train_{:}.png\n".format(reg_type, var_type, info))
     plt.close()
+
+
 if __name__ == '__main__':
-    #plot_franke("Illustration of the Franke Function", "franke_func_illustration")
-    x = np.linspace(0, 10, 11)
-    y1 = 2*x
-    y2 = 3*x
-    z1 = 2*x+1
-    z2 = 3*x+1
+    plot_franke("Illustration of the Franke Function", "franke_func_illustration", 0.1)
+    #x = np.linspace(0, 10, 11)
+    #y1 = 2*x
+    #y2 = 3*x
+    #z1 = 2*x+1
+    #z2 = 3*x+1
 
-    y = np.array([y1, y2])
-    z = np.array([z1, z2])
+    #y = np.array([y1, y2])
+    #z = np.array([z1, z2])
 
-    all_metrics_test_train(x, y, z, x_type="degrees", reg_type="OLS", other="Bootstrap", info="k", log=False)
+    #all_metrics_test_train(x, y, z, x_type="degrees", reg_type="OLS", other="Bootstrap", info="k", log=False)

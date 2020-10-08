@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 import plotting as plot
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
@@ -130,7 +131,7 @@ def scale_X(train, test):
     """
     return train_scl, test_scl
 
-def metrics(z_true, z_pred, test=False):
+def metrics(z_true, z_pred, test=False, quiet=True):
     """
     Calculate the R^2 score, mean square error, variance and bias.
     If the predicted values has shape (n,1), it tests the calculated MSE and R2
@@ -150,36 +151,37 @@ def metrics(z_true, z_pred, test=False):
           and when using it with kFold the bias and the MSE are identical
     """
     n = len(z_true)
+    if z_pred.shape != z_true.shape:
+        print("metrics(): RESHAPING z_pred")
+        z_pred = np.mean(z_pred, axis=1, keepdims=True)
 
     R2 = 1 - (np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2))
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
     bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
     var = np.mean(np.var(z_pred, axis=1, keepdims=True))
 
-    if np.shape(z_pred) == (n, 1):
-        var = np.mean(np.var(z_pred, axis=0, keepdims=True))
-        bias = np.mean((z_true - np.mean(z_pred, axis=0, keepdims=True))**2)
+    #if R2<0:
+    #    print("metrics(): R2 is NEGATIVE: ", R2)
 
     if test == True:
-        if np.shape(z_pred) == (len(z_pred), 1):
-            r2_sklearn = r2_score(z_true, z_pred)
-            mse_sklearn = mean_squared_error(z_true, z_pred)
+        r2_sklearn = r2_score(z_true, z_pred)
+        mse_sklearn = mean_squared_error(z_true, z_pred)
 
-            if np.abs(R2-r2_sklearn) > 0.001:
-                print("Testing with sklearn:")
-                print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
+        if np.abs(R2-r2_sklearn) > 0.001:
+            print("Testing with sklearn:")
+            print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
 
-            if np.abs(MSE-mse_sklearn) > 0.001:
-                print("     Diff MSE: {:.2f}\n".format(MSE-mse_sklearn))
-        else:
-            if np.abs((bias+var) - MSE) > 1e-6:
-                print("Test:")
-                print("bias+variance > mse:")
-                print("-------------")
-                print("MSE: ", MSE)
-                print("bias:", bias)
-                print("var: ", var)
-                print("-------------\n")
+        if np.abs(MSE-mse_sklearn) > 0.001:
+            print("     Diff MSE: {:.2f}\n".format(MSE-mse_sklearn))
+
+        if np.abs((bias+var) - MSE) > 1e-6:
+            print("Test:")
+            print("bias+variance > mse:")
+            print("-------------")
+            print("MSE: ", MSE)
+            print("bias:", bias)
+            print("var: ", var)
+            print("-------------\n")
 
     return R2, MSE, var, bias
 
@@ -301,16 +303,9 @@ def Ridge(z, X, lamb, var=False):
 
 def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
-    Bootstrap loop
+    THIS DOES NOT WORK
     --------------------------------
-    Input
-        x:
-        y:
-        z:
-        d: degree
-        n_bootstraps:
-        RegType: "OLS" or "Ridge"
-        lamb=0: the lambda value needs to be specified if using ridge
+
     --------------------------------
     Returns
         z_train, z_test, z_fit, z_pred
@@ -319,28 +314,80 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
     X = PolyDesignMatrix(x, y, d)
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
-    X_train_scl, X_test_scl = scale_X(X_train, X_test)
+    #X_train, X_test = scale_X(X_train, X_test)
 
     z_pred = np.empty((z_test.shape[0], n_bootstraps))
     z_fit = np.empty((z_train.shape[0], n_bootstraps))
 
     for j in range(n_bootstraps):
         """ Loop over bootstraps"""
-        #tmp_X_train, tmp_z_train = resample(X_train, z_train, replace=True)
-        #tmp_X_test, tmp_z_test = resample(X_test, z_test, replace=True)
         tmp_X_train, tmp_z_train = resample(X_train, z_train)
-        tmp_X_test, tmp_z_test = resample(X_test, z_test)
+        #X_train_scl, X_test_scl = scale_X(tmp_X_train, tmp_X_test)
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
-        z_pred[:,j] = X_test_scl @ tmp_beta.ravel()
-        z_fit[:,j] = X_train_scl @ tmp_beta.ravel()
+        z_pred[:,j] = X_test @ tmp_beta.ravel()
+        z_fit[:,j] = tmp_X_train @ tmp_beta.ravel()
 
     return z_train, z_test, z_fit, z_pred
 
 
+def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps):
+    """
+    returns:
+        metrics_test: (4, n_bootstraps)
+        metrics_train   (4, n_bootstraps)
+    TODO: describe
+    """
+    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
+    z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
+    z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
+
+    metrics_test = np.zeros((4, d_max))
+    metrics_train = np.zeros((4, d_max))
+
+    for i in range(n_bootstraps):
+        z_test_cp[:,i] = z_test.ravel()
+
+    for d in range (d_max):
+        z_pred = np.empty((z_test.shape[0], n_bootstraps))
+        z_fit = np.empty((z_train.shape[0], n_bootstraps))
+        for i in range(n_bootstraps):
+            x_, y_, z_ = resample(x_train, y_train, z_train)
+            z_train_cp[:,i] = z_.ravel()
+            X_train = PolyDesignMatrix(x_, y_, degrees[d])
+            X_test = PolyDesignMatrix(x_test, y_test, degrees[d])
+            tmp_beta = OLS(z_, X_train)
+            z_pred[:,i] = X_test @ tmp_beta.ravel()
+            z_fit[:,i] = X_train @ tmp_beta.ravel()
+
+        metrics_test[:,d] = metrics(z_test_cp, z_pred)
+        metrics_train[:,d] = metrics(z_train_cp, z_fit)
+
+    return metrics_test, metrics_train
+
+
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(10, 0.01, "debug")
+    x, y, z = GenerateData(100, 0.01, "debug")
+    n_bootstraps = 100
+    d_max = 10
+    degrees = np.arange(1, d_max+1)
+
+    m_test, m_train = OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps)
+
+    print(m_test.shape, m_train.shape)
+    print("--------------")
+
+    plt.plot(degrees, m_test[1], label="MSE test")
+    plt.plot(degrees, m_train[1], label="MSE train")
+    plt.plot(degrees, m_test[2], label="variance")
+    plt.plot(degrees, m_test[3], label="bias")
+    plt.legend()
+    plt.semilogy()
+    plt.show()
+
+
+    """
     X = PolyDesignMatrix(x, y, 2)
 
     # Test if the returned beta's are the same for small lambdas:
@@ -352,3 +399,4 @@ if __name__ == '__main__':
 
     print("Ridge: ", np.array_str(var_ridge.ravel(), precision=2, suppress_small=True))
     print("OLS:   ", np.array_str(var_ols.ravel(), precision=2, suppress_small=True))
+    """
