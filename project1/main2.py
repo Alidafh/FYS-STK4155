@@ -11,21 +11,6 @@ import tools as tools
 import sys
 from array import array
 
-def R2(z_true, z_pred):
-    if z_pred.shape != z_true.shape:
-        z_pred = np.mean(z_pred, axis=1, keepdims=True)
-
-    return 1 - (np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2))
-
-def MSE(z_true, z_pred):
-    return np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
-
-def Variance(z_true, z_pred):
-    return np.mean(np.var(z_pred, axis=1, keepdims=True))
-
-def Bias(z_true, z_pred):
-    return np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
-
 ###############################################################################
 
 def regression(z, X, reg_type="OLS", lamb=0):
@@ -60,11 +45,36 @@ def get_beta(x, y, z, d, reg_type="OLS", lamb=0):
     #print("    MSE: {:.4f}\n".format(mse))
 
     return beta, conf_beta
+
+def OLS_optimal_model(x, y, z, metrics_test, metrics_train, quiet = True, info=""):
+    mse_min = metrics_test[1].min()     # The lowest MSE
+    at_ = metrics_test[1].argmin()      # The index of mse_min
+    best_degree = at_+1                 # The coresponding polynomial degree
+
+    # Find the regression parameters for best_degree
+    beta, conf_beta = get_beta(x, y, z, best_degree, "OLS")
+
+    # The corresponding statistics:
+    m_test_best = metrics_test[:,at_]
+    m_train_best = metrics_train[:,at_]
+
+    if quiet==False:
+        print("Optimal model is")
+        print ("    Deg  : {}".format(best_degree))
+        print ("    RS2  : {:.3f} (train: {:.3f})".format(m_test_best[0], m_train_best[0]))
+        print ("    MSE  : {:.3f} (train: {:.3f})".format(m_test_best[1], m_train_best[1]))
+        print ("    Var  : {:.3f} (train: {:.3f})".format(m_test_best[2], m_train_best[2]))
+        print ("    Bias : {:.3f} (train: {:.3f})".format(m_test_best[3], m_train_best[3]))
+        print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
+        print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
+        print("")
+        plot.OLS_beta_conf(beta, conf_beta, best_degree, info)
+
+    return beta, best_degree, m_test_best
 ###############################################################################
 x, y, z = func.GenerateData(100, 0.01, "debug")
 
 
-# Loop over degrees and do regression
 d_max = 10
 degrees = np.arange(1, d_max+1)
 
@@ -72,6 +82,7 @@ degrees = np.arange(1, d_max+1)
 m_test = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 m_train = np.zeros((4, d_max))      # array to store [R2, mse, var, bias]
 
+# Loop over degrees and do OLS regression
 for i in range(d_max):
     X = func.PolyDesignMatrix(x, y, degrees[i])
     z_train, z_test, z_fit, z_pred = regression(z, X, "OLS")
@@ -82,62 +93,36 @@ for i in range(d_max):
 info1 = "n{:.0f}_d{:.0f}".format(len(z), d_max)
 plot.OLS_test_train(degrees, m_test[1], m_train[1], err_type ="MSE", info=info1, log=True)
 
+# Find the model with lowest MSE
+beta_1, best_degree_1, m_test_best = OLS_optimal_model(x, y, z, m_test, m_train, quiet = False, info=info1)
 
-# With bootstrapping
+
+
+# Bias-variance tradeoff with bootstrapping
+
 n_bootstraps = 100
-
 m_test_bs, m_train_bs = func.OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps)
 
 info_bs = info1+"_bs{}".format(n_bootstraps)
-plot.OLS_bias_variance(degrees, m_test_bs[1], m_test_bs[2], m_test_bs[3], "degrees", info_bs, log=True)
+plot.bias_variance(degrees, m_test_bs[1], m_test_bs[2], m_test_bs[3], "degrees", "OLS", info_bs, log=True)
 plot.OLS_test_train(degrees, m_test_bs[1], m_train_bs[1], "MSE", info_bs, log=True)
 plot.all_metrics_test_train(degrees, m_test_bs, m_train_bs, "degrees", "OLS", "Bootstrap", info_bs)
+beta_2, best_degree_2, m_test_bs_best = OLS_optimal_model(x, y, z, m_test_bs, m_train_bs, quiet = False, info=info_bs)
 
-# find the regression parameters for the best polynomial degree
-#min_mse = m_test[1].min()
-#best_d_ols = m_test[1].argmin() +1  #python starts counting on zero
 
-#beta, conf_beta = get_beta(x, y, z, best_d_ols, "OLS")
-#plot.OLS_beta_conf(beta, conf_beta, best_d_ols, len(z))
 
-quit()
+# Vary the data size and see how the bias-variance behaves
 
-min =100
-max = 500
-steps =50
+min = 100               # minimum data
+max = 500               # maximum data
+steps = 100             # steps between
+d_1 = best_degree_2     # degree
 
-ndata = np.arange(min, max, steps)
-n = len(ndata)
+ndata = np.arange(min, max, steps)  # array of datapoints
 
-deg = 2
-m_test_bs = np.zeros((4, n))
-m_train_bs = np.zeros((4, n))
+m_test_ndata, m_train_ndata = func.OLS_bootstrap_data(ndata, n_bootstraps, d_1)
 
-for i in range(n):
-    x_tmp, y_tmp, z_tmp = func.GenerateData(ndata[i], 0.01, "debug", pr=False)
+info_ndata = "min{:.0f}_max{:.0f}_step{:.0f}_d{:.0f}".format(min, max, steps, d_1)
+plot.bias_variance(ndata, m_test_ndata[1], m_test_ndata[2], m_test_ndata[3], "data", "OLS", info_ndata, log=True)
 
-    # First without resampling
-    X_tmp = func.PolyDesignMatrix(x_tmp, y_tmp, deg)
-    z_train, z_test, z_fit, z_pred = regression(z_tmp, X_tmp, "OLS")
-
-    m_test[:,i] = func.metrics(z_test, z_pred, test=True)
-    m_train[:,i] = func.metrics(z_train, z_fit, test=True)
-
-    # With resampling
-    z_train_bs, z_test_bs, z_fit_bs, z_pred_bs = func.Bootstrap(x_tmp, y_tmp, z_tmp, deg, n_bootstraps, "OLS")
-
-    m_test_tmp = np.zeros((z_pred_bs.shape[1], 4))
-    m_train_tmp = np.zeros((z_fit_bs.shape[1], 4))
-
-    for j in range(z_fit_bs.shape[1]):
-        z_fit_bs_j = z_fit_bs[:,j].reshape(-1,1)
-        z_pred_bs_j = z_pred_bs[:,j].reshape(-1,1)
-        m_train_tmp[j,:] = func.metrics(z_train_bs, z_fit_bs_j, test=True)
-        m_test_tmp[j,:] = func.metrics(z_test_bs, z_pred_bs_j, test=True)
-
-    m_train_bs[:,i] = np.mean(m_train_tmp, axis=0, keepdims=True)
-    m_test_bs[:,i] = np.mean(m_test_tmp, axis=0, keepdims=True)
-
-plt.figure()
-plt.plot(ndata, m_test_bs[0])
-plt.show()
+# k-fold cross-validation

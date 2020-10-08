@@ -52,14 +52,10 @@ def GenerateData(nData, noise_str=0, seed="", pr=True):
     --------------------------------
     TO DO: FINISHED
     """
-
-    if seed == "debug":
-        np.random.seed(42)
-        print("Running in debug mode")
-
     if pr==True:
         print("Generating data for the Franke function with n = {:.0f} datapoints\n".format(nData))
 
+    np.random.seed(42)
     x = np.random.rand(nData, 1)
     y = np.random.rand(nData, 1)
 
@@ -331,11 +327,19 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     return z_train, z_test, z_fit, z_pred
 
 
-def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps):
+def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
     """
+    If you don't want to loop over many degrees set up the degrees array as
+            degrees = np.arange(d, d+1)
+    say if you want to only do it for d=2:
+            degrees = np.arange(2, 2+1)
+    --------------------------------
+    Input
+    --------------------------------
     returns:
-        metrics_test: (4, n_bootstraps)
-        metrics_train   (4, n_bootstraps)
+        metrics_test:  (4, len(degrees))
+        metrics_train: (4, len(degrees))
+    --------------------------------
     TODO: describe
     """
     x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
@@ -343,13 +347,14 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps):
     z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
 
     d_max = len(degrees)
+
     metrics_test = np.zeros((4, d_max))
     metrics_train = np.zeros((4, d_max))
 
     for i in range(n_bootstraps):
         z_test_cp[:,i] = z_test.ravel()
 
-    for d in range (d_max):
+    for d in range(d_max):
         z_pred = np.empty((z_test.shape[0], n_bootstraps))
         z_fit = np.empty((z_train.shape[0], n_bootstraps))
         for i in range(n_bootstraps):
@@ -367,17 +372,137 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps):
     return metrics_test, metrics_train
 
 
+def OLS_bootstrap_data(ndata, n_bootstraps, d_1):
+
+    degree_1 = np.arange(d_1, d_1+1)
+
+    m_test_ndata = np.zeros((4, len(ndata)))
+    m_train_ndata = np.zeros((4, len(ndata)))
+
+    for i in range(len(ndata)):
+        x_tmp, y_tmp, z_tmp = GenerateData(ndata[i], 0.01, "debug", pr=False)
+
+        # Bootstrapping
+        m_test_tmp, m_train_tmp = OLS_bootstrap_degrees(x_tmp, y_tmp, z_tmp, degree_1, n_bootstraps)
+
+        m_test_ndata[:,i] = m_test_tmp.ravel()
+        m_train_ndata[:,i] = m_train_tmp.ravel()
+
+    return m_test_ndata, m_train_ndata
+
+def kFold_degrees(x, y, z, degrees, k=5, shuffle = False, RegType="OLS", lamb=0):
+    """
+    Uses folding to split the data
+    --------------------------------
+    Input
+
+    --------------------------------
+    TO DO:
+    """
+
+    #degrees = np.arange(1, d+1)
+    d =len(degrees)
+
+    mse = np.zeros((d,k))        # arrays of statistics with d rows and
+    bias = np.zeros((d,k))       # k columns. Each row corresponds to a
+    rs2 = np.zeros((d,k))        # degree and each colunm corresponds to
+    var = np.zeros((d,k))        # to the fold number
+
+    deg_i = 0
+    for j in range(d):
+        """loop over degrees"""
+        degree = degrees[j]
+        X = PolyDesignMatrix(x, y, degree)
+        np.random.seed(42)
+        if shuffle == True: np.random.shuffle(X) # Shuffle the rows
+        fold_i = 0
+
+        for i in range(1, k+1):
+            """loop over folds and calculate the fitted and predicted z values"""
+            train_index, test_index = foldIndex(x, i, k)
+            X_train = X[train_index]
+            z_train = z[train_index]
+
+            X_test = X[test_index]
+            z_test = z[test_index]
+
+            X_train_scl, X_test_scl = scale_X(X_train, X_test)
+
+            if RegType == "OLS": beta = OLS(z_train, X_train_scl)
+            if RegType == "RIDGE": beta = Ridge(z_train, X_train_scl, lamb)
+
+            z_fit = X_train_scl @ beta
+            z_pred = X_test_scl @ beta
+
+            tmp_metrics =  metrics(z_test, z_pred, test=True)
+
+            rs2[deg_i, fold_i] = tmp_metrics[0]
+            mse[deg_i, fold_i] = tmp_metrics[1]
+            var[deg_i, fold_i] = tmp_metrics[2]
+            bias[deg_i, fold_i] = tmp_metrics[3]
+
+            fold_i +=1
+        deg_i +=1
+
+    rs2 = np.mean(rs2, axis=1, keepdims=True)
+    mse = np.mean(mse, axis=1, keepdims=True)
+    var = np.mean(var, axis=1, keepdims=True)
+    bias = np.mean(bias, axis=1, keepdims=True)
+
+    return rs2, mse, var, bias
+
+
+
+def kFold():
+    
+    X = PolyDesignMatrix(x, y, degree)
+    np.random.seed(42)
+    if shuffle == True: np.random.shuffle(X) # Shuffle the rows
+    fold_i = 0
+
+    for i in range(1, k+1):
+        """loop over folds and calculate the fitted and predicted z values"""
+        train_index, test_index = foldIndex(x, i, k)
+        X_train = X[train_index]
+        z_train = z[train_index]
+
+        X_test = X[test_index]
+        z_test = z[test_index]
+
+        X_train_scl, X_test_scl = scale_X(X_train, X_test)
+
+        if RegType == "OLS": beta = OLS(z_train, X_train_scl)
+        if RegType == "RIDGE": beta = Ridge(z_train, X_train_scl, lamb)
+
+        z_fit = X_train_scl @ beta
+        z_pred = X_test_scl @ beta
+
+
+    return 1
 
 if __name__ == '__main__':
     x, y, z = GenerateData(100, 0.01, "debug")
+    degrees = np.arange(1, 11)
+    m_test = kFold_degrees(x, y, z, degrees, k=5, shuffle = False, RegType="OLS", lamb=0)
+
+    plt.plot(degrees, m_test[1], label="MSE test")
+    plt.plot(degrees, m_test[2], label="variance")
+    plt.plot(degrees, m_test[3], label="bias")
+    plt.legend()
+    plt.semilogy()
+    plt.show()
+
+
+    """
+
     n_bootstraps = 100
-    d_max = 10
-    degrees = np.arange(1, d_max+1)
-
+    d_max = 2
+    degrees = np.arange(2, d_max+1)
+    print(degrees)
     m_test, m_train = OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps)
-
     print(m_test.shape, m_train.shape)
     print("--------------")
+    print(m_test)
 
     plt.plot(degrees, m_test[1], label="MSE test")
     plt.plot(degrees, m_train[1], label="MSE train")
@@ -386,7 +511,7 @@ if __name__ == '__main__':
     plt.legend()
     plt.semilogy()
     plt.show()
-
+    """
 
     """
     X = PolyDesignMatrix(x, y, 2)
