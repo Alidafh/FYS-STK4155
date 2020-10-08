@@ -342,6 +342,7 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps):
     z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
     z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
 
+    d_max = len(degrees)
     metrics_test = np.zeros((4, d_max))
     metrics_train = np.zeros((4, d_max))
 
