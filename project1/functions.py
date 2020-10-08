@@ -393,3 +393,15 @@ def lasso(dm, z, lam):
     # print(reg.intercept_)
     return np.transpose(np.array([reg.coef_]))
     
+
+def map_to_data(mapdat):
+    rows, columns = np.shape(mapdat)
+    factor = max(rows, columns)
+    xdim = np.linspace(0,columns,columns)/factor
+    ydim = np.linspace(0,rows,rows)/factor
+    x, y = np.meshgrid(xdim,ydim)
+    x = np.array([x.ravel()]).T
+    y = np.array([y.ravel()]).T
+    z = np.array([mapdat.ravel()]).T
+    
+    return  [x,y], z, factor

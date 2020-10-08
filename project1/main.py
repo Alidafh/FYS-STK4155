@@ -223,65 +223,100 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False):
 ##################################################################################
 ############################   Part e   ##########################################
 ##################################################################################
+if 0:
 
-
-d = 5
-
-
-bias_bs = np.zeros(d)
-var_bs  = np.zeros(d)
-mse_bs  = np.zeros(d)
-r2_score_bs  = np.zeros(d)
-
-bias_cv_k = []
-var_cv_k = []
-mse_cv_k = []
-r2_score_cv_k = []
-
-
-bias_cv = np.zeros(d)
-var_cv  = np.zeros(d)
-mse_cv  = np.zeros(d)
-r2_score_cv  = np.zeros(d)
-
-bs = cl.Bootstrap_Analysis([x,y], z)
-bs.reg_func = func.lasso
-bs.reg_params = 0.01
-
-
-cv = cl.CV_Analysis([x,y], z)
-cv.reg_func = func.lasso
-cv.reg_params = 0.01
-
-
-for i in np.arange(1, d+1):
-
-    bs.dm_params = i
-    cv.dm_params = i
+    d = 5
     
-    bs.analysis()
-    cv.analysis()
     
-    bias_bs[i-1] = bs.bias
-    var_bs[i-1] = bs.var
-    mse_bs[i-1] = bs.mse
-    r2_score_bs[i-1] = bs.r2_score
+    bias_bs = np.zeros(d)
+    var_bs  = np.zeros(d)
+    mse_bs  = np.zeros(d)
+    r2_score_bs  = np.zeros(d)
+    
+    bias_cv_k = []
+    var_cv_k = []
+    mse_cv_k = []
+    r2_score_cv_k = []
+    
+    
+    bias_cv = np.zeros(d)
+    var_cv  = np.zeros(d)
+    mse_cv  = np.zeros(d)
+    r2_score_cv  = np.zeros(d)
+    
+    bs = cl.Bootstrap_Analysis([x,y], z)
+    bs.reg_func = func.lasso
+    bs.reg_params = 0.01
+    
+    
+    cv = cl.CV_Analysis([x,y], z)
+    cv.reg_func = func.lasso
+    cv.reg_params = 0.01
+    
+    
+    for i in np.arange(1, d+1):
+    
+        bs.dm_params = i
+        cv.dm_params = i
+        
+        bs.analysis()
+        cv.analysis()
+        
+        bias_bs[i-1] = bs.bias
+        var_bs[i-1] = bs.var
+        mse_bs[i-1] = bs.mse
+        r2_score_bs[i-1] = bs.r2_score
+    
+        bias_cv_k.append(cv.bias_k)
+        var_cv_k.append(cv.var_k)
+        mse_cv_k.append(cv.mse_k)
+        r2_score_cv_k.append(cv.r2_score_k)
+    
+        bias_cv[i-1] = cv.bias
+        var_cv[i-1] = cv.var
+        mse_cv[i-1] = cv.mse
+        r2_score_cv[i-1] = cv.r2_score
+    
+    
+    bias_cv_k = np.array(bias_cv_k)
+    var_cv_k  = np.array(var_cv_k )
+    mse_cv_k  = np.array(mse_cv_k)
+    r2_score_cv_k  = np.array(r2_score_cv_k)
+    
+    
+    
+    
 
-    bias_cv_k.append(cv.bias_k)
-    var_cv_k.append(cv.var_k)
-    mse_cv_k.append(cv.mse_k)
-    r2_score_cv_k.append(cv.r2_score_k)
-
-    bias_cv[i-1] = cv.bias
-    var_cv[i-1] = cv.var
-    mse_cv[i-1] = cv.mse
-    r2_score_cv[i-1] = cv.r2_score
+##################################################################################
+############################   Part f   ##########################################
+##################################################################################
 
 
-bias_cv_k = np.array(bias_cv_k)
-var_cv_k  = np.array(var_cv_k )
-mse_cv_k  = np.array(mse_cv_k)
-r2_score_cv_k  = np.array(r2_score_cv_k)
+from imageio import imread
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+
+
+
+terrain1 = imread("datafiles/SRTM_data_Norway_1.tif")
+
+x, z, factor = func.map_to_data(terrain1)
+
+
+z = z.reshape(np.shape(terrain1)[0], np.shape(terrain1)[1])
+
+plt.figure()
+plt.title("Terrain over Norway 1")
+plt.imshow(terrain1, cmap='gray')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.show()
+
+
+
+
+
 
 
 ############################# DO NOT ERASE ####################################
