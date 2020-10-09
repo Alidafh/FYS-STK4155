@@ -72,7 +72,14 @@ def OLS_optimal_model(x, y, z, metrics_test, metrics_train, quiet = True, info="
 
     return beta, best_degree, m_test_best
 ###############################################################################
+np.random.seed(42)
 x, y, z = func.GenerateData(100, 0.01)
+
+#X = func.PolyDesignMatrix(x,y,2)
+
+#print(X)
+
+#z_train, z_test, z_fit, z_pred = regression(z, X, "OLS")
 
 d_max = 10
 n_bootstraps = 100
@@ -92,23 +99,36 @@ m_train_k = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 # Loop over degrees
 for i in range(d_max):
     X = func.PolyDesignMatrix(x, y, degrees[i])
-    z_train, z_test, z_fit, z_pred = regression(z, X, "OLS", lamb=0)
-    m_test[:,i] = func.metrics(z_test, z_pred)
-    m_train[:,i] = func.metrics(z_train, z_fit)
+    z_train_1, z_test_1, z_fit_1, z_pred_1 = regression(z, X, "OLS", lamb=0)
+    m_test[:,i] = func.metrics(z_test_1, z_pred_1)
+    m_train[:,i] = func.metrics(z_train_1, z_fit_1)
 
     # With bootstrapping
-    z_train, z_test, z_fit, z_pred = func.Bootstrap(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
-    m_test_bs[:,i] = func.metrics(z_test, z_pred, test=True)
-    m_train_bs[:,i] = func.metrics(z_train, z_fit, test=True)
+    z_train_2, z_test_2, z_fit_2, z_pred_2 = func.Bootstrap(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
+    m_test_bs[:,i] = func.metrics(z_test_2, z_pred_2, test=True)
+    m_train_bs[:,i] = func.metrics(z_train_2, z_fit_2, test=True)
 
     # With kFold
-    z_train, z_test, z_fit, z_pred = func.kFold_v1(x, y, z, degrees[i], k, RegType="OLS", lamb=0)
-    print(z_train.shape, z_test.shape, z_fit.shape, z_pred.shape)
-    m_test_k[:,i] = func.metrics(z_test, z_pred, test=True)
-    m_train_k[:,i] = func.metrics(z_train, z_fit, test=True)
+    #z_train_3, z_test_3, z_fit_3, z_pred_3 = func.kFold(x, y, z, degrees[i], k, RegType="OLS", lamb=0)
+    #print(z_train.shape, z_test.shape, z_fit.shape, z_pred.shape)
+    #m_test_k[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
+    #m_train_k[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
 
-print(m_test_bs[0])
+plt.plot(degrees, m_test[0], label="no_resample")
+plt.plot(degrees, m_test_bs[0], label = "Bootstrap")
+#plt.plot(degrees,m_test_k[0], label = "kFold")
+plt.legend()
+plt.show()
+
+plt.plot(degrees, m_train[0], label="no_resample")
+plt.plot(degrees, m_train_bs[0], label = "Bootstrap")
+plt.plot(degrees,m_train_k[0], label = "kFold")
+plt.legend()
+plt.show()
+
 quit()
+
+
 # Plotting without resampling
 # Recreate figure 2.11 in Hastie (without resampling)
 info1 = "n{:.0f}_d{:.0f}".format(len(z), d_max)

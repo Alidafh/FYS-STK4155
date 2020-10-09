@@ -107,7 +107,7 @@ def OLS_bias_variance(x, mse, var, bias, x_type="degrees", info="", log=False):
     print("    Figure saved in: output/figures/OLS_bias_variance_{:}_{:}.pdf\n".format(x_type, info))
     plt.close()
 
-def OLS_beta_conf(beta, conf_beta, d, n):
+def OLS_beta_conf(beta, conf_beta, d, info):
     """
     Plots the parameters with errorbars corresponding to the confidence interval
     --------------------------------
@@ -131,9 +131,9 @@ def OLS_beta_conf(beta, conf_beta, d, n):
     ax.set_xticks(x)
     ax.set_xticklabels(xlabels)
 
-    fig.savefig("output/figures/OLS_parameters_d{:.0f}_n{:.0f}.pdf".format(d, n))
-    fig.savefig("output/figures/OLS_parameters_d{:.0f}_n{:.0f}.png".format(d, n))
-    print("    Figure saved in: output/figures/OLS_beta_degree_{:.0f}_ndata{:.0f}.pdf\n".format(d, n))
+    fig.savefig("output/figures/OLS_parameters_pdeg{:.0f}_{:}.pdf".format(d, info))
+    fig.savefig("output/figures/OLS_parameters_pdeg{:.0f}_{:}.png".format(d, info))
+    print("    Figure saved in: output/figures/OLS_parameters_pdeg{:.0f}_{:}.pdf\n".format(d, info))
     plt.close()
 
 def OLS_metric(x, var, varN="", info="", log=False):
@@ -235,11 +235,12 @@ def all_metrics_test_train(x, metrics_test, metrics_train, x_type="", reg_type="
     """
     --------------------------------
     Input
+        other: additional info for the title of the plot
     --------------------------------
     TODO: change back to saving in PDF format
     """
 
-    print("Plotting all results for {:} ({:})".format(reg_type, info))
+    print("Plotting all metrics for {:} ({:})".format(reg_type, info))
     n_plots = metrics_test.shape[0]     # Number of subplots
 
     titles = ["Explained R2-score", "Mean Squared Error", "Variance", "Bias"]
@@ -277,6 +278,7 @@ def all_metrics_test_train(x, metrics_test, metrics_train, x_type="", reg_type="
     fig.legend(lines[:2], labels[:2], loc = 'upper right')
     plt.xlabel(x_label)
 
+    fig.savefig("output/figures/{:}_metrics_test_train_{:}_{:}.pdf".format(reg_type, x_type, info))
     fig.savefig("output/figures/{:}_metrics_test_train_{:}_{:}.png".format(reg_type, x_type, info))
     print("    Figure saved in: output/figures/{:}_metrics_test_train_{:}_{:}.png\n".format(reg_type, x_type, info))
     plt.close()
@@ -299,7 +301,7 @@ def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", 
     plt.title("{:} Bias-Variance".format(RegType), fontsize = 14, fontname = "serif")
 
     if x_type == "degrees": plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
-    if x_type == "data": plt.xlabel("number of datapoints (n)", fontsize = 12, fontname = "serif")
+    if x_type == "data": plt.xlabel("Number of datapoints (n)", fontsize = 12, fontname = "serif")
     if x_type == "lambda": plt.xlabel("$\lambda$ (log scale)", fontsize = 12, fontname = "serif")
 
     plt.plot(x, mse, "tab:red", label="MSE")
@@ -308,7 +310,7 @@ def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", 
     plt.legend()
 
     if log==True: plt.semilogy()
-
+    fig.savefig("output/figures/{:}_bias_variance_{:}_{:}.pdf".format(RegType, x_type, info))
     fig.savefig("output/figures/{:}_bias_variance_{:}_{:}.png".format(RegType, x_type, info))
     print("    Figure saved in: output/figures/{:}_bias_variance_{:}_{:}.pdf\n".format(RegType,x_type, info))
 

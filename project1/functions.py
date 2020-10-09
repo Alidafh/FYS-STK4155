@@ -114,17 +114,16 @@ def scale_X(train, test):
     """
     train_scl =  np.ones(train.shape)
     test_scl = np.ones(test.shape)
-    train_scl[:,1:] = train[:,1:] - np.mean(train)
-    test_scl[:,1:]= test[:,1:] - np.mean(test)
+    train_scl[:,1:] = train[:,1:] - np.mean(train, axis=1, keepdims=True)
+    test_scl[:,1:]= test[:,1:] - np.mean(test, axis=1, keepdims=True)
 
-    """
-    scaler = StandardScaler()
-    scaler.fit(train[:,1:])
-    train_scl =  np.ones(train.shape)
-    test_scl = np.ones(test.shape)
-    train_scl[:,1:] = scaler.transform(train[:,1:])
-    test_scl[:,1:] = scaler.transform(test[:,1:])
-    """
+    #scaler = StandardScaler()
+    #scaler.fit(train[:,1:])
+    #train_scl =  np.ones(train.shape)
+    #test_scl = np.ones(test.shape)
+    #train_scl[:,1:] = scaler.transform(train[:,1:])
+    #test_scl[:,1:] = scaler.transform(test[:,1:])
+
     return train_scl, test_scl
 
 def metrics(z_true, z_pred, test=False):
@@ -165,6 +164,7 @@ def metrics(z_true, z_pred, test=False):
 
         if np.abs(R2-r2_sklearn) > 0.01:
             print("Testing with sklearn:")
+            print("     R2_sklearn =", r2_sklearn)
             print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
 
         if np.abs(MSE-mse_sklearn) > 0.01:
@@ -312,26 +312,50 @@ def Bootstrap_v1(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
     X = PolyDesignMatrix(x, y, d)
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
-    #X_train, X_test = scale_X(X_train, X_test)
+    X_train, X_test = scale_X(X_train, X_test)
 
     z_pred = np.empty((z_test.shape[0], n_bootstraps))
     z_fit = np.empty((z_train.shape[0], n_bootstraps))
 
+    z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
+    z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
+
+    for i in range(n_bootstraps):
+        z_test_cp[:,i] = z_test.ravel()
+
     for j in range(n_bootstraps):
-        """ Loop over bootstraps"""
         tmp_X_train, tmp_z_train = resample(X_train, z_train)
-        #X_train_scl, X_test_scl = scale_X(tmp_X_train, tmp_X_test)
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
         z_pred[:,j] = X_test @ tmp_beta.ravel()
         z_fit[:,j] = tmp_X_train @ tmp_beta.ravel()
 
-    return z_train, z_test, z_fit, z_pred
+    return z_train_cp, z_test_cp, z_fit, z_pred
 
 def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
     """
+    Bootstrap loop
+    --------------------------------
+    Input
+        x,y,z:        Variables for data from Generate Data
+        d:            Polynomial degree for the feature matrix
+        n_bootstraps: The number of bootstraps
+        RegType:      "OLS" for Ordinary least squares(default)
+                      "RIDGE" for Ridge
+        lamb:         the lambda value if RegType="RIDGE"
+    --------------------------------
+    Returns
+        z_train_cp: (train_size, n_bootstraps)
+        z_test_cp:  (test_size, n_bootstraps)
+        z_fit:      (train_size, n_bootstraps)
+        z_pred      (test_size, n_bootstraps)
+    --------------------------------
+    TODO: Find out why it doesnt not work
     """
-    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
+
+    #x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
+    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33)
+
     z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
     z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
 
@@ -347,7 +371,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
         X_train = PolyDesignMatrix(x_, y_, d)
         X_test = PolyDesignMatrix(x_test, y_test, d)
 
-        X_test, X_train = scale_X(X_test, X_train)
+        X_train, X_test = scale_X(X_train, X_test)
 
         if RegType == "OLS" : tmp_beta = OLS(z_, X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(z_, X_train, lamb)
@@ -372,35 +396,44 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
     --------------------------------
     TODO: describe
     """
-    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
-    z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
-    z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
-
     d_max = len(degrees)
-
     metrics_test = np.zeros((4, d_max))
     metrics_train = np.zeros((4, d_max))
 
-    for i in range(n_bootstraps):
-        z_test_cp[:,i] = z_test.ravel()
-
-    z_pred = np.empty((z_test.shape[0], n_bootstraps))
-    z_fit = np.empty((z_train.shape[0], n_bootstraps))
-
     for d in range(d_max):
+    #    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
+        x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33)
+
+        z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
+        z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
+
+        #d_max = len(degrees)
+        #metrics_test = np.zeros((4, d_max))
+        #metrics_train = np.zeros((4, d_max))
+
+        for i in range(n_bootstraps):
+            z_test_cp[:,i] = z_test.ravel()
+
+        z_pred = np.empty((z_test.shape[0], n_bootstraps))
+        z_fit = np.empty((z_train.shape[0], n_bootstraps))
+
         for i in range(n_bootstraps):
             x_, y_, z_ = resample(x_train, y_train, z_train)
             z_train_cp[:,i] = z_.ravel()
+
             X_train = PolyDesignMatrix(x_, y_, degrees[d])
             X_test = PolyDesignMatrix(x_test, y_test, degrees[d])
-            X_test, X_train = scale_X(X_test, X_train)
+            X_rain, X_test = scale_X(X_train, X_test)
+
             tmp_beta = OLS(z_, X_train)
+
             z_pred[:,i] = X_test @ tmp_beta.ravel()
             z_fit[:,i] = X_train @ tmp_beta.ravel()
 
         metrics_test[:,d] = metrics(z_test_cp, z_pred, test=True)
         metrics_train[:,d] = metrics(z_train_cp, z_fit, test=True)
 
+    #return z_train_cp, z_test_cp, z_fit, z_pred
     return metrics_test, metrics_train
 
 def OLS_bootstrap_data(ndata, n_bootstraps, d_1):
@@ -481,21 +514,23 @@ def kFold(x,y,z, d=3, k=5, RegType="OLS", lamb=0):
     z_test = np.zeros((20,k))
     z_train = np.zeros((80,k))
 
-    np.random.seed(42)
-    np.random.shuffle(x)
-    np.random.shuffle(y)
-    np.random.shuffle(z)
+    x_, y_, z_ = z, y, z
+
+    #np.random.seed(42)
+    #np.random.shuffle(x_)
+    #np.random.shuffle(y_)
+    #np.random.shuffle(z_)
 
     j = 0
     for i in range(1, k+1):
-        train_i, test_i = foldIndex(x, i, k)
-        x_test, y_test , z_test_tmp = x[test_i], y[test_i], z[test_i]
-        x_train, y_train, z_train_tmp = x[train_i], y[train_i], z[train_i]
+        train_i, test_i = foldIndex(x_, i, k)
+        x_test, y_test , z_test_tmp = x_[test_i], y_[test_i], z_[test_i]
+        x_train, y_train, z_train_tmp = x_[train_i], y_[train_i], z_[train_i]
 
         X_train = PolyDesignMatrix(x_train, y_train, d)
         X_test = PolyDesignMatrix(x_test, y_test, d)
 
-        X_train, X_test = scale_X(X_train, X_test)
+        X_test, X_train = scale_X(X_test, X_train)
 
         if RegType == "OLS" : tmp_beta = OLS(z_train_tmp, X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(z_train_tmp, X_train, lamb)
