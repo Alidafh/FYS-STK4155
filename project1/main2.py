@@ -72,38 +72,54 @@ def OLS_optimal_model(x, y, z, metrics_test, metrics_train, quiet = True, info="
 
     return beta, best_degree, m_test_best
 ###############################################################################
-x, y, z = func.GenerateData(100, 0.01, "debug")
-
+x, y, z = func.GenerateData(100, 0.01)
 
 d_max = 10
+n_bootstraps = 100
+k = 5
 degrees = np.arange(1, d_max+1)
 
 # Initialise arrays
 m_test = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 m_train = np.zeros((4, d_max))      # array to store [R2, mse, var, bias]
 
-# Loop over degrees and do OLS regression
+m_test_bs  = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
+m_train_bs = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
+
+m_test_k  = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
+m_train_k = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
+
+# Loop over degrees
 for i in range(d_max):
     X = func.PolyDesignMatrix(x, y, degrees[i])
-    z_train, z_test, z_fit, z_pred = regression(z, X, "OLS")
+    z_train, z_test, z_fit, z_pred = regression(z, X, "OLS", lamb=0)
     m_test[:,i] = func.metrics(z_test, z_pred)
     m_train[:,i] = func.metrics(z_train, z_fit)
 
-# Recreate figure 2.11 in Hastie
+    # With bootstrapping
+    z_train, z_test, z_fit, z_pred = func.Bootstrap(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
+    m_test_bs[:,i] = func.metrics(z_test, z_pred, test=True)
+    m_train_bs[:,i] = func.metrics(z_train, z_fit, test=True)
+
+    # With kFold
+    z_train, z_test, z_fit, z_pred = func.kFold_v1(x, y, z, degrees[i], k, RegType="OLS", lamb=0)
+    print(z_train.shape, z_test.shape, z_fit.shape, z_pred.shape)
+    m_test_k[:,i] = func.metrics(z_test, z_pred, test=True)
+    m_train_k[:,i] = func.metrics(z_train, z_fit, test=True)
+
+print(m_test_bs[0])
+quit()
+# Plotting without resampling
+# Recreate figure 2.11 in Hastie (without resampling)
 info1 = "n{:.0f}_d{:.0f}".format(len(z), d_max)
 plot.OLS_test_train(degrees, m_test[1], m_train[1], err_type ="MSE", info=info1, log=True)
 
-# Find the model with lowest MSE
+# Find the model with lowest MSE (without resampling)
 beta_1, best_degree_1, m_test_best = OLS_optimal_model(x, y, z, m_test, m_train, quiet = False, info=info1)
 
-
-
-# Bias-variance tradeoff with bootstrapping
-
-n_bootstraps = 100
-m_test_bs, m_train_bs = func.OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps)
-
+## Plotting with Bootstrap resampling
 info_bs = info1+"_bs{}".format(n_bootstraps)
+
 plot.bias_variance(degrees, m_test_bs[1], m_test_bs[2], m_test_bs[3], "degrees", "OLS", info_bs, log=True)
 plot.OLS_test_train(degrees, m_test_bs[1], m_train_bs[1], "MSE", info_bs, log=True)
 plot.all_metrics_test_train(degrees, m_test_bs, m_train_bs, "degrees", "OLS", "Bootstrap", info_bs)
@@ -126,3 +142,17 @@ info_ndata = "min{:.0f}_max{:.0f}_step{:.0f}_d{:.0f}".format(min, max, steps, d_
 plot.bias_variance(ndata, m_test_ndata[1], m_test_ndata[2], m_test_ndata[3], "data", "OLS", info_ndata, log=True)
 
 # k-fold cross-validation
+k = 5   # number of folds
+
+m_test_k = np.zeros((4, d_max))
+m_train_k = np.zeros((4, d_max))
+
+for i in range(d_max):
+    z_train, z_test, z_fit, z_pred = kFold(x, y, z, degrees[i], k, "OLS")
+    m_test_k[:,i] = metrics(z_test, z_pred, test=True)
+    m_train_k[:,i] = metrics(z_train, z_fit, test=True)
+
+plt.figure()
+plt.plot(degrees, m_test_k[0], label="test")
+plt.plot(degrees, m_train_k[0], label="train")
+plt.show()
