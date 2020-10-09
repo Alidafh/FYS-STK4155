@@ -13,10 +13,11 @@ from sklearn.utils import resample
 import tools
 import os, errno
 import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score, mean_squared_error
 
 class ML_Analysis:
     
-    def __init__(self, x, z, dm_func = func.PolyDesignMatrix2, dm_params = 3):
+    def __init__(self, x, z, dm_func = func.PolyDesignMatrix2, dm_params = 4):
         
         self.x = x                              # Raw data, independent variable, in the form [a, b, ...], where 
                                                 # a,b,... are arrays of datapoints for the corresponding design parameters. 
@@ -81,25 +82,31 @@ class ML_Analysis:
         
     def generate_dm(self):
         
-        return self.dm_func(self.x, self.dm_params)
+        self.dm = self.dm_func(self.x, self.dm_params)
+        
+        return self.dm
     
     
     def split(self):
         
-        x = np.array(self.x).T[0]
+        # x = np.array(self.x).T[0]
         
-        self.x_train, self.x_test, self.z_train, self.z_test = self.split_func(x, self.z, test_size = self.test_size)
+        # self.x_train, self.x_test, self.z_train, self.z_test = self.split_func(x, self.z, test_size = self.test_size)
         
-        self.x_train = [np.array([self.x_train.T[0]]).T, np.array([self.x_train.T[1]]).T]
-        self.x_test = [np.array([self.x_test.T[0]]).T, np.array([self.x_test.T[1]]).T]
+        # self.x_train = [np.array([self.x_train.T[0]]).T, np.array([self.x_train.T[1]]).T]
+        # self.x_test = [np.array([self.x_test.T[0]]).T, np.array([self.x_test.T[1]]).T]
         
-        return self.x_train, self.x_test, self.z_train, self.z_test
+        # return self.x_train, self.x_test, self.z_train, self.z_test
+        print('hei')
+        self.dm_train, self.dm_test, self.z_train, self.z_test = self.split_func(self.dm, self.z, test_size = self.test_size, random_state=42)
+        
+        return self.dm_train, self.dm_test, self.z_train, self.z_test
     
     
     def scale(self):
         
         self.dm_train, self.dm_test = self.scale_func(self.dm_train, self.dm_test)
-        return self.x_train, self.x_test
+        return self.dm_train, self.dm_test
 
 
     def check_original_image(self):
@@ -146,38 +153,129 @@ class Bootstrap_Analysis(ML_Analysis):
         
     def iterate(self):
         
-        self.dm_test = self.dm_func(self.x_test, self.dm_params)
-        z_pred = np.empty((self.z_test.shape[0], self.n_iterations))
-        for j in np.arange(self.n_iterations):
+        # self.r2_score_vec = np.zeros(self.n_iterations)
+        # self.r2_score_train_vec = np.zeros(self.n_iterations)
+        # self.mse_vec = np.zeros(self.n_iterations)
+        # self.var_vec = np.zeros(self.n_iterations)
+        # self.bias_vec = np.zeros(self.n_iterations)
+        
+        
+        # self.dm_test = self.dm_func(self.x_test, self.dm_params)
+        # # print(self.dm_test)
+        # self.z_pred = np.empty((self.z_test.shape[0], self.n_iterations))
+        # self.z_fit = np.empty((self.z_train.shape[0], self.n_iterations))
+        # for j in np.arange(self.n_iterations):
             
-            tmp_x_train, tmp_z_train = resample(np.array(self.x_train).T[0], self.z_train)
-            tmp_x_train = np.array(tmp_x_train).T
-            tmp_dm_train = self.dm_func(tmp_x_train, self.dm_params)
-            tmp_dm_train, tmp_dm_test = self.scale_func(tmp_dm_train, self.dm_test)
+        #     tmp_x_train, tmp_z_train = resample(np.array(self.x_train).T[0], self.z_train)
+        #     tmp_x_train = np.array(tmp_x_train).T
+   
+        #     tmp_dm_train = self.dm_func(tmp_x_train, self.dm_params)
+    
+        #     tmp_dm_train, tmp_dm_test = self.scale_func(tmp_dm_train, self.dm_test)
+
+        #     tmp_beta = self.reg_func(tmp_dm_train, tmp_z_train, self.reg_params)
+
+        #     self.z_pred = tmp_dm_test @ tmp_beta.ravel()
+        #     self.z_fit = tmp_dm_train @ tmp_beta.ravel()
+    
+            
+        
+        #     # self.z_pred = np.mean(self.z_pred, axis = 1, keepdims=True)
+        #     self.r2_score_vec[j], self.mse_vec[j], self.var_vec[j], self.bias_vec[j] = func.metrics(self.z_test, self.z_pred, test=True)
+            
+        #     # self.z_fit = np.mean(self.z_fit, axis = 1, keepdims=True)
+        #     self.r2_score_train_vec[j], self.mse_vec[j], self.var_vec[j], self.bias_vec[j] = func.metrics(self.z_train, self.z_fit, test=True)
+        
+        
+        # self.mse = np.mean(self.mse_vec)
+        # self.bias = np.mean(self.bias_vec)
+        # self.var = np.mean(self.var_vec)
+        # self.r2_score = np.mean(self.r2_score_vec)
+        # self.r2_score_train = np.mean(self.r2_score_train_vec)
+        
+        
+        # return self.r2_score, self.mse, self.var, self.bias 
+        
+        # z_pred_vec = np.zeros(self.n_iterations)
+        # z_fit_vec = np.zeros(self.n_iterations)
+        # r2_score_vec = np.zeros(self.n_iterations)
+        r2_score_vec = np.zeros((5,self.n_iterations))
+        r2_score_train_vec = np.zeros((20,self.n_iterations))
+        # r2_score_train_vec = np.zeros(self.n_iterations) 
+        # print(self.n_iterations)
+        for j in np.arange(self.n_iterations):
+            # print(self.dm_train)
+            # tmp_dm_train, tmp_z_train = resample(self.dm_train, self.z_train)
+            tmp_dm_train = self.dm_train
+            tmp_z_train = self.z_train
+            # print(self.z_train)
+            # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            # print(tmp_dm_train)
+            # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             tmp_beta = self.reg_func(tmp_dm_train, tmp_z_train, self.reg_params)
-            z_pred[:,j] = tmp_dm_test @ tmp_beta.ravel()
+            # if j == 0: print(np.shape(self.dm_test))
+            # if j == 0: print(np.shape(tmp_beta))
+            tmp_z_pred = np.dot(self.dm_test,tmp_beta)
+            # print(tmp_z_pred)
+            # print(self.dm_test)
+            # print(tmp_beta)
+            tmp_z_fit = tmp_dm_train @ tmp_beta
+            # if j == 0 : print(tmp_beta)
+            # tmp_z_fit = tmp_dm_train @ tmp_beta.ravel()
+            # r2_score, mse, var, bias = func.metrics(self.z_test, tmp_z_pred)
+            # r2_score_train = func.metrics(tmp_z_train, tmp_z_fit)[0]
+            # r2_score_vec[j] = r2_score
+            r2_score_vec[:,j] = tmp_z_pred.ravel()
+            r2_score_train_vec[:,j] = tmp_z_fit.ravel()
+            # r2_score_train_vec[j] = r2_score_train
+            
+        print(r2_score_vec)
+        m = np.mean(r2_score_vec, axis=1, keepdims=True)    
+        # print(m.ravel())
+        # print(np.mean(r2_score_vec, axis=1, keepdims=True).ravel().shape)
+        # print(self.z_test.shape) 
+        print(m)
+        print(self.z_test)
+            
+        # self.r2_score = np.mean(r2_score_vec)
+        # self.r2_score_train = np.mean(r2_score_train_vec)
+        self.r2_score, self.mse, var, bias = func.metrics(self.z_test, (np.mean(r2_score_vec, axis=1, keepdims=True)),test=True)
+        # self.r2_score, self.mse, var, bias = func.metrics(self.z_test.ravel(), m.ravel(),test=True)
+        self.r2_score_train, self.mse_train = func.metrics(self.z_train, np.mean(r2_score_train_vec, axis=1, keepdims=True),test=True)[0:2]
         
-        self.r2_score, self.mse, self.var, self.bias = func.metrics(self.z_test, z_pred, test=True)
         
-        return self.r2_score, self.mse, self.var, self.bias 
-    
-    
-    
+        print(r2_score(self.z_test,m))
+        # print(r2_score(self.z_train,np.mean(r2_score_train_vec, axis=1, keepdims=True)))
+        
     def analysis(self):
         
+        self.generate_dm()
         self.split()
+        # self.scale()
         self.iterate()
         
         
 
-x1, x2, z = func.GenerateData(100, 0.01, "debug")
+x1, x2, z = func.GenerateData(5, 0.01, "42")
 
+
+# x1 = x1.ravel().reshape(-1,1)
+# x2 = x2.ravel().reshape(-1,1)
+# z = z.ravel().reshape(-1,1)
+
+z = z.ravel()
 x = [x1,x2]
 
 bs = Bootstrap_Analysis(x, z)
+bs.reg_func = func.OLSskl
+bs.reg_params = 0.1
+bs.dm_params = 2
+bs.test_size = 0.2
+bs.iterations = 3
 
 bs.analysis()        
-        
         
 
 class CV_Analysis(ML_Analysis):

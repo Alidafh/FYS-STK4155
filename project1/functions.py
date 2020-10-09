@@ -4,7 +4,7 @@ import plotting as plot
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Lasso, LinearRegression
 import scipy as scl
 from tools import SVDinv
 import sys
@@ -57,8 +57,14 @@ def GenerateData(nData, noise_str=0, seed=""):
         print("Running in debug mode")
         print("Generating data for the Franke function with n = {:.0f} datapoints\n".format(nData))
 
-    x = np.random.rand(nData, 1)
-    y = np.random.rand(nData, 1)
+    # np.random.seed(42)
+    # x = np.random.rand(nData, 1)
+    # y = np.random.rand(nData, 1)
+    
+    x = np.linspace(0,1, nData)
+    y = np.linspace(0,1, nData)
+    
+    x,y = np.meshgrid(x,y)
 
     z = FrankeFunction(x, y)
 
@@ -99,6 +105,29 @@ def PolyDesignMatrix(x, y, d):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
 
+# def scale_X(train, test):
+#     """
+#     Scales the training and test data using sklearn's StandardScaler.
+#     --------------------------------
+#     Input
+#         train: The training set
+#         test:  The test set
+#     --------------------------------
+#     Returns
+#         train_scl: The scaled training set
+#         test_scl:  The scaled test set
+#     --------------------------------
+#     TO DO: FINISHED
+#     """
+#     scaler = StandardScaler()
+#     scaler.fit(train[:,1:])
+#     train_scl =  np.ones(train.shape)
+#     test_scl = np.ones(test.shape)
+#     train_scl[:,1:] = scaler.transform(train[:,1:])
+#     test_scl[:,1:] = scaler.transform(test[:,1:])
+#     return train_scl, test_scl
+
+
 def scale_X(train, test):
     """
     Scales the training and test data using sklearn's StandardScaler.
@@ -113,13 +142,24 @@ def scale_X(train, test):
     --------------------------------
     TO DO: FINISHED
     """
+   
+    train_scl =  np.ones(train.shape)
+    test_scl = np.ones(test.shape)
+    train_scl[:,1:] = np.divide((train[:,1:] - np.mean(train[:,1:], axis = 1, keepdims = True)),(np.var(train[:,1:], axis=1, keepdims=True)**0.5))
+    test_scl[:,1:]= np.divide((test[:,1:] - np.mean(test[:,1:], axis = 1, keepdims = True)),(np.var(test[:,1:], axis=1, keepdims=True)**0.5))
+
+    """ 
     scaler = StandardScaler()
     scaler.fit(train[:,1:])
     train_scl =  np.ones(train.shape)
     test_scl = np.ones(test.shape)
     train_scl[:,1:] = scaler.transform(train[:,1:])
     test_scl[:,1:] = scaler.transform(test[:,1:])
+    
+    """
     return train_scl, test_scl
+
+
 
 def metrics(z_true, z_pred, test=False):
     """
@@ -141,10 +181,12 @@ def metrics(z_true, z_pred, test=False):
           and when using it with kFold the bias and the MSE are identical
     """
     n = len(z_true)
-    R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    # R2 = 1 - ((np.sum((z_true - z_pred)**2))/(np.sum((z_true - np.mean(z_true))**2)))
+    R2 = 1 - ((np.sum((z_true.ravel() - z_pred.ravel())**2))/(np.sum((z_true.ravel() - np.mean(z_true.ravel()))**2)))
     MSE = np.mean(np.mean((z_true - z_pred)**2, axis=1, keepdims=True))
-    bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
-    var = np.mean(np.var(z_pred, axis=1, keepdims=True))
+    # bias = np.mean((z_true - np.mean(z_pred, axis=1, keepdims=True))**2)
+    bias = np.mean((z_true - np.mean(z_pred))**2)
+    var = np.mean(np.var(z_pred))
 
     if np.shape(z_pred) == (n, 1):
         var = np.mean(np.var(z_pred, axis=0, keepdims=True))
@@ -306,7 +348,7 @@ if __name__ == '__main__':
     print("OLS:   ", np.array_str(var_ols.ravel(), precision=2, suppress_small=True))
     
 
-def PolyDesignMatrix2(x, d):
+def PolyDesignMatrix2(a, d):
     """
     Generates a design matrix of size (n,p) with monomials up to degree d as
     the columns. As an example if d=2 the columns of the design matrixs will be
@@ -325,13 +367,15 @@ def PolyDesignMatrix2(x, d):
     TO DO: FINISHED
     """
     
-    x = x[0]
-    y = x[1]
+    x = a[0]
+    y = a[1]
     
     if len(x.shape) > 1:
         x = x.ravel()
         y = y.ravel()
-
+    
+    print(np.shape(x))
+    
     n = len(x)
     p = int(((d+2)*(d+1))/2)  # number of terms in beta
     X = np.ones((n, p))       # Matrix of size (n,p) where all entries are zero
@@ -388,11 +432,21 @@ def OLS2(X, z, dummy, var = False):
 
 
 def lasso(dm, z, lam):
-    reg = Lasso(alpha=lam, fit_intercept = True, max_iter=100000)
+    reg = Lasso(alpha=lam, fit_intercept = False, max_iter=100000)
     reg.fit(dm,z)
     # print(reg.intercept_)
     return np.transpose(np.array([reg.coef_]))
+
+
+
+def OLSskl(dm, z, dummy):
+    reg = LinearRegression()
+    reg.fit(dm, z)
+    # print(reg.intercept_)
+    return np.transpose(np.array([reg.coef_]))
     
+
+
 
 def map_to_data(mapdat):
     rows, columns = np.shape(mapdat)
