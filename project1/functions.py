@@ -170,7 +170,8 @@ def metrics(z_true, z_pred, test=False, quiet=True):
         if np.abs(MSE-mse_sklearn) > 0.001:
             print("     Diff MSE: {:.2f}\n".format(MSE-mse_sklearn))
 
-        if np.abs((bias+var) - MSE) > 1e-6:
+        #if np.abs((bias+var) - MSE) > 1e-6:
+        if bias+var > MSE:
             print("Test:")
             print("bias+variance > mse:")
             print("-------------")
@@ -180,6 +181,7 @@ def metrics(z_true, z_pred, test=False, quiet=True):
             print("-------------\n")
 
     return R2, MSE, var, bias
+    #return r2_sklearn, mse_sklearn, var, bias
 
 def OLS_SVD(z, X, var = False):
     """
@@ -297,7 +299,7 @@ def Ridge(z, X, lamb, var=False):
 
     return beta
 
-def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
+def Bootstrap_v1(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
     THIS DOES NOT WORK
     --------------------------------
@@ -326,6 +328,30 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
 
     return z_train, z_test, z_fit, z_pred
 
+def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
+    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
+    z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
+    z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
+
+    for i in range(n_bootstraps):
+        z_test_cp[:,i] = z_test.ravel()
+
+    z_pred = np.empty((z_test.shape[0], n_bootstraps))
+    z_fit = np.empty((z_train.shape[0], n_bootstraps))
+
+    for i in range(n_bootstraps):
+        x_, y_,z_ = resample(x_train, y_train, z_train)
+        z_train_cp[:,i] = z_.ravel()
+        X_train = PolyDesignMatrix(x_, y_, d)
+        X_test = PolyDesignMatrix(x_test, y_test, d)
+        X_test, X_train = scale_X(X_test, )
+        if RegType == "OLS" : tmp_beta = OLS(z_, X_train)
+        if RegType == "RIDGE": tmp_beta = Ridge(z_, X_train, lamb)
+
+        z_pred[:,i] = X_test @ tmp_beta.ravel()
+        z_fit[:,i] = X_train @ tmp_beta.ravel()
+
+    return z_train, z_test, z_fit, z_pred
 
 def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
     """
@@ -354,9 +380,10 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
     for i in range(n_bootstraps):
         z_test_cp[:,i] = z_test.ravel()
 
+    z_pred = np.empty((z_test.shape[0], n_bootstraps))
+    z_fit = np.empty((z_train.shape[0], n_bootstraps))
+
     for d in range(d_max):
-        z_pred = np.empty((z_test.shape[0], n_bootstraps))
-        z_fit = np.empty((z_train.shape[0], n_bootstraps))
         for i in range(n_bootstraps):
             x_, y_, z_ = resample(x_train, y_train, z_train)
             z_train_cp[:,i] = z_.ravel()
@@ -366,11 +393,10 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
             z_pred[:,i] = X_test @ tmp_beta.ravel()
             z_fit[:,i] = X_train @ tmp_beta.ravel()
 
-        metrics_test[:,d] = metrics(z_test_cp, z_pred)
-        metrics_train[:,d] = metrics(z_train_cp, z_fit)
+        metrics_test[:,d] = metrics(z_test_cp, z_pred, test=True)
+        metrics_train[:,d] = metrics(z_train_cp, z_fit, test=True)
 
     return metrics_test, metrics_train
-
 
 def OLS_bootstrap_data(ndata, n_bootstraps, d_1):
 
@@ -390,108 +416,148 @@ def OLS_bootstrap_data(ndata, n_bootstraps, d_1):
 
     return m_test_ndata, m_train_ndata
 
-def kFold_degrees(x, y, z, degrees, k=5, shuffle = False, RegType="OLS", lamb=0):
+def kFold1(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
+    """
+    """
+    np.random.seed(42)
+    np.random.shuffle(x)
+    np.random.shuffle(y)
+    np.random.shuffle(z)
+
+    X = PolyDesignMatrix(x, y, d)
+    dummy = np.array(([1,4],[1,4]))
+    X, dummy = scale_X(X, dummy)
+
+    #np.random.seed(42)
+    #np.random.shuffle(X)
+
+    z_pred, z_fit, z_test_cp, z_train_cp = [],[],[],[]
+    for i in range(1, k+1):
+        train_index, test_index = foldIndex(z, i, k)
+        X_train = X[train_index]
+        X_test = X[test_index]
+
+        z_train = z[train_index]
+        z_test = z[test_index]
+
+        z_test_cp.append(z_test)
+        z_train_cp.append(z_train)
+
+        if RegType == "OLS": beta = OLS(z_train, X_train)
+        if RegType == "RIDGE": beta = Ridge(z_train, X_train, lamb)
+
+        z_fit_tmp = X_train @ beta
+        z_pred_tmp = X_test @ beta
+
+        z_pred.append(z_pred_tmp)
+        z_fit.append(z_fit_tmp)
+
+    z_test_k = np.zeros((len(z_test_cp[0]), k))
+    z_train_k = np.zeros((len(z_train_cp[0]), k))
+    z_pred_k = np.zeros((len(z_pred[0]), k))
+    z_fit_k = np.zeros((len(z_fit[0]), k))
+
+    for i in range(k):
+        z_test_k[:,i] = z_test_cp[i].ravel()
+        z_train_k[:,i] = z_train_cp[i].ravel()
+        z_pred_k[:,i] = z_pred[i].ravel()
+        z_fit_k[:,i] = z_fit[i].ravel()
+
+    metrics_test =  metrics(z_test_k, z_pred_k, test=True)
+    metrics_train = metrics(z_train_k, z_fit_k, test=True)
+
+    return metrics_test, metrics_train
+
+
+def kFold(x,y,z, d=3, k=5, RegType="OLS", lamb=0):
+
+    z_pred = np.zeros((20,k))
+    z_fit = np.zeros((80,k))
+
+    z_test = np.zeros((20,k))
+    z_train = np.zeros((80,k))
+
+    np.random.seed(42)
+    np.random.shuffle(x)
+    np.random.shuffle(y)
+    np.random.shuffle(z)
+
+    j = 0
+    for i in range(1, k+1):
+        train_i, test_i = foldIndex(x, i, k)
+        x_test, y_test , z_test_tmp = x[test_i], y[test_i], z[test_i]
+        x_train, y_train, z_train_tmp = x[train_i], y[train_i], z[train_i]
+
+        X_train = PolyDesignMatrix(x_train, y_train, d)
+        X_test = PolyDesignMatrix(x_test, y_test, d)
+
+        X_train, X_test = scale_X(X_train, X_test)
+
+        if RegType == "OLS" : tmp_beta = OLS(z_train_tmp, X_train)
+        if RegType == "RIDGE": tmp_beta = Ridge(z_train_tmp, X_train, lamb)
+
+        z_pred[:,j] = X_test @ tmp_beta.ravel()
+        z_fit[:,j] = X_train @ tmp_beta.ravel()
+
+        z_test[:,j] = z_test_tmp.ravel()
+        z_train[:,j] = z_train_tmp.ravel()
+
+        j += 1
+
+    return z_train, z_test, z_fit, z_pred
+
+def kFold_degrees2(x, y, z, degrees, k=5, RegType="OLS", lamb=0):
     """
     Uses folding to split the data
     --------------------------------
     Input
-
+        x,y,z : data
+        degrees = np.array with degrees
     --------------------------------
     TO DO:
     """
+    d = len(degrees)
 
-    #degrees = np.arange(1, d+1)
-    d =len(degrees)
+    m_test = np.zeros((4, d))
+    m_train = np.zeros((4,d))
 
-    mse = np.zeros((d,k))        # arrays of statistics with d rows and
-    bias = np.zeros((d,k))       # k columns. Each row corresponds to a
-    rs2 = np.zeros((d,k))        # degree and each colunm corresponds to
-    var = np.zeros((d,k))        # to the fold number
-
-    deg_i = 0
-    for j in range(d):
+    for i in range(d):
         """loop over degrees"""
-        degree = degrees[j]
-        X = PolyDesignMatrix(x, y, degree)
-        np.random.seed(42)
-        if shuffle == True: np.random.shuffle(X) # Shuffle the rows
-        fold_i = 0
+        degree = degrees[i]
+        z_train, z_test, z_fit, z_pred = kFold(x,y,z, degrees[i], k, RegType, lamb)
+        m_test[:,i] = metrics(z_test, z_pred, test=True)
+        m_train[:,i] = metrics(z_train, z_fit, test=True)
 
-        for i in range(1, k+1):
-            """loop over folds and calculate the fitted and predicted z values"""
-            train_index, test_index = foldIndex(x, i, k)
-            X_train = X[train_index]
-            z_train = z[train_index]
+        #m_test[:,i], m_train[:,i] = kFold1(x, y, z, degrees[i], k, RegType, lamb)
 
-            X_test = X[test_index]
-            z_test = z[test_index]
+    return m_test, m_train
 
-            X_train_scl, X_test_scl = scale_X(X_train, X_test)
-
-            if RegType == "OLS": beta = OLS(z_train, X_train_scl)
-            if RegType == "RIDGE": beta = Ridge(z_train, X_train_scl, lamb)
-
-            z_fit = X_train_scl @ beta
-            z_pred = X_test_scl @ beta
-
-            tmp_metrics =  metrics(z_test, z_pred, test=True)
-
-            rs2[deg_i, fold_i] = tmp_metrics[0]
-            mse[deg_i, fold_i] = tmp_metrics[1]
-            var[deg_i, fold_i] = tmp_metrics[2]
-            bias[deg_i, fold_i] = tmp_metrics[3]
-
-            fold_i +=1
-        deg_i +=1
-
-    rs2 = np.mean(rs2, axis=1, keepdims=True)
-    mse = np.mean(mse, axis=1, keepdims=True)
-    var = np.mean(var, axis=1, keepdims=True)
-    bias = np.mean(bias, axis=1, keepdims=True)
-
-    return rs2, mse, var, bias
-
-
-
-def kFold():
-    
-    X = PolyDesignMatrix(x, y, degree)
-    np.random.seed(42)
-    if shuffle == True: np.random.shuffle(X) # Shuffle the rows
-    fold_i = 0
-
-    for i in range(1, k+1):
-        """loop over folds and calculate the fitted and predicted z values"""
-        train_index, test_index = foldIndex(x, i, k)
-        X_train = X[train_index]
-        z_train = z[train_index]
-
-        X_test = X[test_index]
-        z_test = z[test_index]
-
-        X_train_scl, X_test_scl = scale_X(X_train, X_test)
-
-        if RegType == "OLS": beta = OLS(z_train, X_train_scl)
-        if RegType == "RIDGE": beta = Ridge(z_train, X_train_scl, lamb)
-
-        z_fit = X_train_scl @ beta
-        z_pred = X_test_scl @ beta
-
-
-    return 1
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(100, 0.01, "debug")
+    x, y, z = GenerateData(100, 0.1, "debug")
     degrees = np.arange(1, 11)
-    m_test = kFold_degrees(x, y, z, degrees, k=5, shuffle = False, RegType="OLS", lamb=0)
+    #m_test = kFold_degrees(x, y, z, degrees, k=5, shuffle = False, RegType="OLS", lamb=0)
+    #m_test, m_train = kFold(x, y, z, d=10, k=5)
+    #print(m_test)
+    #print(m_train)
 
+    m_test, m_train = kFold_degrees2(x, y, z, degrees, k=5, RegType="OLS", lamb=0)
+    #plt.plot(degrees, m_test[0])
+    #plt.plot(degrees, m_train[0])
+
+    plt.figure()
     plt.plot(degrees, m_test[1], label="MSE test")
+    plt.plot(degrees, m_train[1], label="MSE train")
     plt.plot(degrees, m_test[2], label="variance")
     plt.plot(degrees, m_test[3], label="bias")
     plt.legend()
     plt.semilogy()
     plt.show()
 
+    plt.figure()
+    plt.plot(degrees, m_train[0])
+    plt.plot(degrees, m_test[0])
+    plt.show()
 
     """
 
