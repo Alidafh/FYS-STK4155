@@ -45,9 +45,13 @@ class ML_Analysis:
         
         self.test_size = 0.3                    # Proportion of data that should be testing data
         
-        self.dm_train = None                    # Set of training data; design matrix 
+        self.x_train = None                     # Set of training data; design matrix 
         
-        self.dm_test = None                     # Set of testing data; design matrix 
+        self.x_test = None                      # Set of testing data; design matrix 
+        
+        self.dm_train = None
+        
+        self.dm_test = None
         
         self.z_train = None                     # Set of training data; response variable
         
@@ -63,15 +67,15 @@ class ML_Analysis:
         
         self.beta = None                        # Vector of optimal coefficients
         
-        #self.original_image = None              # Matrix representing the original image from which the data is generated.
+        #self.original_image = None             # Matrix representing the original image from which the data is generated.
         
-        #self.image_dims = None                  # Dimensions of the original image. 
+        #self.image_dims = None                 # Dimensions of the original image. 
         
         self.z_pred = None                      # Data predicted based on fitted parameters
         
-        #self.image_pred = None                  # Matrix form of predicted data. 
+        #self.image_pred = None                 # Matrix form of predicted data. 
         
-        #self.original_image_test = None         #The original image, including only the pixels corresponding to test data. 
+        #self.original_image_test = None        # The original image, including only the pixels corresponding to test data. 
         
         
         
@@ -82,14 +86,20 @@ class ML_Analysis:
     
     def split(self):
         
-        self.dm_train, self.dm_test, self.z_train, self.z_test = self.split_func(self.dm, self.z, test_size = self.test_size)
-        return self.dm_train, self.dm_test, self.z_train, self.z_test
+        x = np.array(self.x).T[0]
+        
+        self.x_train, self.x_test, self.z_train, self.z_test = self.split_func(x, self.z, test_size = self.test_size)
+        
+        self.x_train = [np.array([self.x_train.T[0]]).T, np.array([self.x_train.T[1]]).T]
+        self.x_test = [np.array([self.x_test.T[0]]).T, np.array([self.x_test.T[1]]).T]
+        
+        return self.x_train, self.x_test, self.z_train, self.z_test
     
     
     def scale(self):
         
         self.dm_train, self.dm_test = self.scale_func(self.dm_train, self.dm_test)
-        return self.dm_train, self.dm_test
+        return self.x_train, self.x_test
 
 
     def check_original_image(self):
@@ -136,12 +146,16 @@ class Bootstrap_Analysis(ML_Analysis):
         
     def iterate(self):
         
+        self.dm_test = self.dm_func(self.x_test, self.dm_params)
         z_pred = np.empty((self.z_test.shape[0], self.n_iterations))
         for j in np.arange(self.n_iterations):
             
-            tmp_X_train, tmp_z_train = resample(self.dm_train, self.z_train)
-            tmp_beta = self.reg_func(tmp_X_train, tmp_z_train, self.reg_params)
-            z_pred[:,j] = self.dm_test @ tmp_beta.ravel()
+            tmp_x_train, tmp_z_train = resample(np.array(self.x_train).T[0], self.z_train)
+            tmp_x_train = np.array(tmp_x_train).T
+            tmp_dm_train = self.dm_func(tmp_x_train, self.dm_params)
+            tmp_dm_train, tmp_dm_test = self.scale_func(tmp_dm_train, self.dm_test)
+            tmp_beta = self.reg_func(tmp_dm_train, tmp_z_train, self.reg_params)
+            z_pred[:,j] = tmp_dm_test @ tmp_beta.ravel()
         
         self.r2_score, self.mse, self.var, self.bias = func.metrics(self.z_test, z_pred, test=True)
         
@@ -151,15 +165,18 @@ class Bootstrap_Analysis(ML_Analysis):
     
     def analysis(self):
         
-        self.generate_dm()
         self.split()
-        self.scale()
         self.iterate()
         
         
-        
-        
-        
+
+x1, x2, z = func.GenerateData(100, 0.01, "debug")
+
+x = [x1,x2]
+
+bs = Bootstrap_Analysis(x, z)
+
+bs.analysis()        
         
         
 
@@ -489,10 +506,10 @@ class Iterate_Lambda(Plot_Project1):
     
     
     
-test = Iterate_Lambda()
-test.ns =[100, 1000, 10000]
-test.ds =[3,5,10]   
-test.analysis()
+# test = Iterate_Lambda()
+# test.ns =[100, 1000, 10000]
+# test.ds =[3,5,10]   
+# test.analysis()
     
     
     
