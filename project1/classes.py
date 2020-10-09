@@ -296,13 +296,17 @@ class Iterate_Lambda(Plot_Project1):
                             
         self.s_min = -1
         
-        self.plot_all_n = 1
+        self.plot_mse = 1
         
-        self.plot_all_d = 1
+        self.plot_bias = 1
         
-        self.plot_all_tp = 1
+        self.plot_var = 1
         
         self.plot_log = 1
+        
+        self.Analysis_Class = Bootstrap_Analysis
+        
+        
     
         if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/")):
             try:
@@ -341,8 +345,11 @@ class Iterate_Lambda(Plot_Project1):
             
             x, y, z = func.GenerateData(n, 0.01, "debug")
         
-            bs = Bootstrap_Analysis([x,y], z)
+            # bs = Bootstrap_Analysis([x,y], z)
+            bs = self.Analysis_Class([x,y], z)
             bs.reg_func = self.reg_func
+            
+            
                      
             
             for c, d in enumerate(self.ds):
@@ -383,10 +390,7 @@ class Iterate_Lambda(Plot_Project1):
         print(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
         print(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
         print("")
-        if self.range_type == "log":
-            print(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(10**self.lam_vec[self.i_min]))
-        elif self.range_type == "lin":
-            print(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lam_vec[self.i_min]))
+        print(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lam_vec[self.i_min]))
         print(" \"Optimal\" Number of data points: \t\t {:}".format(self.ns[self.m_min]))
         print(" \"Optimal\" Number of degrees: \t\t {:}".format(self.ds[self.c_min]))
         print(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
@@ -401,15 +405,15 @@ class Iterate_Lambda(Plot_Project1):
             fig = plt.figure("n{:}".format(n))
             plt.grid()
             plt.title("{:} with {:} data points".format(self.reg_name, n), fontsize = 12, fontname = "serif")
-            plt.xlabel("lambda", fontsize = 12, fontname = "serif")
+            plt.xlabel(self.reg_name, fontsize = 12, fontname = "serif")
         
-            plt.plot(self.lam_vec, self.mse[:,m,self.c_min,self.s_min], "tab:red", label="MSE")
-            plt.plot(self.lam_vec, self.var[:,m,self.c_min,self.s_min], "tab:blue", label="Variance")
-            plt.plot(self.lam_vec, self.bias[:,m,self.c_min,self.s_min], "tab:green", label="Bias")
+            if self.plot_mse: plt.plot(self.lam_vec, self.mse[:,m,self.c_min,self.s_min], "tab:red", label="MSE")
+            if self.plot_var: plt.plot(self.lam_vec, self.var[:,m,self.c_min,self.s_min], "tab:blue", label="Variance")
+            if self.plot_bias: plt.plot(self.lam_vec, self.bias[:,m,self.c_min,self.s_min], "tab:green", label="Bias")
             plt.legend()
             if self.plot_log==1: plt.semilogy()
+          
         
-            
             if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "n/")):
                 try:
                     os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "n/"))
@@ -422,8 +426,57 @@ class Iterate_Lambda(Plot_Project1):
             
             
             file = open("{}/{}/n/n{}.txt".format(self.direc,self.subdirec,n), "w+")
+            file.write(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write("")
+            file.write(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lam_vec[self.i_min]))
             file.write(" \"Optimal\" Number of data points: \t\t {:}".format(self.ns[self.m_min]))
+            file.write(" \"Optimal\" Number of degrees: \t\t {:}".format(self.ds[self.c_min]))
+            file.write(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
             file.close
+        
+        
+        
+        for c, d in enumerate(self.ns):
+    
+            
+            fig = plt.figure("d{:}".format(d))
+            plt.grid()
+            plt.title("{:} with {:} degrees".format(self.reg_name, d), fontsize = 12, fontname = "serif")
+            plt.xlabel(self.reg_name, fontsize = 12, fontname = "serif")
+        
+            if self.plot_mse: plt.plot(self.lam_vec, self.mse[:,self.m_min,c,self.s_min], "tab:red", label="MSE")
+            if self.plot_var: plt.plot(self.lam_vec, self.var[:,self.m_min,c,self.s_min], "tab:blue", label="Variance")
+            if self.plot_bias: plt.plot(self.lam_vec, self.bias[:,self.m_min,c,self.s_min], "tab:green", label="Bias")
+            plt.legend()
+            if self.plot_log==1: plt.semilogy()
+        
+        
+            if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "d/")):
+                try:
+                    os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "d/"))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+            
+            
+            fig.savefig("{}/{}/d/d{}.png".format(self.direc,self.subdirec,d))
+            
+            
+            file = open("{}/{}/d/d{}.txt".format(self.direc,self.subdirec,d), "w+")
+            file.write(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write("")
+            file.write(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lam_vec[self.i_min]))
+            file.write(" \"Optimal\" Number of data points: \t\t {:}".format(self.ns[self.m_min]))
+            file.write(" \"Optimal\" Number of degrees: \t\t {:}".format(self.ds[self.c_min]))
+            file.write(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+            file.close
+        
         
         
         
@@ -437,23 +490,493 @@ class Iterate_Lambda(Plot_Project1):
     
     
 test = Iterate_Lambda()
-test.ns =[100, 1000, 10000]   
+test.ns =[100, 1000, 10000]
+test.ds =[3,5,10]   
 test.analysis()
     
     
     
     
     
+class Iterate_d(Plot_Project1):
+    
+    
+    def __init__(self, d_range = [1,20,1], range_type = "lin", 
+                 reg_func = func.OLS2):
+        
+        super().__init__()
+        
+        
+        self.subdirec = "degree"
+    
+        self.xlabel = "Number of degrees"
+        
+        self.ylabel = "MSE"
+        
+        self.d_range = d_range
+        
+        self.range_type = range_type
+        
+        self.ns = [100]
+        
+        self.lambdas = [0.001,0.01,0.1,1,3,5]
+        
+        self.tps = [0.3] 
+    
+        self.reg_func = reg_func
+        
+        self.reg_name = "OLS"
+    
+        self.mse = None
+        
+        self.bias = None
+        
+        self.var = None
+        
+        self.r2_score = None
+        
+        self.i_min = -1
+                            
+        self.c_min = -1
+                            
+        self.m_min = -1
+                            
+        self.s_min = -1
+        
+        self.plot_mse = 1
+        
+        self.plot_bias = 1
+        
+        self.plot_var = 1
+        
+        self.plot_log = 1
+        
+        self.Analysis_Class = Bootstrap_Analysis
+        
+        
+    
+        if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/")):
+            try:
+                os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec +"/"))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+                
+    
+    
+    def iterate(self):
+        
+        d_vec = np.arange(self.d_range[0], self.d_range[1], self.d_range[2])
+        
+        
+        if self.range_type == "log":
+            d_vec = 10**d_vec
+        elif self.range_type == "lin":
+            d_vec = d_vec
+        else:
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("!!!        ERROR: d_range is invalid!              !!!")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        
+        self.d_vec = d_vec
+        
+        self.mse = np.zeros((len(self.lambdas),len(self.ns), len(d_vec), len(self.tps)))
+        self.bias = np.zeros((len(self.lambdas),len(self.ns), len(d_vec), len(self.tps)))
+        self.var = np.zeros((len(self.lambdas),len(self.ns), len(d_vec), len(self.tps)))
+        self.r2_score = np.zeros((len(self.lambdas),len(self.ns),len(d_vec), len(self.tps)))
+        
+        mse_min = float('inf')
+        
+        
+        for m, n in enumerate(self.ns):
+            
+            x, y, z = func.GenerateData(n, 0.01, "debug")
+        
+            bs = self.Analysis_Class([x,y], z)
+            bs.reg_func = self.reg_func
+                     
+            
+            for c, d in enumerate(self.d_vec):
+                
+                bs.dm_params = d
+                
+                
+                for s, tp in enumerate(self.tps):
+                    
+                    bs.test_size = tp
+        
+        
+                    for i, lam in enumerate(self.lambdas):
+                        
+                        
+                        bs.reg_params = lam
+                        bs.analysis()
+                        
+                        self.mse[i,m,c,s] = bs.mse
+                        self.bias[i,m,c,s]  = bs.bias
+                        self.var[i,m,c,s]  = bs.var
+                        self.r2_score[i,m,c,s]  = bs.r2_score
+                        
+                        if self.mse[i,m,c,s] < mse_min: 
+                            mse_min = self.mse[i,m,c,s]
+                            self.i_min = i
+                            self.c_min = c
+                            self.m_min = m
+                            self.s_min = s
+                
+    
+
+    
+    def print_results(self):
+        
+        print(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print("")
+        print(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lambdas[self.i_min]))
+        print(" \"Optimal\" Number of data points: \t\t {:}".format(self.ns[self.m_min]))
+        print(" \"Optimal\" Number of degrees: \t\t {:}".format(self.d_vec[self.c_min]))
+        print(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+        
+    
+    def plot_results(self):
+        
+        
+        for m, n in enumerate(self.ns):
+    
+            
+            fig = plt.figure("n{:}".format(n))
+            plt.grid()
+            plt.title("{:} with {:} data points".format(self.reg_name, n), fontsize = 12, fontname = "serif")
+            plt.xlabel(self.reg_name, fontsize = 12, fontname = "serif")
+        
+            if self.plot_mse: plt.plot(self.d_vec, self.mse[self.i_min,m,:,self.s_min], "tab:red", label="MSE")
+            if self.plot_var: plt.plot(self.d_vec, self.var[self.i_min,m,:,self.s_min], "tab:blue", label="Variance")
+            if self.plot_bias: plt.plot(self.d_vec, self.bias[self.i_min,m,:,self.s_min], "tab:green", label="Bias")
+            plt.legend()
+            if self.plot_log==1: plt.semilogy()
+          
+        
+            if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "n/")):
+                try:
+                    os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "n/"))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+            
+            
+            fig.savefig("{}/{}/n/n{}.png".format(self.direc,self.subdirec,n))
+            
+            
+            file = open("{}/{}/n/n{}.txt".format(self.direc,self.subdirec,n), "w+")
+            file.write(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write("")
+            file.write(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lambdas[self.i_min]))
+            file.write(" \"Optimal\" Number of data points: \t\t {:}".format(self.ns[self.m_min]))
+            file.write(" \"Optimal\" Number of degrees: \t\t {:}".format(self.d_vec[self.c_min]))
+            file.write(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+            file.close
+        
+        
+        
+        for i, lam in enumerate(self.lambdas):
+    
+            
+            fig = plt.figure("lam{:}".format(lam))
+            plt.grid()
+            plt.title("{:} with lambda = {:}".format(self.reg_name, lam), fontsize = 12, fontname = "serif")
+            plt.xlabel(self.reg_name, fontsize = 12, fontname = "serif")
+        
+            if self.plot_mse: plt.plot(self.d_vec, self.mse[i,self.m_min,:,self.s_min], "tab:red", label="MSE")
+            if self.plot_var: plt.plot(self.d_vec, self.var[i,self.m_min,:,self.s_min], "tab:blue", label="Variance")
+            if self.plot_bias: plt.plot(self.d_vec, self.bias[i,self.m_min,:,self.s_min], "tab:green", label="Bias")
+            plt.legend()
+            if self.plot_log==1: plt.semilogy()
+        
+        
+            if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "lambdas/")):
+                try:
+                    os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "lambdas/"))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+            
+            
+            fig.savefig("{}/{}/lambdas/lambda{}.png".format(self.direc,self.subdirec,lam))
+            
+            
+            file = open("{}/{}/lambdas/lambda{}.txt".format(self.direc,self.subdirec,lam), "w+")
+            file.write(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write("")
+            file.write(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lambdas[self.i_min]))
+            file.write(" \"Optimal\" Number of data points: \t\t {:}".format(self.ns[self.m_min]))
+            file.write(" \"Optimal\" Number of degrees: \t\t {:}".format(self.d_vec[self.c_min]))
+            file.write(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+            file.close
+        
+        
+        
+        
+    def analysis(self):
+        
+        self.iterate()
+        self.print_results()
+        self.plot_results()
+          
+    
+    
+# test = Iterate_d()
+# test.ns =[100, 1000, 10000]   
+# test.analysis()
     
     
     
+
+
+
+class Iterate_n(Plot_Project1):
     
     
+    def __init__(self, n_range = [3,6,1], range_type = "log", 
+                 reg_func = func.OLS2):
+        
+        super().__init__()
+        
+        
+        self.subdirec = "data_number"
+    
+        self.xlabel = "Number of data points"
+        
+        self.ylabel = "MSE"
+        
+        self.n_range = n_range
+        
+        self.range_type = range_type
+        
+        self.ds = [3,5,10]  
+        
+        self.lambdas = [0.001,0.01,0.1,1,3,5]
+        
+        self.tps = [0.3] 
+    
+        self.reg_func = reg_func
+        
+        self.reg_name = "OLS"
+    
+        self.mse = None
+        
+        self.bias = None
+        
+        self.var = None
+        
+        self.r2_score = None
+        
+        self.i_min = -1
+                            
+        self.c_min = -1
+                            
+        self.m_min = -1
+                            
+        self.s_min = -1
+        
+        self.plot_mse = 1
+        
+        self.plot_bias = 1
+        
+        self.plot_var = 1
+        
+        self.plot_log = 1
+        
+        self.Analysis_Class = Bootstrap_Analysis
+
+
+
+    
+        if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/")):
+            try:
+                os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec +"/"))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+                
     
     
+    def iterate(self):
+        
+        n_vec = np.arange(self.n_range[0], self.n_range[1], self.n_range[2])
+        
+        
+        if self.range_type == "log":
+            n_vec = 10**n_vec
+        elif self.range_type == "lin":
+            n_vec = n_vec
+        else:
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("!!!        ERROR: d_range is invalid!              !!!")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        
+        self.n_vec = n_vec
+        
+        self.mse = np.zeros((len(self.lambdas),len(self.n_vec), len(self.ds), len(self.tps)))
+        self.bias = np.zeros((len(self.lambdas),len(self.n_vec), len(self.ds), len(self.tps)))
+        self.var = np.zeros((len(self.lambdas),len(self.n_vec), len(self.ds), len(self.tps)))
+        self.r2_score = np.zeros((len(self.lambdas),len(self.n_vec),len(self.ds), len(self.tps)))
+        
+        mse_min = float('inf')
+        
+        
+        for m, n in enumerate(self.n_vec):
+            
+            x, y, z = func.GenerateData(n, 0.01, "debug")
+        
+            bs = self.Analysis_Class([x,y], z)
+            bs.reg_func = self.reg_func
+                     
+            
+            for c, d in enumerate(self.ds):
+                
+                bs.dm_params = d
+                
+                
+                for s, tp in enumerate(self.tps):
+                    
+                    bs.test_size = tp
+        
+        
+                    for i, lam in enumerate(self.lambdas):
+                        
+                        
+                        bs.reg_params = lam
+                        bs.analysis()
+                        
+                        self.mse[i,m,c,s] = bs.mse
+                        self.bias[i,m,c,s]  = bs.bias
+                        self.var[i,m,c,s]  = bs.var
+                        self.r2_score[i,m,c,s]  = bs.r2_score
+                        
+                        if self.mse[i,m,c,s] < mse_min: 
+                            mse_min = self.mse[i,m,c,s]
+                            self.i_min = i
+                            self.c_min = c
+                            self.m_min = m
+                            self.s_min = s
+                
+    
+
+    
+    def print_results(self):
+        
+        print(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+        print("")
+        print(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lambdas[self.i_min]))
+        print(" \"Optimal\" Number of data points: \t\t {:}".format(self.n_vec[self.m_min]))
+        print(" \"Optimal\" Number of degrees: \t\t {:}".format(self.ds[self.c_min]))
+        print(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+        
+    
+    def plot_results(self):
+        
+        
+        for i,lam in enumerate(self.lambdas):
+    
+            
+            fig = plt.figure("lam{:}".format(lam))
+            plt.grid()
+            plt.title("{:} with lambda = {:}".format(self.reg_name, lam), fontsize = 12, fontname = "serif")
+            plt.xlabel(self.reg_name, fontsize = 12, fontname = "serif")
+        
+            if self.plot_mse: plt.plot(self.ds, self.mse[i,:,self.c_min,self.s_min], "tab:red", label="MSE")
+            if self.plot_var: plt.plot(self.ds, self.var[i,:,self.c_min,self.s_min], "tab:blue", label="Variance")
+            if self.plot_bias: plt.plot(self.ds, self.bias[i,:,self.c_min,self.s_min], "tab:green", label="Bias")
+            plt.legend()
+            if self.plot_log==1: plt.semilogy()
+          
+        
+            if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "lambdas/")):
+                try:
+                    os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "lambdas/"))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+            
+            
+            fig.savefig("{}/{}/lambdas/lambda{}.png".format(self.direc,self.subdirec,lam))
+            
+            
+            file = open("{}/{}/lambdas/lambda{}.txt".format(self.direc,self.subdirec,lam), "w+")
+            file.write(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write("")
+            file.write(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lambdas[self.i_min]))
+            file.write(" \"Optimal\" Number of data points: \t\t {:}".format(self.n_vec[self.m_min]))
+            file.write(" \"Optimal\" Number of degrees: \t\t {:}".format(self.ds[self.c_min]))
+            file.write(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+            file.close
+        
+        
+        
+        for c, d in enumerate(self.ds):
+    
+            
+            fig = plt.figure("d{:}".format(d))
+            plt.grid()
+            plt.title("{:} with {:} degrees".format(self.reg_name, d), fontsize = 12, fontname = "serif")
+            plt.xlabel(self.reg_name, fontsize = 12, fontname = "serif")
+        
+            if self.plot_mse: plt.plot(self.n_vec, self.mse[self.i_min,:,c,self.s_min], "tab:red", label="MSE")
+            if self.plot_var: plt.plot(self.n_vec, self.var[self.i_min,:,c,self.s_min], "tab:blue", label="Variance")
+            if self.plot_bias: plt.plot(self.n_vec, self.bias[self.i_min,:,c,self.s_min], "tab:green", label="Bias")
+            plt.legend()
+            if self.plot_log==1: plt.semilogy()
+        
+        
+            if not os.path.exists(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "d/")):
+                try:
+                    os.makedirs(os.path.dirname(self.direc + "/" + self.subdirec + "/" + "d/"))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+            
+            
+            fig.savefig("{}/{}/d/d{}.png".format(self.direc,self.subdirec,d))
+            
+            
+            file = open("{}/{}/d/d{}.txt".format(self.direc,self.subdirec,d), "w+")
+            file.write(" \"Optimal\" MSE: \t \t {:}".format(self.mse[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Bias: \t \t {:}".format(self.bias[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" Variance: \t {:}".format(self.var[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write(" \"Optimal\" R2-score: \t {:}".format(self.r2_score[self.i_min,self.m_min,self.c_min,self.s_min]))
+            file.write("")
+            file.write(" \"Optimal\" Lambda: \t\t\t\t\t {:}".format(self.lambdas[self.i_min]))
+            file.write(" \"Optimal\" Number of data points: \t\t {:}".format(self.n_vec[self.m_min]))
+            file.write(" \"Optimal\" Number of degrees: \t\t {:}".format(self.ds[self.c_min]))
+            file.write(" \"Optimal\" Proportion of test data: \t {:}".format(self.tps[self.s_min]))
+            file.close
+        
+        
+        
+        
+    def analysis(self):
+        
+        self.iterate()
+        self.print_results()
+        self.plot_results()
     
     
-    
-    
+# test = Iterate_n()
+# # test.ns =[100, 1000, 10000]   
+# test.analysis()
     
         

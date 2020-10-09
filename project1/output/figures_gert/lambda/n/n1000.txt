@@ -1,1 +1,1 @@
- "Optimal" Number of data points: 		 1000
+ "Optimal" MSE: 	 	 0.051836738894526134 "Optimal" Bias: 	 	 0.051507939496318704 "Optimal" Variance: 	 0.0003287993982074309 "Optimal" R2-score: 	 -74.02278995617185 "Optimal" Lambda: 					 0.0031622776601683794 "Optimal" Number of data points: 		 1000 "Optimal" Number of degrees: 		 10 "Optimal" Proportion of test data: 	 0.3
