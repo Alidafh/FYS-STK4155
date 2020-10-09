@@ -112,17 +112,20 @@ def scale_X(train, test):
     --------------------------------
     TO DO: FINISHED
     """
+    """
     train_scl =  np.ones(train.shape)
     test_scl = np.ones(test.shape)
-    train_scl[:,1:] = train[:,1:] - np.mean(train, axis=1, keepdims=True)
-    test_scl[:,1:]= test[:,1:] - np.mean(test, axis=1, keepdims=True)
-
-    #scaler = StandardScaler()
-    #scaler.fit(train[:,1:])
-    #train_scl =  np.ones(train.shape)
-    #test_scl = np.ones(test.shape)
-    #train_scl[:,1:] = scaler.transform(train[:,1:])
-    #test_scl[:,1:] = scaler.transform(test[:,1:])
+    mean_train = np.mean(train)
+    std_train = np.std(train)
+    train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
+    test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
+    """
+    scaler = StandardScaler()
+    scaler.fit(train[:,1:])
+    train_scl =  np.ones(train.shape)
+    test_scl = np.ones(test.shape)
+    train_scl[:,1:] = scaler.transform(train[:,1:])
+    test_scl[:,1:] = scaler.transform(test[:,1:])
 
     return train_scl, test_scl
 
@@ -301,14 +304,23 @@ def Ridge(z, X, lamb, var=False):
 
 def Bootstrap_v1(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
-    THIS DOES NOT WORK
+    Bootstrap loop v1 with design matrix outide loop
     --------------------------------
-
+    Input
+        x,y,z:        Variables for data from Generate Data
+        d:            Polynomial degree for the feature matrix
+        n_bootstraps: The number of bootstraps
+        RegType:      "OLS" for Ordinary least squares(default)
+                      "RIDGE" for Ridge
+        lamb:         the lambda value if RegType="RIDGE"
     --------------------------------
     Returns
-        z_train, z_test, z_fit, z_pred
+        z_train_cp: (train_size, n_bootstraps)
+        z_test_cp:  (test_size, n_bootstraps)
+        z_fit:      (train_size, n_bootstraps)
+        z_pred      (test_size, n_bootstraps)
     --------------------------------
-    TODO:
+    TODO: Find out why it doesnt work for degrees 7+
     """
     X = PolyDesignMatrix(x, y, d)
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
@@ -325,6 +337,7 @@ def Bootstrap_v1(x, y, z, d, n_bootstraps, RegType, lamb=0):
 
     for j in range(n_bootstraps):
         tmp_X_train, tmp_z_train = resample(X_train, z_train)
+        z_train_cp[:,j] = tmp_z_train.ravel()
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
         z_pred[:,j] = X_test @ tmp_beta.ravel()
@@ -350,7 +363,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
         z_fit:      (train_size, n_bootstraps)
         z_pred      (test_size, n_bootstraps)
     --------------------------------
-    TODO: Find out why it doesnt not work
+    TODO: Find out why it doesnt work for degrees 7+
     """
 
     #x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
@@ -371,7 +384,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
         X_train = PolyDesignMatrix(x_, y_, d)
         X_test = PolyDesignMatrix(x_test, y_test, d)
 
-        X_train, X_test = scale_X(X_train, X_test)
+        #X_train, X_test = scale_X(X_train, X_test)
 
         if RegType == "OLS" : tmp_beta = OLS(z_, X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(z_, X_train, lamb)
@@ -454,26 +467,38 @@ def OLS_bootstrap_data(ndata, n_bootstraps, d_1):
 
     return m_test_ndata, m_train_ndata
 
-def kFold_v1(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
+def kFold(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
     """
+    Cross-Validation
+    --------------------------------
+    Input
+        x,y,z:        Variables for data from Generate Data
+        d:            Polynomial degree for the feature matrix
+        k:            Number of folds
+        RegType:      "OLS" for Ordinary least squares(default)
+                      "RIDGE" for Ridge
+        lamb:         the lambda value if RegType="RIDGE"
+    --------------------------------
+    Returns
+        z_train_cp: (train_size, k)
+        z_test_cp:  (test_size, k)
+        z_fit:      (train_size, k)
+        z_pred      (test_size, k)
+    --------------------------------
+    TODO: Find out why it doesnt work for degrees 7+
     """
-    np.random.seed(42)
-    np.random.shuffle(x)
-    np.random.shuffle(y)
-    np.random.shuffle(z)
-
     X = PolyDesignMatrix(x, y, d)
-    dummy = np.array(([1,4],[1,4]))
-    X, dummy = scale_X(X, dummy)
 
-    #np.random.seed(42)
-    #np.random.shuffle(X)
+    np.random.seed(42)
+    np.random.shuffle(X)
 
     z_pred, z_fit, z_test_cp, z_train_cp = [],[],[],[]
     for i in range(1, k+1):
         train_index, test_index = foldIndex(z, i, k)
         X_train = X[train_index]
         X_test = X[test_index]
+
+        X_train, X_test = scale_X(X_train, X_test)
 
         z_train = z[train_index]
         z_test = z[test_index]
@@ -506,7 +531,7 @@ def kFold_v1(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
 
     return z_train_k, z_test_k, z_fit_k, z_pred_k
 
-def kFold(x,y,z, d=3, k=5, RegType="OLS", lamb=0):
+def kFold_v2(x,y,z, d=3, k=5, RegType="OLS", lamb=0):
 
     z_pred = np.zeros((20,k))
     z_fit = np.zeros((80,k))

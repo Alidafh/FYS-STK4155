@@ -13,6 +13,20 @@ from array import array
 
 ###############################################################################
 
+def GenDat2():
+    x_ = np.arange(0, 1, 0.1)
+    y_ = np.arange(0, 1, 0.1)
+
+    x, y = np.meshgrid(x_,y_)
+
+    noise = 0.01
+    z = func.FrankeFunction(x,y) + np.random.normal(0, noise, len(x))
+
+    x = x.ravel().reshape(-1,1)
+    y = y.ravel().reshape(-1,1)
+    z = z.ravel().reshape(-1,1)
+    return x,y,z
+
 def regression(z, X, reg_type="OLS", lamb=0):
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
     X_train_scl, X_test_scl = func.scale_X(X_train, X_test)
@@ -72,9 +86,9 @@ def OLS_optimal_model(x, y, z, metrics_test, metrics_train, quiet = True, info="
 
     return beta, best_degree, m_test_best
 ###############################################################################
-np.random.seed(42)
+#np.random.seed(42)
 x, y, z = func.GenerateData(100, 0.01)
-
+#x,y,z = GenDat2()
 #X = func.PolyDesignMatrix(x,y,2)
 
 #print(X)
@@ -93,6 +107,9 @@ m_train = np.zeros((4, d_max))      # array to store [R2, mse, var, bias]
 m_test_bs  = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 m_train_bs = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 
+m_test_bs1  = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
+m_train_bs1 = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
+
 m_test_k  = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 m_train_k = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 
@@ -100,29 +117,42 @@ m_train_k = np.zeros((4, d_max))       # array to store [R2, mse, var, bias]
 for i in range(d_max):
     X = func.PolyDesignMatrix(x, y, degrees[i])
     z_train_1, z_test_1, z_fit_1, z_pred_1 = regression(z, X, "OLS", lamb=0)
-    m_test[:,i] = func.metrics(z_test_1, z_pred_1)
-    m_train[:,i] = func.metrics(z_train_1, z_fit_1)
+    m_test[:,i] = func.metrics(z_test_1, z_pred_1, test=True)
+    m_train[:,i] = func.metrics(z_train_1, z_fit_1, test=True)
 
     # With bootstrapping
     z_train_2, z_test_2, z_fit_2, z_pred_2 = func.Bootstrap(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
     m_test_bs[:,i] = func.metrics(z_test_2, z_pred_2, test=True)
     m_train_bs[:,i] = func.metrics(z_train_2, z_fit_2, test=True)
 
-    # With kFold
-    #z_train_3, z_test_3, z_fit_3, z_pred_3 = func.kFold(x, y, z, degrees[i], k, RegType="OLS", lamb=0)
-    #print(z_train.shape, z_test.shape, z_fit.shape, z_pred.shape)
-    #m_test_k[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
-    #m_train_k[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
+    # With bootstrapping_v1
+    z_train_3, z_test_3, z_fit_3, z_pred_3 = func.Bootstrap_v1(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
+    m_test_bs1[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
+    m_train_bs1[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
 
+    # With kFold
+    z_train_3, z_test_3, z_fit_3, z_pred_3 = func.kFold(x, y, z, degrees[i], k, RegType="OLS", lamb=0)
+    print(np.shape(z_train_3))
+    m_test_k[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
+    m_train_k[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
+
+plt.figure()
+plt.title("Test")
 plt.plot(degrees, m_test[0], label="no_resample")
 plt.plot(degrees, m_test_bs[0], label = "Bootstrap")
-#plt.plot(degrees,m_test_k[0], label = "kFold")
+plt.plot(degrees, m_test_bs1[0], label = "Bootsrap_v1")
+plt.plot(degrees, m_test_k[0], label = "kFold")
 plt.legend()
+plt.ylim((0, 1.2))
 plt.show()
 
+plt.figure()
+plt.title("Train")
 plt.plot(degrees, m_train[0], label="no_resample")
 plt.plot(degrees, m_train_bs[0], label = "Bootstrap")
-plt.plot(degrees,m_train_k[0], label = "kFold")
+plt.plot(degrees,m_train_bs1[0], label = "Bootstrap_v1")
+plt.plot(degrees, m_train_k[0], label = "kFold")
+plt.ylim((0, 1.2))
 plt.legend()
 plt.show()
 
