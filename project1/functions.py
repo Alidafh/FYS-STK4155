@@ -127,7 +127,7 @@ def scale_X(train, test):
     """
     return train_scl, test_scl
 
-def metrics(z_true, z_pred, test=False, quiet=True):
+def metrics(z_true, z_pred, test=False):
     """
     Calculate the R^2 score, mean square error, variance and bias.
     If the predicted values has shape (n,1), it tests the calculated MSE and R2
@@ -163,22 +163,22 @@ def metrics(z_true, z_pred, test=False, quiet=True):
         r2_sklearn = r2_score(z_true, z_pred)
         mse_sklearn = mean_squared_error(z_true, z_pred)
 
-        if np.abs(R2-r2_sklearn) > 0.001:
+        if np.abs(R2-r2_sklearn) > 0.01:
             print("Testing with sklearn:")
             print("     Diff R2 : {:.2f}". format(R2-r2_sklearn))
 
-        if np.abs(MSE-mse_sklearn) > 0.001:
+        if np.abs(MSE-mse_sklearn) > 0.01:
             print("     Diff MSE: {:.2f}\n".format(MSE-mse_sklearn))
 
         #if np.abs((bias+var) - MSE) > 1e-6:
-        if bias+var > MSE:
-            print("Test:")
-            print("bias+variance > mse:")
-            print("-------------")
-            print("MSE: ", MSE)
-            print("bias:", bias)
-            print("var: ", var)
-            print("-------------\n")
+        #if bias+var >= MSE:
+        #    print("Test:")
+        #    print("bias+variance > mse:")
+        #    print("-------------")
+        #    print("MSE: ", MSE)
+        #    print("bias:", bias)
+        #    print("var: ", var)
+        #    print("-------------\n")
 
     return R2, MSE, var, bias
     #return r2_sklearn, mse_sklearn, var, bias
@@ -329,6 +329,8 @@ def Bootstrap_v1(x, y, z, d, n_bootstraps, RegType, lamb=0):
     return z_train, z_test, z_fit, z_pred
 
 def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
+    """
+    """
     x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.33, shuffle=True)
     z_test_cp = np.zeros((z_test.shape[0], n_bootstraps))
     z_train_cp = np.zeros((z_train.shape[0], n_bootstraps))
@@ -344,14 +346,16 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType="OLS", lamb=0):
         z_train_cp[:,i] = z_.ravel()
         X_train = PolyDesignMatrix(x_, y_, d)
         X_test = PolyDesignMatrix(x_test, y_test, d)
-        X_test, X_train = scale_X(X_test, )
+
+        X_test, X_train = scale_X(X_test, X_train)
+
         if RegType == "OLS" : tmp_beta = OLS(z_, X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(z_, X_train, lamb)
 
         z_pred[:,i] = X_test @ tmp_beta.ravel()
         z_fit[:,i] = X_train @ tmp_beta.ravel()
 
-    return z_train, z_test, z_fit, z_pred
+    return z_train_cp, z_test_cp, z_fit, z_pred
 
 def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
     """
@@ -389,6 +393,7 @@ def OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps, dim=0):
             z_train_cp[:,i] = z_.ravel()
             X_train = PolyDesignMatrix(x_, y_, degrees[d])
             X_test = PolyDesignMatrix(x_test, y_test, degrees[d])
+            X_test, X_train = scale_X(X_test, X_train)
             tmp_beta = OLS(z_, X_train)
             z_pred[:,i] = X_test @ tmp_beta.ravel()
             z_fit[:,i] = X_train @ tmp_beta.ravel()
@@ -416,7 +421,7 @@ def OLS_bootstrap_data(ndata, n_bootstraps, d_1):
 
     return m_test_ndata, m_train_ndata
 
-def kFold1(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
+def kFold_v1(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
     """
     """
     np.random.seed(42)
@@ -463,11 +468,10 @@ def kFold1(x, y, z, d=3, k=5, RegType="OLS", lamb=0):
         z_pred_k[:,i] = z_pred[i].ravel()
         z_fit_k[:,i] = z_fit[i].ravel()
 
-    metrics_test =  metrics(z_test_k, z_pred_k, test=True)
-    metrics_train = metrics(z_train_k, z_fit_k, test=True)
+    #metrics_test =  metrics(z_test_k, z_pred_k, test=True)
+    #metrics_train = metrics(z_train_k, z_fit_k, test=True)
 
-    return metrics_test, metrics_train
-
+    return z_train_k, z_test_k, z_fit_k, z_pred_k
 
 def kFold(x,y,z, d=3, k=5, RegType="OLS", lamb=0):
 
@@ -523,27 +527,22 @@ def kFold_degrees2(x, y, z, degrees, k=5, RegType="OLS", lamb=0):
 
     for i in range(d):
         """loop over degrees"""
-        degree = degrees[i]
-        z_train, z_test, z_fit, z_pred = kFold(x,y,z, degrees[i], k, RegType, lamb)
+        z_train, z_test, z_fit, z_pred = kFold_v1(x,y,z, degrees[i], k, RegType, lamb)
         m_test[:,i] = metrics(z_test, z_pred, test=True)
         m_train[:,i] = metrics(z_train, z_fit, test=True)
 
-        #m_test[:,i], m_train[:,i] = kFold1(x, y, z, degrees[i], k, RegType, lamb)
+        #z_train, z_test, z_fit, z_pred = kFold(x,y,z, degrees[i], k, RegType, lamb)
+        #m_test[:,i] = metrics(z_test, z_pred, test=True)
+        #m_train[:,i] = metrics(z_train, z_fit, test=True)
 
     return m_test, m_train
 
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(100, 0.1, "debug")
-    degrees = np.arange(1, 11)
-    #m_test = kFold_degrees(x, y, z, degrees, k=5, shuffle = False, RegType="OLS", lamb=0)
-    #m_test, m_train = kFold(x, y, z, d=10, k=5)
-    #print(m_test)
-    #print(m_train)
+    x, y, z = GenerateData(100, 0.01)
+    degrees = np.arange(1, 10+1)
 
     m_test, m_train = kFold_degrees2(x, y, z, degrees, k=5, RegType="OLS", lamb=0)
-    #plt.plot(degrees, m_test[0])
-    #plt.plot(degrees, m_train[0])
 
     plt.figure()
     plt.plot(degrees, m_test[1], label="MSE test")
