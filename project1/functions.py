@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 import scipy as scl
 from tools import SVDinv, foldIndex
-import sys
+from sklearn.linear_model import LinearRegression
 
 ###############################################################################
 
@@ -346,6 +346,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
         tmp_X_train, tmp_z_train = resample(X_train, z_train)
         z_train_cp[:,j] = tmp_z_train.ravel()
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
+        if RegType == "OLSskl": tmp_beta = OLSskl(tmp_z_train, tmp_X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
         z_pred[:,j] = (X_test @ tmp_beta).ravel()
         z_fit[:,j] = (tmp_X_train @ tmp_beta).ravel()
@@ -416,6 +417,18 @@ def kFold(x, y, z, d, k=5, shuffle = False, RegType="OLS", lamb=0):
 
     return z_train_k, z_test_k, z_fit_k, z_pred_k
 
+
+def OLSskl(z, X):
+    
+    reg = LinearRegression()
+    
+    reg.fit(X,z)
+    
+    
+    
+    
+    
+    
 
 if __name__ == '__main__':
     x, y, z = GenerateData(100, 0.01)

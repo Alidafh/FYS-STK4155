@@ -130,10 +130,10 @@ for i in range(d_max):
     m_test_bs[:,i] = func.metrics(z_test_2, z_pred_2, test=True)
     m_train_bs[:,i] = func.metrics(z_train_2, z_fit_2, test=True)
 
-    ## With bootstrapping_v2
-    z_train_3, z_test_3, z_fit_3, z_pred_3 = func.Bootstrap_v2(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
-    m_test_bs1[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
-    m_train_bs1[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
+    # ## With bootstrapping_v2
+    # z_train_3, z_test_3, z_fit_3, z_pred_3 = func.Bootstrap_v2(x, y, z, degrees[i], n_bootstraps, RegType="OLS", lamb=0)
+    # m_test_bs1[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
+    # m_train_bs1[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
 
     # With kFold
     #z_train_4, z_test_4, z_fit_4, z_pred_4 = func.kFold(x, y, z, degrees[i], k, shuffle=False, RegType="OLS", lamb=0)
@@ -161,9 +161,9 @@ plt.plot(degrees, m_train_k[0], label = "kFold")
 #plt.ylim((0, 1.2))
 plt.legend()
 plt.show()
-quit()
+# quit()
 
-quit()
+# quit()
 print("------------------------------------")
 print("         Without Resampling         ")
 print("------------------------------------")
