@@ -107,7 +107,7 @@ def OLS_bias_variance(x, mse, var, bias, x_type="degrees", info="", log=False):
     print("    Figure saved in: output/figures/OLS_bias_variance_{:}_{:}.pdf\n".format(x_type, info))
     plt.close()
 
-def OLS_beta_conf(beta, conf_beta, d, info):
+def OLS_beta_conf(beta, conf_beta, d, mse_best, r2_best, info):
     """
     Plots the parameters with errorbars corresponding to the confidence interval
     --------------------------------
@@ -124,7 +124,7 @@ def OLS_beta_conf(beta, conf_beta, d, info):
     fig, ax = plt.subplots()
     ax.grid()
 
-    plt.title("OLS parameters using polynomial degree {:.0f} ".format(d), fontsize = 14, fontname = "serif")
+    plt.title("OLS parameters (d={:.0f}, MSE={:.3f}, R2={:.2f}) ".format(d, mse_best, r2_best), fontsize = 14, fontname = "serif")
     x = np.arange(len(beta))
     plt.errorbar(x, beta, yerr=conf_beta.ravel(), markersize=4, linewidth=1, capsize=5, capthick=1, ecolor="black", fmt='o')
     xlabels = [r"$\beta_"+"{:.0f}$".format(i) for i in range(len(beta))]
@@ -181,17 +181,17 @@ def RIDGE_beta_conf(beta, conf_beta, d, lamb, n):
     print("Plotting the Ridge regression parameters with confidence intervals")
     fig, ax = plt.subplots()
     ax.grid()
+    plt.title("OLS parameters (d={:.0f}, MSE={:.3f}, R2={:.2f}, $\lambda$=) ".format(d, mse_best, r2_best, lamb), fontsize = 12, fontname = "serif")
 
-    plt.title(r"Ridge parameters, d={:.0f} and $\lambda = ${:.3f} ".format(d, lamb), fontsize = 14, fontname = "serif")
     x = np.arange(len(beta))
     plt.errorbar(x, beta, yerr=conf_beta.ravel(), markersize=4, linewidth=1, capsize=5, capthick=1, ecolor="black", fmt='o')
     xlabels = [r"$\beta_"+"{:.0f}$".format(i) for i in range(len(beta))]
     ax.set_xticks(x)
     ax.set_xticklabels(xlabels)
 
-    #fig.savefig("output/figures/ridge_parameters_ndata{:.0f}_degree{:.0f}_lambda{:.3f}.pdf".format(n,d, lamb))
-    fig.savefig("output/figures/RIDGE_parameters_ndata{:.0f}_degree{:.0f}_lambda{:.3f}.png".format(n,d, lamb))
-    print("    Figure saved in: output/figures/RIDGE_parameters_ndata{:.0f}_degree{:.0f}_lambda{:.3f}.pdf".format(n,d, lamb))
+    fig.savefig("output/figures/RIDGE_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.pdf".format(d, lamb, info))
+    fig.savefig("output/figures/RIDGE_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.png".format(d, lamb, info))
+    print("    Figure saved in: output/figures/RIDGE_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.png".format(d, lamb, info))
     plt.close()
 
 def RIDGE_test_train(x, test_error, train_error, lamb, err_type ="", info="", log=False):
@@ -313,6 +313,7 @@ def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", 
     fig.savefig("output/figures/{:}_bias_variance_{:}_{:}.pdf".format(RegType, x_type, info))
     fig.savefig("output/figures/{:}_bias_variance_{:}_{:}.png".format(RegType, x_type, info))
     print("    Figure saved in: output/figures/{:}_bias_variance_{:}_{:}.pdf\n".format(RegType,x_type, info))
+    plt.close()
 
 def compare_MSE(x, mse_kfold, mse_bs, rType = "OLS", lamb=0, info="", log=False):
     """
@@ -413,16 +414,89 @@ def metric_test_train(x, test_var, train_var, var_type ="", x_type="", reg_type=
     print("    Figure saved in: output/figures/{:}_{:}_test_train_{:}.png\n".format(reg_type, var_type, info))
     plt.close()
 
+def compare_R2(x, r2, r2_bs, r2_k, rType = "OLS", lamb=0, info=""):
+    """
+    Compares the test and train R2-scores for no resampling, bootstrap and
+    k-fold methods as a function of model complexity
+    --------------------------------
+    Input
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
+
+    print("Comparing R-score for k-fold and bootstrap methods")
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, figsize=[6.4, 6.4], constrained_layout=True) #[6.4, 4.8].
+    fig.suptitle("{:} R2-score".format(rType), fontsize = 14, fontname = "serif")
+    if rType != "OLS":
+        fig.suptitle("{:} R2-score (\lambda = {:.5f})".format(rType, lamb), fontsize = 14, fontname = "serif")
+
+    labels = ["R2-test", "R2-train"]
+    for i in range(2):
+        ax[i].grid()
+        ax[i].plot(x, r2[i], color="tab:green", label="No-resampling")
+        ax[i].plot(x, r2_bs[i], color="tab:blue", label="Bootstrap")
+        ax[i].plot(x, r2_k[i], color="tab:red", label="k-Fold")
+        ax[i].set_ylabel(labels[i],fontsize = 10, fontname = "serif" )
+        if len(x) <= 10: ax[i].set_xticks(x)
+
+    lines = []
+    labels = []
+
+    for ax in fig.axes:
+        axLine, axLabel = ax.get_legend_handles_labels()
+        lines.extend(axLine)
+        labels.extend(axLabel)
+
+    fig.legend(lines[:3], labels[:3], loc = 'lower right')
+    plt.xlabel("Model complexity (Degrees)")
+
+    fig.savefig("output/figures/{:}_compare_R2_{:}.pdf".format(rType, info))
+    fig.savefig("output/figures/{:}_compare_R2_{:}.png".format(rType, info))
+    print("    Figure saved in: output/figures/{:}_compare_R2_{:}.pdf\n".format(rType, info))
+    plt.close()
+
+def compare_MSE(x, mse, mse_bs, mse_k, rType = "OLS", lamb=0, info="", log=False):
+    """
+    Compares the MSE for no resampling, bootstrap and
+    k-fold methods as a function of model complexity
+    --------------------------------
+    Input
+    --------------------------------
+    TODO: change back to saving in PDF format
+    """
+
+    print("Comparing MSE for k-fold and bootstrap methods")
+    fig = plt.figure()
+    plt.grid()
+    plt.title("{:} Mean Squared Error".format(rType), fontsize = 14, fontname = "serif")
+    if rType != "OLS":
+        plt.title("{:} Mean Squared Error (\lambda={:.6f})".format(rType, lamb), fontsize = 14, fontname = "serif")
+
+    plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
+    plt.ylabel("MSE", fontsize=12, fontname="serif")
+    plt.plot(x, mse, "tab:red", label="no resample")
+    plt.plot(x, mse_bs, "tab:blue", label="bootstrap")
+    plt.plot(x, mse_k, "tab:green", label="k-Fold")
+    plt.legend()
+
+    if log==True: plt.semilogy()
+
+    fig.savefig("output/figures/{:}_compare_MSE_{:}.pdf".format(rType, info))
+    fig.savefig("output/figures/{:}_compare_MSE_{:}.png".format(rType, info))
+    print("    Figure saved in: output/figures/{:}_compare_MSE_{:}.pdf\n".format(rType, info))
+    #plt.show()
+    plt.close()
+
 
 if __name__ == '__main__':
     plot_franke("Illustration of the Franke Function", "franke_func_illustration", 0.1)
-    #x = np.linspace(0, 10, 11)
-    #y1 = 2*x
-    #y2 = 3*x
-    #z1 = 2*x+1
-    #z2 = 3*x+1
+    x = np.linspace(0, 10, 11)
+    y1 = [2*x, 2*x+1]
+    y2 = [3*x, 3*x+1]
+    y3 = [4*x, 4*x+1]
 
-    #y = np.array([y1, y2])
-    #z = np.array([z1, z2])
-
+    z1 = 2*x
+    z2 = 3*x
+    z3 = 4*x
+    compare_MSE(x, z1, z2, z3, rType = "OLS", info="test", log=True)
     #all_metrics_test_train(x, y, z, x_type="degrees", reg_type="OLS", other="Bootstrap", info="k", log=False)
