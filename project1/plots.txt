@@ -1,4 +1,5 @@
-alida ~/Documents/uio/Master/FYS-STK4155/project1 master(*?) # $ source run2.sh
+created folder: output/figures
+created folder: output/outfiles
 Generating data for the Franke function with n = 100 datapoints
 
 #######################################################################
@@ -8,6 +9,7 @@ Generating data for the Franke function with n = 100 datapoints
          Without Resampling
 ###############################################
 Plotting the MSE of the training and test results
+Uten resampling: fig. 2.11 Hastie
     Figure saved in: output/figures/OLS_MSE_test_train_n100_d10.pdf
 
 Optimal model is
@@ -24,19 +26,18 @@ Optimal model is
   8.64  8.99  8.33  7.96]
 
 Plotting the OLS regression parameters with confidence intervals
-    Figure saved in: output/figures/OLS_parameters_pdeg6_n100_d10.pdf
+    Figure saved in: output/figures/OLS_parameters_pdeg6_n100_d10test.pdf
 
 ###############################################
              With Bootstrap
 ###############################################
 Plotting the MSE of the training and test results
+Uten resampling: fig. 2.11 Hastie
     Figure saved in: output/figures/OLS_MSE_test_train_n100_d10_bs100.pdf
 
 Plotting the Bias, Variance and MSE for OLS, (n100_d10_bs100)
+Bias-variance som funksjon av grader for OLS
     Figure saved in: output/figures/OLS_bias_variance_degrees_n100_d10_bs100.pdf
-
-Plotting all metrics for OLS (n100_d10_bs100)
-    Figure saved in: output/figures/OLS_metrics_test_train_degrees_n100_d10_bs100.png
 
 Optimal model is
     Deg  : 3
@@ -54,10 +55,8 @@ Plotting the OLS regression parameters with confidence intervals
               With kFold
 ###############################################
 Plotting the MSE of the training and test results
+Uten resampling: fig. 2.11 Hastie
     Figure saved in: output/figures/OLS_MSE_test_train_n100_d10_kFold5.pdf
-
-Plotting all metrics for OLS (n100_d10_bs100)
-    Figure saved in: output/figures/OLS_metrics_test_train_degrees_n100_d10_bs100.png
 
 Optimal model is
     Deg  : 5
@@ -78,9 +77,11 @@ Plotting the OLS regression parameters with confidence intervals
               Comparisons
 ###############################################
 Comparing R-score for k-fold and bootstrap methods
+R2 verdier for uten-resample, med bootstrap og med k-fold for å se om de funker
     Figure saved in: output/figures/OLS_compare_R2_n100_d10_bs100_k5.pdf
 
 Comparing MSE for k-fold and bootstrap methods
+Sammenligning av MSE for k-Fold og Bootstrap
     Figure saved in: output/figures/OLS_compare_MSE_n100_d10_bs100_k5.pdf
 
 ###############################################
@@ -88,16 +89,9 @@ Comparing MSE for k-fold and bootstrap methods
               (Bootstrap)
 ###############################################
 Plotting the Bias, Variance and MSE for OLS, (min100_max500_step50_d6_bs100)
+Bias-variance som funksjon av grader for OLS
     Figure saved in: output/figures/OLS_bias_variance_data_min100_max500_step50_d6_bs100.pdf
 
 Plotting the Bias, Variance and MSE for OLS,
+Bias-variance som funksjon av data for OLS
     Figure saved in: output/figures/OLS_bias_variance_data_deg_min100_max500_step50_bs100.pdf
-
-#######################################################################
-                                Ridge
-#######################################################################
-###############################################
-             With Bootstrap
-###############################################
-Plotting the Bias, Variance and MSE for RIDGE, (n100_fdeg5_bs100)
-    Figure saved in: output/figures/RIDGE_bias_variance_lambda_n100_fdeg5_bs100.pdf

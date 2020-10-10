@@ -30,7 +30,7 @@ def GenDat2(ndata):
 
 
 ###############################################################################
-np.random.seed(42)
+#np.random.seed(42)
 x, y, z = func.GenerateData(100, 0.01)
 #x, y, z = GenDat2()
 #X = func.PolyDesignMatrix(x,y,2)
@@ -39,10 +39,9 @@ x, y, z = func.GenerateData(100, 0.01)
 #beta, conf_beta = get_beta(x, y, z, 2, reg_type="OLS", lamb=0)
 #quit()
 
-
 d_max = 10
 n_bootstraps = 100
-k = 10   # Works for 5, 10
+k = 5   # Works for 5, 10
 degrees = np.arange(1, d_max+1)
 
 print("#######################################################################")
@@ -95,7 +94,7 @@ print("###############################################")
 info_bs = info1+"_bs{}".format(n_bootstraps)
 plot.OLS_test_train(degrees, m_test_bs[1], m_train_bs[1], "MSE", info_bs, log=True)
 plot.bias_variance(degrees, m_test_bs[1], m_test_bs[2], m_test_bs[3], "degrees", "OLS", info_bs, log=True)
-plot.all_metrics_test_train(degrees, m_test_bs, m_train_bs, "degrees", "OLS", "Bootstrap", info_bs)
+#plot.all_metrics_test_train(degrees, m_test_bs, m_train_bs, "degrees", "OLS", "Bootstrap", info_bs)
 beta_bs, best_degree_bs, m_test_bs_best = func.optimal_model_degree(x, y, z, m_test_bs, m_train_bs, quiet = False, info=info_bs)
 
 print("###############################################")
@@ -105,7 +104,7 @@ print("###############################################")
 ## Plotting with kFold Resampling
 info_k = info1+"_kFold{:.0f}".format(k)
 plot.OLS_test_train(degrees, m_test_k[1], m_train_k[1], "MSE", info_k, log=True)
-plot.all_metrics_test_train(degrees, m_test_k, m_train_k, "degrees", "OLS", "Bootstrap", info_bs)
+#plot.all_metrics_test_train(degrees, m_test_k, m_train_k, "degrees", "OLS", "Bootstrap", info_bs)
 beta_k, best_degree_k, m_test_k_best = func.optimal_model_degree(x, y, z, m_test_k, m_train_k, quiet = False, info=info_k)
 
 print("###############################################")
@@ -164,10 +163,7 @@ plot.bias_variance(ndata, m_test_ndata1[1], m_test_ndata1[2], m_test_ndata1[3], 
 
 info_ndata2 = "min{:.0f}_max{:.0f}_step{:.0f}_bs{:.0f}".format(min, max, steps, n_bootstraps)
 plot.bias_variance_m(ndata, m_test_ndata1, m_test_ndata2, m_test_ndata3, d_1, d_2, d_3, x_type="data", RegType ="OLS", info=info_ndata2, log=True)
-
-
-
-
+"""
 print("#######################################################################")
 print("                                Ridge                                  ")
 print("#######################################################################")
@@ -204,14 +200,14 @@ for i in range(nlamb):
     m_test_k[:,i] = func.metrics(z_test_4, z_pred_4, test=True)
     m_train_k[:,i] = func.metrics(z_train_4, z_fit_4, test=True)
 
-quit()
+
 print("###############################################")
 print("         Without Resampling                    ")
 print("###############################################")
 # Find the model with lowest MSE (without resampling)
 
 info_ridge = "n{:.0f}_fdeg{:.0f}".format(len(z), d_ridge)
-beta_r1, best_lamb_r1, m_test_best_R = func.optimal_model_lamb(x, y, z, m_test, m_train, d_ridge, lambdas, rType = "OLS", quiet = False, info=info_ridge)
+beta_r1, best_lamb_r1, m_test_best_r = func.optimal_model_lamb(x, y, z, m_test, m_train, d_ridge, lambdas, rType = "RIDGE", quiet = False, info=info_ridge)
 
 
 print("###############################################")
@@ -220,3 +216,58 @@ print("###############################################")
 
 info_r_bs = "n{:.0f}_fdeg{:.0f}_bs{:.0f}".format(len(z), d_ridge, n_bootstraps)
 plot.bias_variance(lambdas, m_test_bs[1], m_test_bs[2], m_test_bs[3], x_type="lambda", RegType ="RIDGE", info=info_r_bs, log=True)
+beta_rbs, best_lamb_rbs, m_test_best_rbs = func.optimal_model_lamb(x, y, z, m_test_bs, m_train_bs, d_ridge, lambdas, rType = "RIDGE", quiet = False, info=info_r_bs)
+
+
+
+print("#######################################################################")
+print("                                Ridge                                  ")
+print("#######################################################################")
+
+
+print("###############################################")
+print("            Find best lambda and d             ")
+print("###############################################")
+
+d_max = 10
+n_bootstraps = 100
+k = 10   # Works for 5, 10
+degrees = np.arange(1, d_max+1)
+
+nlamb = 10
+lambdas = np.logspace(-3, 0, nlamb)
+
+for i in range(d_max):
+    # Initialise arrays
+    d_ridge = degrees[i]
+    m_test = np.zeros((4, nlamb))          # array to store [R2, mse, var, bias]
+    m_train = np.zeros((4, nlamb))         # array to store [R2, mse, var, bias]
+
+    m_test_bs  = np.zeros((4, nlamb))      # array to store [R2, mse, var, bias]
+    m_train_bs = np.zeros((4, nlamb))      # array to store [R2, mse, var, bias]
+
+    m_test_k  = np.zeros((4, nlamb))       # array to store [R2, mse, var, bias]
+    m_train_k = np.zeros((4, nlamb))       # array to store [R2, mse, var, bias]
+
+    # Loop over lambdas
+    for i in range(nlamb):
+        # Without resampling
+        X = func.PolyDesignMatrix(x, y, d_ridge)
+        z_train_1, z_test_1, z_fit_1, z_pred_1 = func.regression(z, X, "RIDGE", lamb=lambdas[i])
+        m_test[:,i] = func.metrics(z_test_1, z_pred_1, test=True)
+        m_train[:,i] = func.metrics(z_train_1, z_fit_1, test=True)
+
+        # With bootstrapping
+        z_train_2, z_test_2, z_fit_2, z_pred_2 = func.Bootstrap(x, y, z, d_ridge, n_bootstraps, RegType="RIDGE", lamb=lambdas[i])
+        m_test_bs[:,i] = func.metrics(z_test_2, z_pred_2, test=True)
+        m_train_bs[:,i] = func.metrics(z_train_2, z_fit_2, test=True)
+
+        # With kFold
+        z_train_4, z_test_4, z_fit_4, z_pred_4 = func.kFold(x, y, z, d_ridge, k, shuffle=True, RegType="RIDGE", lamb=lambdas[i])
+        m_test_k[:,i] = func.metrics(z_test_4, z_pred_4, test=True)
+        m_train_k[:,i] = func.metrics(z_train_4, z_fit_4, test=True)
+
+    beta_r1, best_lamb_r1, m_test_best_r = func.optimal_model_lamb(x, y, z, m_test, m_train, d_ridge, lambdas, rType = "RIDGE", quiet = True)
+    beta_r1, best_lamb_r1, m_test_best_r = func.optimal_model_lamb(x, y, z, m_test, m_train, d_ridge, lambdas, rType = "RIDGE", quiet = True)
+    beta_r1, best_lamb_r1, m_test_best_r = func.optimal_model_lamb(x, y, z, m_test, m_train, d_ridge, lambdas, rType = "RIDGE", quiet = True)
+"""

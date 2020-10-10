@@ -97,7 +97,7 @@ def PolyDesignMatrix(x, y, d):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
 
-def scale_X(train, test, scaler="sklearn"):
+def scale_X(train, test, scaler="manual"):
     """
     Scales the training and test data using sklearn's StandardScaler.
     --------------------------------
@@ -112,12 +112,7 @@ def scale_X(train, test, scaler="sklearn"):
     --------------------------------
     TO DO: FINISHED
     """
-    #if scaler == "manual":
-    #    train_scl =  np.ones(train.shape)
-    #    test_scl = np.ones(test.shape)
-    #    train_scl[:,1:] = np.divide((train[:,1:] - np.mean(train[:,1:], axis = 1, keepdims = True)),(np.var(train[:,1:], axis=1, keepdims=True)**0.5))
-    #    test_scl[:,1:]= np.divide((test[:,1:] - np.mean(test[:,1:], axis = 1, keepdims = True)),(np.var(test[:,1:], axis=1, keepdims=True)**0.5))
-
+    """
     if scaler == "sklearn":
         scaler = StandardScaler()
         scaler.fit(train[:,1:])
@@ -125,14 +120,14 @@ def scale_X(train, test, scaler="sklearn"):
         test_scl = np.ones(test.shape)
         train_scl[:,1:] = scaler.transform(train[:,1:])
         test_scl[:,1:] = scaler.transform(test[:,1:])
+    """
 
-    if scaler == "manual_2":
-        train_scl =  np.ones(train.shape)
-        test_scl = np.ones(test.shape)
-        mean_train = np.mean(train[:,1:])
-        std_train = np.std(train[:,1:])
-        train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
-        test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
+    train_scl =  np.ones(train.shape)
+    test_scl = np.ones(test.shape)
+    mean_train = np.mean(train[:,1:])
+    std_train = np.std(train[:,1:])
+    train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
+    test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
 
     """
     train_scl =  np.ones(train.shape)
