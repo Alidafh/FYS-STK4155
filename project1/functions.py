@@ -32,7 +32,7 @@ def FrankeFunction(x,y):
     z = term1 + term2 + term3 + term4
     return z
 
-def GenerateData(nData, noise_str=0, seed="", pr=True):
+def GenerateData(nData, noise_str=0, pr=True):
     """
     Generates three numpy arrays x, y, z of size (nData, 1).
     The x and y arrays are randomly distributed numbers between 0 and 1.
@@ -43,7 +43,6 @@ def GenerateData(nData, noise_str=0, seed="", pr=True):
     Input
         nData: number of datapoints
         noise_str: the strength of the noise, default is zero
-        seed: if set to "debug" random numbers are the same for each turn
     --------------------------------
     Returns
         x: numpy array of shape (n,1) with random numbers between 0 and 1
@@ -98,13 +97,14 @@ def PolyDesignMatrix(x, y, d):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
 
-def scale_X(train, test):
+def scale_X(train, test, scaler="sklearn"):
     """
     Scales the training and test data using sklearn's StandardScaler.
     --------------------------------
     Input
         train: The training set
         test:  The test set
+        scaler: Choose what scaler you want to use
     --------------------------------
     Returns
         train_scl: The scaled training set
@@ -112,13 +112,27 @@ def scale_X(train, test):
     --------------------------------
     TO DO: FINISHED
     """
+    #if scaler == "manual":
+    #    train_scl =  np.ones(train.shape)
+    #    test_scl = np.ones(test.shape)
+    #    train_scl[:,1:] = np.divide((train[:,1:] - np.mean(train[:,1:], axis = 1, keepdims = True)),(np.var(train[:,1:], axis=1, keepdims=True)**0.5))
+    #    test_scl[:,1:]= np.divide((test[:,1:] - np.mean(test[:,1:], axis = 1, keepdims = True)),(np.var(test[:,1:], axis=1, keepdims=True)**0.5))
 
-    train_scl =  np.ones(train.shape)
-    test_scl = np.ones(test.shape)
-    mean_train = np.mean(train[:,1:])
-    std_train = np.std(train[:,1:])
-    train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
-    test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
+    if scaler == "sklearn":
+        scaler = StandardScaler()
+        scaler.fit(train[:,1:])
+        train_scl =  np.ones(train.shape)
+        test_scl = np.ones(test.shape)
+        train_scl[:,1:] = scaler.transform(train[:,1:])
+        test_scl[:,1:] = scaler.transform(test[:,1:])
+
+    if scaler == "manual_2":
+        train_scl =  np.ones(train.shape)
+        test_scl = np.ones(test.shape)
+        mean_train = np.mean(train[:,1:])
+        std_train = np.std(train[:,1:])
+        train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
+        test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
 
     """
     train_scl =  np.ones(train.shape)
@@ -127,14 +141,7 @@ def scale_X(train, test):
     #mean_train = np.mean(train)
     train_scl[:,1:] = (train[:,1:] - mean_train)
     test_scl[:,1:]= (test[:,1:] - mean_train)
-    """
-    """
-    scaler = StandardScaler()
-    scaler.fit(train[:,1:])
-    train_scl =  np.ones(train.shape)
-    test_scl = np.ones(test.shape)
-    train_scl[:,1:] = scaler.transform(train[:,1:])
-    test_scl[:,1:] = scaler.transform(test[:,1:])
+
     """
     return train_scl, test_scl
 
@@ -309,6 +316,18 @@ def Ridge(z, X, lamb, var=False):
 
     return beta
 
+def lasso(dm, z, lam):
+    reg = Lasso(alpha=lam, fit_intercept = False, max_iter=100000)
+    reg.fit(dm,z)
+    # print(reg.intercept_)
+    return np.transpose(np.array([reg.coef_]))
+
+def OLSskl(dm, z, dummy):
+    reg = LinearRegression()
+    reg.fit(dm, z)
+    # print(reg.intercept_)
+    return np.transpose(np.array([reg.coef_]))
+
 def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
     Bootstrap loop v1 with design matrix outide loop
@@ -416,6 +435,102 @@ def kFold(x, y, z, d, k=5, shuffle = False, RegType="OLS", lamb=0):
 
     return z_train_k, z_test_k, z_fit_k, z_pred_k
 
+def regression(z, X, rType="OLS", lamb=0):
+    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+    X_train_scl, X_test_scl = scale_X(X_train, X_test)
+
+    if rType =="OLS": beta = OLS(z_train, X_train_scl)
+    if rType =="RIDGE": beta = Ridge(z_train, X_train_scl, lamb)
+
+    z_fit = X_train_scl @ beta
+    z_pred = X_test_scl @ beta
+
+    return z_train, z_test, z_fit, z_pred
+
+def get_beta(x, y, z, d, rType="OLS", lamb=0):
+
+    X = PolyDesignMatrix(x, y, d)
+    X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
+    X_train_scl, X_test_scl = scale_X(X_train, X_test)
+
+    if rType =="OLS": beta, var_beta = OLS(z_train, X_train_scl, var=True)
+    if rType =="RIDGE": beta, var_beta = Ridge(z_train, X_train_scl, lamb, var=True)
+
+    conf_beta = 1.96*np.sqrt(var_beta)  # 95% confidence
+
+    z_fit = X_train_scl @ beta
+    z_pred = X_test_scl @ beta
+
+    return beta, conf_beta
+
+def optimal_model_degree(x, y, z, metrics_test, metrics_train, rType = "OLS", lamb = 0, quiet = True, info=""):
+
+    mse_min = metrics_test[1].min()     # The lowest MSE
+    at_ = metrics_test[1].argmin()      # The index of mse_min
+    best_degree = at_+1                 # The coresponding polynomial degree
+
+    # Find the regression parameters for best_degree
+    beta, conf_beta = get_beta(x, y, z, best_degree, rType, lamb)
+
+
+    # The corresponding statistics:
+    m_test_best = metrics_test[:,at_]
+    m_train_best = metrics_train[:,at_]
+
+    if quiet==False:
+        print("Optimal model is")
+        print ("    Deg  : {}".format(best_degree))
+        print ("    RS2  : {:.3f} (train: {:.3f})".format(m_test_best[0], m_train_best[0]))
+        print ("    MSE  : {:.3f} (train: {:.3f})".format(m_test_best[1], m_train_best[1]))
+        print ("    Var  : {:.3f} (train: {:.3f})".format(m_test_best[2], m_train_best[2]))
+        print ("    Bias : {:.3f} (train: {:.3f})".format(m_test_best[3], m_train_best[3]))
+        print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
+        print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
+        print("")
+        plot.beta_conf(beta, conf_beta, best_degree, mse_min, m_test_best[0], rType, lamb, info)
+
+    return beta, best_degree, m_test_best
+
+def optimal_model_lamb(x, y, z, metrics_test, metrics_train, d, lambdas, rType = "RIDGE", quiet = True, info=""):
+
+    mse_min = metrics_test[1].min()     # The lowest MSE
+    at_ = metrics_test[1].argmin()      # The index of mse_min
+    best_lamb = lambdas[at_]            # The corresponding lambda
+
+    r2_best = metrics_test[0][at_]
+
+    # Find the regression parameters for best_lamb
+    beta, conf_beta = get_beta(x, y, z, d, rType, best_lamb)
+
+    # The corresponding statistics:
+    m_test_best = metrics_test[:,at_]
+    m_train_best = metrics_train[:,at_]
+
+    if quiet==False:
+        print("Optimal model is")
+        print ("    Deg  : {}".format(d))
+        print ("    Lamb : {}".format(best_lamb))
+        print ("    RS2  : {:.3f} (train: {:.3f})".format(m_test_best[0], m_train_best[0]))
+        print ("    MSE  : {:.3f} (train: {:.3f})".format(m_test_best[1], m_train_best[1]))
+        print ("    Var  : {:.3f} (train: {:.3f})".format(m_test_best[2], m_train_best[2]))
+        print ("    Bias : {:.3f} (train: {:.3f})".format(m_test_best[3], m_train_best[3]))
+        print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
+        print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
+        print("")
+        plot.beta_conf(beta, conf_beta, d, mse_min, m_test_best[0], rType="RIDGE", lamb = best_lamb, info = info)
+
+    return beta, best_lamb, m_test_best
+
+def map_to_data(mapdat):
+    rows, columns = np.shape(mapdat)
+    factor = max(rows, columns)
+    xdim = np.linspace(0,columns,columns)/factor
+    ydim = np.linspace(0,rows,rows)/factor
+    x, y = np.meshgrid(xdim,ydim)
+    x = np.array([x.ravel()]).T
+    y = np.array([y.ravel()]).T
+    z = np.array([mapdat.ravel()]).T
+    return  [x,y], z, factor
 
 if __name__ == '__main__':
     x, y, z = GenerateData(100, 0.01)
