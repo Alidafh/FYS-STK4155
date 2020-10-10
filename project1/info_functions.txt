@@ -1,0 +1,223 @@
+Help on module functions:
+
+NAME
+    functions
+
+FUNCTIONS
+    Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0)
+        Bootstrap loop v1 with design matrix outide loop
+        --------------------------------
+        Input
+            x,y,z:        Variables for data from Generate Data
+            d:            Polynomial degree for the feature matrix
+            n_bootstraps: The number of bootstraps
+            RegType:      "OLS" for Ordinary least squares(default)
+                          "RIDGE" for Ridge
+                          "LASSO" for Lasso
+            lamb:         the lambda value if RegType="RIDGE" or "LASSO"
+        --------------------------------
+        Returns
+            z_train_cp: (train_size, n_bootstraps)
+            z_test_cp:  (test_size, n_bootstraps)
+            z_fit:      (train_size, n_bootstraps)
+            z_pred      (test_size, n_bootstraps)
+        --------------------------------
+        TODO: Find out why it doesnt work for degrees 7+
+    
+    FrankeFunction(x, y)
+        Gives the values f(x,y) of the franke function
+        --------------------------------
+        Input
+            x: numpy array or scalar
+            y: numpy array or scalar
+        --------------------------------
+        Returns:
+            z: numpy array or scalar representing the function value
+        --------------------------------
+        TO DO: FINISHED
+    
+    GenerateData(nData, noise_str=0, pr=True)
+        Generates three numpy arrays x, y, z of size (nData, 1).
+        The x and y arrays are randomly distributed numbers between 0 and 1.
+        The z array is created using the Franke Function with x and y, and if a
+        noise_str is specified, random normally distributed noise with strength
+        noise_str is added to the z-array.
+        --------------------------------
+        Input
+            nData: number of datapoints
+            noise_str: the strength of the noise, default is zero
+        --------------------------------
+        Returns
+            x: numpy array of shape (n,1) with random numbers between 0 and 1
+            y: numpy arary of shape (n,1) with random numbers between 0 and 1
+            z: numpy array of shape (n,1) with Franke function values f(x,y)
+        --------------------------------
+        TO DO: FINISHED
+    
+    OLS(z, X, var=False)
+        Preforming ordinary least squares fit to find the regression parameters.
+        If prompted it also calculates the variance of the fitted parameters.
+        An error message will be printed if the design matrix has high
+        dimentionality, p > n, but the parameters are still calculated.
+        As this would give a negative variance, a temporary workaround is to take
+        the absolute value of sigma^2.
+        --------------------------------
+        Input
+            z: response variable
+            X: Design matrix
+            var: To calculate the variance set this to True (default is False)
+        --------------------------------
+        Returns
+        - var=False
+            beta: The estimated OLS regression parameters, shape (p,1)
+            (var_beta: The variance of the parameters (p,1), returned if var=True)
+    
+    OLS_SVD(z, X, var=False)
+        Preforming ordinary least squares fit to find the regression parameters
+        using a signgular value decomposition. Also, if prompted it calculates the
+        variance of the fitted parameters
+        --------------------------------
+        Input
+            z: response variable of shape (n,1) or (n,)
+            X: Design matrix of shape (n,p)
+            var: Bool. Set this to True to calculate the variance (default is False)
+        --------------------------------
+        Returns
+            beta: The estimated OLS regression parameters shape (p,1)
+            (var_beta: The variance of the parameters are returned if var=True)
+        --------------------------------
+        TO DO: FINISHED
+    
+    PolyDesignMatrix(x, y, d)
+        Generates a design matrix of size (n,p) with monomials up to degree d as
+        the columns. As an example if d=2 the columns of the design matrixs will be
+        [1  x  y  x**2  y**2  xy].
+        --------------------------------
+        Input
+            x: numpy array with shape (n,) or (n,1)
+            y: numpy array with shape (n,) or (n,1)
+            d: the degree of the polynomial (scalar)
+        --------------------------------
+        Returns
+            X: Design matrix of shape (n, p)
+        --------------------------------
+        TO DO: FINISHED
+    
+    Ridge(z, X, lamb, var=False)
+        Preforming Pridge regression to find the regression parameters. If prompted
+        it calculates the variance of the fitted parameters.
+        --------------------------------
+        Input
+            z: response variable
+            X: design matrix
+            lamb: penalty parameter
+            var: to calculate the variance set this to True (default is False)
+        --------------------------------
+        Returns
+            beta: The estimated Ridge regression parameters with shape (p,1)
+            (var_beta: The variance of the parameters (p,1), returned if var=True)
+        --------------------------------
+        TODO: check if it should be 1/(n-p) instead of 1/(n-p-1)
+    
+    get_beta(x, y, z, d, rType='OLS', lamb=0)
+    
+    kFold(x, y, z, d, k=5, shuffle=False, RegType='OLS', lamb=0)
+        Cross-Validation
+        --------------------------------
+        Input
+            x,y,z:        Variables for data from Generate Data
+            d:            Polynomial degree for the feature matrix
+            k:            Number of folds
+            shuffle:      Bool, shuffle the design matrix(default:False)
+            RegType:      "OLS" for Ordinary least squares(default)
+                          "RIDGE" for Ridge
+                          "LASSO" for Lasso
+            lamb:         the lambda value if RegType="RIDGE"
+        --------------------------------
+        Returns
+            z_train_cp: (train_size, k)
+            z_test_cp:  (test_size, k)
+            z_fit:      (train_size, k)
+            z_pred      (test_size, k)
+        --------------------------------
+    
+    lasso(z, dm, lam, var=False)
+        Preforming Lasso regression using sklearn
+        --------------------------------
+        Input
+            z: response variable
+            dm: Design matrix
+            lam: The regularization parameter
+            var: This is added to get the same functionality as for Ridge and OLS
+                 but we have not had time to fix this.
+        --------------------------------
+        Returns
+        - var=False
+            beta: The estimated OLS regression parameters, shape (p,1)
+        - var=True:
+            beta: The estimated OLS regression parameters, shape (p,1)
+            var_beta: The variance of the parameters (p,1)
+    
+    map_to_data(PATH)
+        Creates arrays of data from an .tif file
+        --------------------------------
+        Input
+            PATH: The path to the file
+        --------------------------------
+        Returns
+            x, y, z
+        --------------------------------
+    
+    metrics(z_true, z_pred, test=False)
+        Calculate the R^2 score, mean square error, variance and bias.
+        If the predicted values has shape (n,1), it tests the calculated MSE and R2
+        values against results from Scikitlearn. If the predicted values have shape
+        (n,m) it checks that the calculated bias+variance <= MSE. Nothing is printed
+        if you pass the test.
+        --------------------------------
+        Input
+            z_true: The true response value
+            z_approx: The approximation found using regression
+            test: If you want to test the calculations (default is False)
+        --------------------------------
+        Returns
+            R2, MSE, var, bias
+        --------------------------------
+        TODO: When using this with bootstrap, the calculated R2 score is waay off
+              and when using it with kFold the bias and the MSE are identical
+    
+    optimal(x, metrics_test)
+    
+    optimal_model_degree(x, y, z, metrics_test, metrics_train, rType='OLS', lamb=0, quiet=True, info='', f='')
+    
+    optimal_model_lamb(x, y, z, metrics_test, metrics_train, d, lambdas, rType='RIDGE', quiet=True, info='', f='')
+    
+    print_plot_modelparams(x, y, z, m_test, d, lamb, rType='RIDGE', quiet=True, info='', f='')
+    
+    regression(z, X, rType='OLS', lamb=0)
+    
+    resize_terrain(data, x1, x2, y1, y2)
+        Resize the provided terrain data to a smaller sample for testing
+        and or computational efficiency if needed.
+        :return: Subset of the terrain data.
+        Credit: Geir
+    
+    scale_X(train, test, scaler='manual')
+        Scales the training and test data either by subtracting the mean and
+        dividing by the std manually or using sklearn's StandardScaler.
+        --------------------------------
+        Input
+            train: The training set
+            test:  The test set
+            scaler: Choose what scaler you want to use "manual" or "sklearn"
+        --------------------------------
+        Returns
+            train_scl: The scaled training set
+            test_scl:  The scaled test set
+        --------------------------------
+        TO DO: FINISHED
+
+FILE
+    /home/alida/Documents/uio/Master/FYS-STK4155/project1/functions.py
+
+
