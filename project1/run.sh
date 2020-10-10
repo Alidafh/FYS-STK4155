@@ -1,41 +1,52 @@
 #!/bin/bash
 
-if [ ! -d output/figures ]; then
-  mkdir -p output/figures;
-  echo "created folder: output/figures"
+if [ ! -d output/figures/franke ]; then
+  mkdir -p output/figures/franke;
+  echo "created folder: output/figures/franke"
 fi
 
-if [ ! -d output/outfiles ]; then
-  mkdir -p output/outfiles;
-  echo "created folder: output/outfiles"
+if [ ! -d output/figures/data ]; then
+  mkdir -p output/figures/data;
+  echo "created folder: output/figures/data"
 fi
 
-python main.py
+echo "Do you want to run on the Franke Function [f] or real data [d]?"
+read type
 
-#echo -n "Do you want to run a) [y/n]?"
-#read type
+if [ "$type" == "f" ]; then
+  echo "Do you want OLS [o], RIDGE [r], LASSO [l] or all [a]?"
+  read rtype
+  if [ "$rtype" == "o" ]; then
+    python main_ols.py franke 
+  fi
+  if [ "$rtype" == "r" ]; then
+    python main_ridge.py franke
+  fi
+  if [ "$rtype" == "l" ]; then
+    python main_lasso.py franke
+  fi
+  if [ "$rtype" == "a" ]; then
+    python main_ols.py franke
+    python main_ridge.py franke
+    python main_lasso.py franke
+  fi
+fi
 
-#if [ "$type" == "y" ]; then
-#  echo "Running part a)"
-#  echo "--------------------------------------------------"
-#  python main.py 0
-#fi
-#
-#if [ "$type" == "n" ]; then
-#  echo "Skipping part a)"
-#  echo "--------------------------------------------------"
-#  python main.py 1
-#fi
-
-
-
-#FILE1=datafiles/SRTM_data_Norway_1.tif
-#FILE2=datafiles/SRTM_data_Norway_2.tif
-
-#if [ -f "$FILE1" -a -f "$FILE2" ]; then
-#  echo "  "
-#  python main.py
-#else
-#  echo "Datafiles: $FILE1 and $FILE2 does not exist"
-#  echi "still want to"
-#fi
+if [ "$type" == "d" ]; then
+  echo "Do you want OLS [o], RIDGE [r], LASSO [l] or all [a]?"
+  read rtype
+  if [ "$rtype" == "o" ]; then
+    python main_ols.py data
+  fi
+  if [ "$rtype" == "r" ]; then
+    python main_ridge.py data
+  fi
+  if [ "$rtype" == "l" ]; then
+    python main_lasso.py data
+  fi
+  if [ "$rtype" == "a" ]; then
+    python main_ols.py data
+    python main_ridge.py data
+    python main_lasso.py data
+  fi
+fi
