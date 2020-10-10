@@ -1,3 +1,4 @@
+alida ~/Documents/uio/Master/FYS-STK4155/project1 master(*?) # $ source run2.sh
 Generating data for the Franke function with n = 100 datapoints
 
 #######################################################################
@@ -86,9 +87,17 @@ Comparing MSE for k-fold and bootstrap methods
      Bias-variance as a function of ndata
               (Bootstrap)
 ###############################################
-Plotting the Bias, Variance and MSE for OLS, (min100_max500_step50_d5_bs100)
-    Figure saved in: output/figures/OLS_bias_variance_data_min100_max500_step50_d5_bs100.pdf
+Plotting the Bias, Variance and MSE for OLS, (min100_max500_step50_d6_bs100)
+    Figure saved in: output/figures/OLS_bias_variance_data_min100_max500_step50_d6_bs100.pdf
+
+Plotting the Bias, Variance and MSE for OLS,
+    Figure saved in: output/figures/OLS_bias_variance_data_deg_min100_max500_step50_bs100.pdf
 
 #######################################################################
                                 Ridge
 #######################################################################
+###############################################
+             With Bootstrap
+###############################################
+Plotting the Bias, Variance and MSE for RIDGE, (n100_fdeg5_bs100)
+    Figure saved in: output/figures/RIDGE_bias_variance_lambda_n100_fdeg5_bs100.pdf
