@@ -11,30 +11,18 @@ import tools as tools
 import sys
 from array import array
 
+##############################################################################
+FOLDER = sys.argv[1]
 ###############################################################################
+if FOLDER == "franke": x, y, z = func.GenerateData(100, 0.01)
+if FOLDER == "data": x, y, z = func.map_to_data("datafiles/SRTM_data_Norway_1.tif")
 
-def GenDat2(ndata):
-
-    x_ = np.arange(0, 1, 0.1)
-    y_ = np.arange(0, 1, 0.1)
-
-    x, y = np.meshgrid(x_,y_)
-
-    noise = 0.01
-    z = func.FrankeFunction(x,y) + np.random.normal(0, noise, len(x))
-
-    x = x.ravel().reshape(-1,1)
-    y = y.ravel().reshape(-1,1)
-    z = z.ravel().reshape(-1,1)
-    return x,y,z
-
-
-###############################################################################
-x, y, z = func.GenerateData(100, 0.01)
+#plot.plot_franke("Illustration of the Franke Function", "franke_func_illustration", 0.1)
 ################################################################################
+
 d_max = 10
 n_bootstraps = 100
-k = 5   # Works for 5, 10
+k = 5
 degrees = np.arange(1, d_max+1)
 
 print("#######################################################################")
@@ -74,10 +62,10 @@ print("         Without Resampling                    ")
 print("###############################################")
 # Recreate figure 2.11 in Hastie (without resampling)
 info1 = "n{:.0f}_d{:.0f}".format(len(z), d_max)
-plot.OLS_test_train(degrees, m_test[1], m_train[1], err_type ="MSE", info=info1, log=True)
+plot.OLS_test_train(degrees, m_test[1], m_train[1], err_type ="MSE", info=info1, log=True, FOLDER=FOLDER)
 
 # Find the model with lowest MSE (without resampling)
-beta_1, best_degree_1, m_test_best = func.optimal_model_degree(x, y, z, m_test, m_train, rType = "OLS", lamb = 0, quiet = False, info=info1+"test")
+beta_1, best_degree_1, m_test_best = func.optimal_model_degree(x, y, z, m_test, m_train, rType = "OLS", lamb = 0, quiet = False, info=info1, f = FOLDER)
 
 print("###############################################")
 print("             With Bootstrap                    ")
@@ -85,10 +73,10 @@ print("###############################################")
 
 ## Plotting with Bootstrap resampling
 info_bs = info1+"_bs{}".format(n_bootstraps)
-plot.OLS_test_train(degrees, m_test_bs[1], m_train_bs[1], "MSE", info_bs, log=True)
-plot.bias_variance(degrees, m_test_bs[1], m_test_bs[2], m_test_bs[3], "degrees", "OLS", info_bs, log=True)
+plot.OLS_test_train(degrees, m_test_bs[1], m_train_bs[1], "MSE", info_bs, log=True, FOLDER=FOLDER)
+plot.bias_variance(degrees, m_test_bs[1], m_test_bs[2], m_test_bs[3], "degrees", "OLS", info_bs, log=True, FOLDER=FOLDER)
 #plot.all_metrics_test_train(degrees, m_test_bs, m_train_bs, "degrees", "OLS", "Bootstrap", info_bs)
-beta_bs, best_degree_bs, m_test_bs_best = func.optimal_model_degree(x, y, z, m_test_bs, m_train_bs, quiet = False, info=info_bs)
+beta_bs, best_degree_bs, m_test_bs_best = func.optimal_model_degree(x, y, z, m_test_bs, m_train_bs, quiet = False, info=info_bs, f=FOLDER)
 
 print("###############################################")
 print("              With kFold                       ")
@@ -96,17 +84,17 @@ print("###############################################")
 
 ## Plotting with kFold Resampling
 info_k = info1+"_kFold{:.0f}".format(k)
-plot.OLS_test_train(degrees, m_test_k[1], m_train_k[1], "MSE", info_k, log=True)
+plot.OLS_test_train(degrees, m_test_k[1], m_train_k[1], "MSE", info_k, log=True, FOLDER=FOLDER)
 #plot.all_metrics_test_train(degrees, m_test_k, m_train_k, "degrees", "OLS", "Bootstrap", info_bs)
-beta_k, best_degree_k, m_test_k_best = func.optimal_model_degree(x, y, z, m_test_k, m_train_k, quiet = False, info=info_k)
+beta_k, best_degree_k, m_test_k_best = func.optimal_model_degree(x, y, z, m_test_k, m_train_k, quiet = False, info=info_k, f = FOLDER)
 
 print("###############################################")
 print("              Comparisons                      ")
 print("###############################################")
 
 info_r2 = "n{:}_d{:}_bs{:}_k{:}".format(len(z), d_max, n_bootstraps, k)
-plot.compare_R2(degrees, [m_test[0], m_train[0]], [m_test_bs[0], m_train_bs[0]], [m_test_k[0],m_train_k[0]] , rType = "OLS", info=info_r2)
-plot.compare_MSE(degrees, m_test[1], m_test_bs[1], m_test_k[1], rType = "OLS", lamb=0, info=info_r2, log=True)
+plot.compare_R2(degrees, [m_test[0], m_train[0]], [m_test_bs[0], m_train_bs[0]], [m_test_k[0],m_train_k[0]] , rType = "OLS", info=info_r2, FOLDER=FOLDER)
+plot.compare_MSE(degrees, m_test[1], m_test_bs[1], m_test_k[1], rType = "OLS", lamb=0, info=info_r2, log=True,FOLDER=FOLDER)
 
 
 print("###############################################")
@@ -152,7 +140,7 @@ for i in range(n):
 
 
 info_ndata1 = "min{:.0f}_max{:.0f}_step{:.0f}_d{:.0f}_bs{:.0f}".format(min, max, steps, d_1, n_bootstraps)
-plot.bias_variance(ndata, m_test_ndata1[1], m_test_ndata1[2], m_test_ndata1[3], "data", "OLS", info_ndata1, log=True)
+plot.bias_variance(ndata, m_test_ndata1[1], m_test_ndata1[2], m_test_ndata1[3], "data", "OLS", info_ndata1, log=True, FOLDER=FOLDER)
 
 info_ndata2 = "min{:.0f}_max{:.0f}_step{:.0f}_bs{:.0f}".format(min, max, steps, n_bootstraps)
-plot.bias_variance_m(ndata, m_test_ndata1, m_test_ndata2, m_test_ndata3, d_1, d_2, d_3, x_type="data", RegType ="OLS", info=info_ndata2, log=True)
+plot.bias_variance_m(ndata, m_test_ndata1, m_test_ndata2, m_test_ndata3, d_1, d_2, d_3, x_type="data", RegType ="OLS", info=info_ndata2, log=True,FOLDER=FOLDER)
