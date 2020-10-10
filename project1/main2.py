@@ -125,7 +125,7 @@ x, y, z = func.GenerateData(100, 0.01)
 
 d_max = 10
 n_bootstraps = 100
-k = 5   # Works for 5, 10
+k = 10   # Works for 5, 10
 degrees = np.arange(1, d_max+1)
 
 print("#######################################################################")

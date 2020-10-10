@@ -13,7 +13,6 @@ from array import array
 
 x, y, z = func.GenerateData(100, 0.01, "debug")
 
-
 ###############################################################################
 # Simple OLS
 def part_a(x, y, z, degree=5, bplot=False):
@@ -36,18 +35,14 @@ def part_a(x, y, z, degree=5, bplot=False):
     z_train_fit = X_train_scl @ beta
     z_test_pred = X_test_scl @ beta
 
-    R2_train, MSE_train, var_train, bias_train = func.metrics(z_train, z_train_fit, test=True)
-    R2_test, MSE_test, var_test, bias_test = func.metrics(z_test, z_test_pred,test=True)
-    #print ("----------------------")
+    R2_train, MSE_train, tmp, tmp= func.metrics(z_train, z_train_fit, test=True)
+    R2_test, MSE_test, tmp, tmp = func.metrics(z_test, z_test_pred,test=True)
     print ("    Deg : {}".format(degree))
     print ("    RS2 : {:.3f} (train: {:.3f})".format(R2_test, R2_train))
     print ("    MSE : {:.3f} (train: {:.3f})".format(MSE_test, MSE_train))
-    print ("    Var : {:.3f} (train: {:.3f})".format(var_test, var_train))
-    print ("    Bias: {:.3f} (train: {:.3f})".format(bias_test, bias_train))
     print ("    Beta:", np.array_str(beta.ravel(), precision=2, suppress_small=True))
     print ("    Conf:", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
     print ("")
-    #print ("----------------------")
 
     if bplot==True: plot.OLS_beta_conf(beta, conf_beta, degree, len(z))
 
@@ -84,7 +79,8 @@ def part_b_noresample(x, y, z, d=5, bplot=False):
 
     info = "n{:.0f}_d{:.0f}_noresample".format(len(z), d)
 
-    if bplot==True: plot.all_metrics_test_train(degrees, metrics_test, metrics_train, x_type="degrees", reg_type="OLS", other="w/o resample", info=info)
+    if bplot==True:
+        plot.OLS_test_train(degrees, metrics_test[1], metrics_train[1], err_type ="MSE", info=info, log=True)
 
 part_b_noresample(x, y, z, d=10, bplot=True)
 
@@ -105,12 +101,25 @@ def part_b_bootstrap(x, y, z, d=5, n_bootstraps=100, RegType="OLS",lamb=0, bplot
 
     for i in range(d):
         z_train, z_test, z_fit, z_pred = func.Bootstrap(x, y, z, degrees[i], n_bootstraps,RegType, lamb)
+        metrics_test_tmp = np.zeros((z_pred.shape[1], 4))
+        metrics_train_tmp = np.zeros((z_fit.shape[1], 4))
+        """
+        for j in range(z_fit.shape[1]):
+            z_fit_bs_j = z_fit[:,j].reshape(-1,1)
+            z_pred_bs_j = z_pred[:,j].reshape(-1,1)
+            metrics_train_tmp[j,:] = func.metrics(z_train, z_fit_bs_j, test=True)
+            metrics_test_tmp[j,:] = func.metrics(z_test, z_pred_bs_j, test=True)
+
+        metrics_train[:,i] = np.mean(metrics_train_tmp, axis=0, keepdims=True)
+        metrics_test[:,i] = np.mean(metrics_test_tmp, axis=0, keepdims=True)
+        """
+
         metrics_test[:,i] = func.metrics(z_test, z_pred, test=True)
         metrics_train[:,i] = func.metrics(z_train, z_fit, test=True)
 
     # Plotting
     info = "n{:.0f}_d{:.0f}_bs{:.0f}".format(len(z), d, n_bootstraps)
-    if bplot==True: plot.all_metrics_test_train(degrees, metrics_test, metrics_train, x_type="degrees", reg_type = RegType, other="Bootstrap", info=info)
+    #if bplot==True: plot.all_metrics_test_train(degrees, metrics_test, metrics_train, x_type="degrees", reg_type = RegType, other="Bootstrap", info=info)
     if bplot==True: plot.bias_variance(degrees, metrics_test[1], metrics_test[2], metrics_test[3], "degrees",RegType, info, log=True)
 
     return degrees, metrics_test[1]
@@ -240,15 +249,6 @@ def part_c_kFold(x, y, z, d=5, k=5, shuffle = False, RegType="OLS", lamb=0, bplo
         plot.allfolds(degrees, rs2_kFold, k, len(z), rType=RegType, varN="R2", log=False, lamb=lamb)
         plot.allfolds(degrees, var_kFold, k, len(z), rType=RegType, varN="Variance",log=True, lamb=lamb)
         plot.allfolds(degrees, bias_kFold, k, len(z), rType=RegType, varN="Bias",log=True, lamb=lamb)
-
-        # np.mean(matrix, axis=1) takes the mean of the numbers in each row
-        #
-        #   M = [[m11  m12 ... m1k]
-        #        [m21  m22 ... m2k]
-        #        [ .    .       . ]
-        #        [md1  md2 ... mdk]]
-        #
-        # np.mean(M, axis=1) = 1/k * [sum_i(m1i)  sum_i(m2i) ... sum_i(mdi)]
 
     est_rs2_kFold = np.mean(rs2_kFold, axis = 1)
     est_mse_kFold = np.mean(mse_kFold, axis = 1)
