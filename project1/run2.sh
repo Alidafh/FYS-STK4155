@@ -10,4 +10,4 @@ if [ ! -d output/outfiles ]; then
   echo "created folder: output/outfiles"
 fi
 
-python main2.py
+python main_ridge.py

@@ -430,6 +430,10 @@ def kFold(x, y, z, d, k=5, shuffle = False, RegType="OLS", lamb=0):
 
     return z_train_k, z_test_k, z_fit_k, z_pred_k
 
+
+
+###############################################################################
+
 def regression(z, X, rType="OLS", lamb=0):
     X_train, X_test, z_train, z_test = train_test_split(X, z, test_size=0.33)
     X_train_scl, X_test_scl = scale_X(X_train, X_test)
@@ -515,6 +519,31 @@ def optimal_model_lamb(x, y, z, metrics_test, metrics_train, d, lambdas, rType =
         plot.beta_conf(beta, conf_beta, d, mse_min, m_test_best[0], rType="RIDGE", lamb = best_lamb, info = info)
 
     return beta, best_lamb, m_test_best
+
+def optimal(x, metrics_test):
+    mse_min = metrics_test[1].min()     # The lowest MSE
+    at_ = metrics_test[1].argmin()      # The index of mse_min
+    best_x = x[at_]
+    m_test_best = metrics_test[:,at_]   # The corresponding statistics
+    return best_x, m_test_best
+
+def print_plot_modelparams(x, y, z, m_test, d, lamb, rType = "RIDGE", quiet = True, info=""):
+    # Find the regression parameters for best_lamb
+    beta, conf_beta = func.get_beta(x, y, z, d, rType, lamb)
+
+    if quiet==False:
+        print("Optimal model is")
+        print ("    Deg  : {}".format(d))
+        print ("    Lamb : {}".format(lamb))
+        print ("    RS2  : {:.3f}".format(m_test[0]))
+        print ("    MSE  : {:.3f}".format(m_test[1]))
+        print ("    Var  : {:.3f}".format(m_test[2]))
+        print ("    Bias : {:.3f}".format(m_test[3]))
+        print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
+        print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
+        print("")
+        plot.beta_conf(beta, conf_beta, d, m_test[1], m_test[0], rType , lamb, info)
+
 
 def map_to_data(mapdat):
     rows, columns = np.shape(mapdat)

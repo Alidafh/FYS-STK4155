@@ -231,8 +231,7 @@ def OLS_test_train(x, test_error, train_error, err_type ="", info="", log=False)
     TODO: change back to saving in PDF format
     """
 
-    print("Plotting the {} of the training and test results".format(err_type))
-    print("Uten resampling: fig. 2.11 Hastie")
+    print("Plotting the {} of the training and test results(2.11 Hastie)".format(err_type))
     fig = plt.figure()
     plt.grid()
 
@@ -262,7 +261,6 @@ def compare_R2(x, r2, r2_bs, r2_k, rType = "OLS", lamb=0, info=""):
     """
 
     print("Comparing R-score for k-fold and bootstrap methods")
-    print("R2 verdier for uten-resample, med bootstrap og med k-fold for å se om de funker")
     fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, figsize=[6.4, 6.4], constrained_layout=True) #[6.4, 4.8].
     fig.suptitle("{:} R2-score".format(rType), fontsize = 14, fontname = "serif")
     if rType != "OLS":
@@ -304,7 +302,6 @@ def compare_MSE(x, mse, mse_bs, mse_k, rType = "OLS", lamb=0, info="", log=False
     """
 
     print("Comparing MSE for k-fold and bootstrap methods")
-    print("Sammenligning av MSE for k-Fold og Bootstrap")
     fig = plt.figure()
     plt.grid()
     plt.title("{:} Mean Squared Error".format(rType), fontsize = 14, fontname = "serif")
@@ -329,8 +326,7 @@ def compare_MSE(x, mse, mse_bs, mse_k, rType = "OLS", lamb=0, info="", log=False
 def bias_variance_m(x, m1, m2, m3, d1, d2, d3, x_type="degrees", RegType ="OLS", info="", log=False):
     """
     """
-    print("Plotting the Bias, Variance and MSE for {:},".format(RegType, info))
-    print("Bias-variance som funksjon av data for {:}".format(RegType))
+    print("Plotting the Bias, Variance and MSE for {:} for multiple degrees".format(RegType))
 
     fig = plt.figure()
     plt.grid()
@@ -419,8 +415,7 @@ def bias_variance(x, mse, var, bias, x_type="degrees", RegType ="OLS", info="", 
     --------------------------------
     TODO: change back to saving in PDF format
     """
-    print("Plotting the Bias, Variance and MSE for {:}, ({:})".format(RegType, info))
-    print("Bias-variance som funksjon av grader for {:}".format(RegType))
+    print("Plotting the Bias, Variance and MSE for {:} as a function of {:}".format(RegType, x_type))
     fig = plt.figure()
     plt.grid()
     plt.title("{:} Bias-Variance".format(RegType), fontsize = 14, fontname = "serif")
@@ -463,7 +458,7 @@ def beta_conf(beta, conf_beta, d, mse_best, r2_best, rType="OLS", lamb = 0, info
     else:
         fig.savefig("output/figures/{:}_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.pdf".format(rType, d, lamb, info))
         fig.savefig("output/figures/{:}_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.png".format(rType, d, lamb, info))
-        print("    Figure saved in: output/figures/{:}_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.png".format(rType, d, lamb, info))
+        print("    Figure saved in: output/figures/{:}_parameters_pdeg{:.0f}_lamb{:.0f}_{:}.pdf\n".format(rType, d, lamb, info))
     plt.close()
 
 def RIDGE_beta_conf(beta, conf_beta, d, mse_best, r2_best, lamb="0", info=""):
