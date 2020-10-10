@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 import scipy as scl
 from tools import SVDinv, foldIndex
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Lasso
 
 ###############################################################################
 
@@ -219,7 +219,7 @@ def OLS_SVD(z, X, var = False):
 
     if len(z) < len(beta):
         print("ERROR: n = {} < p = {}". format(len(z), len(beta)))
-        #print("Remember that OLS is not well defined for p > n!")
+        #print("Remember that OLS is not well defined for p > n!") 
 
     if var == True:
         diagonal_var = np.zeros([V.shape[0], V.shape[1]])
@@ -348,6 +348,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
         if RegType == "OLSskl": tmp_beta = OLSskl(tmp_z_train, tmp_X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
+        if RegType == "LASSO": tmp_beta = Lasso(tmp_z_train, tmp_X_train)
         z_pred[:,j] = (X_test @ tmp_beta).ravel()
         z_fit[:,j] = (tmp_X_train @ tmp_beta).ravel()
 
@@ -424,9 +425,14 @@ def OLSskl(z, X):
     
     reg.fit(X,z)
     
+    return np.transpose(np.array([reg.coef_]))
     
-    
-    
+
+def lasso(z, X, lam):
+    reg = Lasso(alpha=lam, fit_intercept = False, max_iter=100000)
+    reg.fit(X,z)
+    # print(reg.intercept_)
+    return np.transpose(np.array([reg.coef_]))
     
     
 
