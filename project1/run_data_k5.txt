@@ -1,0 +1,1441 @@
+alida ~/Documents/uio/Master/FYS-STK4155/project1 master(*?) $ source run.sh
+Do you want to run on the Franke Function [f] or real data [d]?
+d
+Do you want OLS [o], RIDGE [r], LASSO [l] or all [a]?
+a
+#######################################################################
+                        Ordinary least squares
+#######################################################################
+Testing with sklearn:
+     R2_sklearn = 0.27962731248414024
+     R2_manual = 0.542670358848075
+     Diff R2 = 0.26
+Testing with sklearn:
+     R2_sklearn = -3.2631535218194534
+     R2_manual = -1.3299359649175755
+     Diff R2 = 1.93
+Testing with sklearn:
+     R2_sklearn = -29.960264384738174
+     R2_manual = -18.97481120127609
+     Diff R2 = 10.99
+Testing with sklearn:
+     R2_sklearn = -1406.774356053515
+     R2_manual = -917.3287648080604
+     Diff R2 = 489.45
+Testing with sklearn:
+     R2_sklearn = -5429.4055266266005
+     R2_manual = -3540.99394436106
+     Diff R2 = 1888.41
+###############################################
+         Without Resampling
+###############################################
+Plotting the MSE of the training and test results(2.11 Hastie)
+    Figure saved in: output/figures/data/OLS_MSE_test_train_n100_d10.pdf
+
+Optimal model is
+    Deg  : 4
+    RS2  : 0.995 (train: 0.996)
+    MSE  : 1.503 (train: 0.761)
+    Var  : 0.000 (train: 0.000)
+    Bias : 1.503 (train: 0.761)
+    Beta : [4274.74 4316.12 5279.12 -666.93 -880.43 -326.55  118.01  108.36   82.26
+   26.46   -5.49   -3.73  -10.34    4.34   -1.64]
+    Conf : [ 602.67 1820.63 1728.35  750.53  533.44  680.91  119.6    87.64   85.98
+  108.3     6.68    5.94    5.5     5.14    5.99]
+
+Plotting the OLS regression parameters with confidence intervals
+    Figure saved in: output/figures/data/OLS_parameters_pdeg4_n100_d10.pdf
+
+###############################################
+             With Bootstrap
+###############################################
+Plotting the MSE of the training and test results(2.11 Hastie)
+    Figure saved in: output/figures/data/OLS_MSE_test_train_n100_d10_bs100.pdf
+
+Plotting the Bias, Variance and MSE for OLS as a function of degrees
+    Figure saved in: output/figures/data/OLS_bias_variance_degrees_n100_d10_bs100.pdf
+
+Optimal model is
+    Deg  : 4
+    RS2  : 0.986 (train: 0.997)
+    MSE  : 2.454 (train: 0.664)
+    Var  : 1.286 (train: 248.262)
+    Bias : 1.167 (train: 248.921)
+    Beta : [ 5352.5   6008.94  5928.92 -1004.88 -1051.    -293.05   152.48   170.21
+    64.88    46.07    -5.74    -8.07   -12.91     8.02    -3.79]
+    Conf : [ 880.14 2370.39 2274.22  972.63  655.98  911.43  155.11   97.71  112.68
+  150.12    8.61    6.98    6.79    6.63    8.35]
+
+Plotting the OLS regression parameters with confidence intervals
+    Figure saved in: output/figures/data/OLS_parameters_pdeg4_n100_d10_bs100.pdf
+
+###############################################
+              With kFold
+###############################################
+Plotting the MSE of the training and test results(2.11 Hastie)
+    Figure saved in: output/figures/data/OLS_MSE_test_train_n100_d10_kFold5.pdf
+
+Optimal model is
+    Deg  : 4
+    RS2  : 0.981 (train: 0.997)
+    MSE  : 4.494 (train: 0.791)
+    Var  : 141.833 (train: 12.769)
+    Bias : 125.011 (train: 13.640)
+    Beta : [ 4430.14  3721.85  6314.5   -172.81 -1084.73  -796.47    26.25   110.31
+   147.79   101.5     -0.26    -3.21   -11.8     -0.31    -5.38]
+    Conf : [ 591.16 1678.71 1673.47  684.4   486.45  724.41  109.79   75.64   84.38
+  115.53    6.03    5.5     5.64    6.52    6.21]
+
+Plotting the OLS regression parameters with confidence intervals
+    Figure saved in: output/figures/data/OLS_parameters_pdeg4_n100_d10_kFold5.pdf
+
+###############################################
+              Comparisons
+###############################################
+Comparing R-score for k-fold and bootstrap methods
+    Figure saved in: output/figures/data/OLS_compare_R2_n100_d10_bs100_k5.pdf
+
+Comparing MSE for k-fold and bootstrap methods
+    Figure saved in: output/figures/data/OLS_compare_MSE_n100_d10_bs100_k5.pdf
+
+###############################################
+     Bias-variance as a function of ndata
+              (Bootstrap)
+###############################################
+Plotting the Bias, Variance and MSE for OLS as a function of data
+    Figure saved in: output/figures/data/OLS_bias_variance_data_min100_max500_step50_d4_bs100.pdf
+
+Plotting the Bias, Variance and MSE for OLS for multiple degrees
+    Figure saved in: output/figures/data/OLS_bias_variance_data_deg_min100_max500_step50_bs100.pdf
+
+#######################################################################
+                                Ridge
+#######################################################################
+
+Finding the optimal combination of lambda and degree:
+
+Testing with sklearn:
+     R2_sklearn = 0.7522287535322011
+     R2_manual = 0.8685757360409281
+     Diff R2 = 0.12
+Testing with sklearn:
+     R2_sklearn = 0.20537737944673795
+     R2_manual = 0.5910663276985476
+     Diff R2 = 0.39
+Testing with sklearn:
+     R2_sklearn = -2.178029938991985
+     R2_manual = -0.5948752256674938
+     Diff R2 = 1.58
+Testing with sklearn:
+     R2_sklearn = 0.6457883601301273
+     R2_manual = 0.8199120361104426
+     Diff R2 = 0.17
+Testing with sklearn:
+     R2_sklearn = 0.12299436031790842
+     R2_manual = 0.5527893732865394
+     Diff R2 = 0.43
+Testing with sklearn:
+     R2_sklearn = -0.8931034012604115
+     R2_manual = 0.025635356559939093
+     Diff R2 = 0.92
+Testing with sklearn:
+     R2_sklearn = -2.3612579824224205
+     R2_manual = -0.7510588867012511
+     Diff R2 = 1.61
+Testing with sklearn:
+     R2_sklearn = -3.9547628381947577
+     R2_manual = -1.6041200950539252
+     Diff R2 = 2.35
+Testing with sklearn:
+     R2_sklearn = -5.29411443902737
+     R2_manual = -2.310191121848471
+     Diff R2 = 2.98
+Testing with sklearn:
+     R2_sklearn = -6.38574034165227
+     R2_manual = -2.8399466578684427
+     Diff R2 = 3.55
+Testing with sklearn:
+     R2_sklearn = -7.9629597565066135
+     R2_manual = -3.50589244502582
+     Diff R2 = 4.46
+Testing with sklearn:
+     R2_sklearn = -1.1160516984701534
+     R2_manual = -0.988920122814575
+     Diff R2 = 0.13
+Testing with sklearn:
+     R2_sklearn = 0.6914985404427202
+     R2_manual = 0.8369583541013759
+     Diff R2 = 0.15
+Testing with sklearn:
+     R2_sklearn = 0.08943812902965402
+     R2_manual = 0.48928763716242096
+     Diff R2 = 0.40
+Testing with sklearn:
+     R2_sklearn = -1.2734372949819677
+     R2_manual = -0.29906637615042575
+     Diff R2 = 0.97
+Testing with sklearn:
+     R2_sklearn = -3.3464173495619414
+     R2_manual = -1.484678294306856
+     Diff R2 = 1.86
+Testing with sklearn:
+     R2_sklearn = -5.608074196401618
+     R2_manual = -2.7562582555427464
+     Diff R2 = 2.85
+Testing with sklearn:
+     R2_sklearn = -7.765279436194808
+     R2_manual = -3.9415094680930416
+     Diff R2 = 3.82
+Testing with sklearn:
+     R2_sklearn = -10.52794519061703
+     R2_manual = -5.389682006641677
+     Diff R2 = 5.14
+Testing with sklearn:
+     R2_sklearn = -1.0423163682422139
+     R2_manual = -0.9260791097947163
+     Diff R2 = 0.12
+Testing with sklearn:
+     R2_sklearn = 0.7029824882084442
+     R2_manual = 0.8351667041157294
+     Diff R2 = 0.13
+Testing with sklearn:
+     R2_sklearn = 0.5274832920257676
+     R2_manual = 0.7282891976921184
+     Diff R2 = 0.20
+Testing with sklearn:
+     R2_sklearn = 0.256089311798796
+     R2_manual = 0.5625721290143249
+     Diff R2 = 0.31
+Testing with sklearn:
+     R2_sklearn = -0.2260922276716654
+     R2_manual = 0.2711223005859965
+     Diff R2 = 0.50
+Testing with sklearn:
+     R2_sklearn = -1.092069434628628
+     R2_manual = -0.2438887300891417
+     Diff R2 = 0.85
+Testing with sklearn:
+     R2_sklearn = -2.3998587157511646
+     R2_manual = -1.0059282951642152
+     Diff R2 = 1.39
+Testing with sklearn:
+     R2_sklearn = -3.962822095719526
+     R2_manual = -1.8965811254378253
+     Diff R2 = 2.07
+Testing with sklearn:
+     R2_sklearn = -5.4915805978744405
+     R2_manual = -2.7479663430105847
+     Diff R2 = 2.74
+Testing with sklearn:
+     R2_sklearn = -6.977253361366633
+     R2_manual = -3.5556918969061275
+     Diff R2 = 3.42
+Testing with sklearn:
+     R2_sklearn = -9.226842767001205
+     R2_manual = -4.756230263898405
+     Diff R2 = 4.47
+Testing with sklearn:
+     R2_sklearn = 0.2011629514177759
+     R2_manual = 0.5131748210626333
+     Diff R2 = 0.31
+Testing with sklearn:
+     R2_sklearn = 0.5694726193796295
+     R2_manual = 0.7568016374963712
+     Diff R2 = 0.19
+Testing with sklearn:
+     R2_sklearn = 0.698083482830177
+     R2_manual = 0.8482434946743628
+     Diff R2 = 0.15
+Testing with sklearn:
+     R2_sklearn = -0.11068957949344096
+     R2_manual = 0.3432967683539273
+     Diff R2 = 0.45
+Testing with sklearn:
+     R2_sklearn = -2.6313367973818464
+     R2_manual = -1.2406384988667343
+     Diff R2 = 1.39
+Testing with sklearn:
+     R2_sklearn = -6.970856511545385
+     R2_manual = -3.9507834026409965
+     Diff R2 = 3.02
+Testing with sklearn:
+     R2_sklearn = -12.038239565261039
+     R2_manual = -7.087375086274143
+     Diff R2 = 4.95
+Testing with sklearn:
+     R2_sklearn = -16.423398570721282
+     R2_manual = -9.774502684935813
+     Diff R2 = 6.65
+Testing with sklearn:
+     R2_sklearn = -19.791517852001085
+     R2_manual = -11.803472426490988
+     Diff R2 = 7.99
+Testing with sklearn:
+     R2_sklearn = -23.59448563959591
+     R2_manual = -14.029166109179446
+     Diff R2 = 9.57
+Testing with sklearn:
+     R2_sklearn = -1.1463120936458613
+     R2_manual = -0.35056144266374556
+     Diff R2 = 0.80
+Testing with sklearn:
+     R2_sklearn = 0.08841320577912679
+     R2_manual = 0.4589412944644432
+     Diff R2 = 0.37
+Testing with sklearn:
+     R2_sklearn = 0.5248611157708363
+     R2_manual = 0.75151979205094
+     Diff R2 = 0.23
+Testing with sklearn:
+     R2_sklearn = -1.1095919127034626
+     R2_manual = -0.2938826296467676
+     Diff R2 = 0.82
+Testing with sklearn:
+     R2_sklearn = -5.402708851102849
+     R2_manual = -3.040587758999977
+     Diff R2 = 2.36
+Testing with sklearn:
+     R2_sklearn = -11.666928383865855
+     R2_manual = -7.018899216906039
+     Diff R2 = 4.65
+Testing with sklearn:
+     R2_sklearn = -18.2933952172899
+     R2_manual = -11.191540010118892
+     Diff R2 = 7.10
+Testing with sklearn:
+     R2_sklearn = -23.882056197320914
+     R2_manual = -14.688164431893954
+     Diff R2 = 9.19
+Testing with sklearn:
+     R2_sklearn = -28.245031060198027
+     R2_manual = -17.396507155985436
+     Diff R2 = 10.85
+Testing with sklearn:
+     R2_sklearn = -33.28210946175021
+     R2_manual = -20.471571633483762
+     Diff R2 = 12.81
+Testing with sklearn:
+     R2_sklearn = -1.0375833293346877
+     R2_manual = -0.2552914508220976
+     Diff R2 = 0.78
+Testing with sklearn:
+     R2_sklearn = -0.7946407479294442
+     R2_manual = -0.08951746649875636
+     Diff R2 = 0.71
+Testing with sklearn:
+     R2_sklearn = -1.727451586761194
+     R2_manual = -0.6891681659107918
+     Diff R2 = 1.04
+Testing with sklearn:
+     R2_sklearn = -4.0879419754115425
+     R2_manual = -2.2126310834759693
+     Diff R2 = 1.88
+Testing with sklearn:
+     R2_sklearn = -8.12067959577581
+     R2_manual = -4.806753208674352
+     Diff R2 = 3.31
+Testing with sklearn:
+     R2_sklearn = -13.849847753352837
+     R2_manual = -8.46645308580103
+     Diff R2 = 5.38
+Testing with sklearn:
+     R2_sklearn = -20.73824176078885
+     R2_manual = -12.834614204322989
+     Diff R2 = 7.90
+Testing with sklearn:
+     R2_sklearn = -27.364660515424976
+     R2_manual = -17.015231275309613
+     Diff R2 = 10.35
+Testing with sklearn:
+     R2_sklearn = -32.057211617097416
+     R2_manual = -19.940999147776356
+     Diff R2 = 12.12
+Testing with sklearn:
+     R2_sklearn = -34.161487721492
+     R2_manual = -21.122942142852875
+     Diff R2 = 13.04
+Testing with sklearn:
+     R2_sklearn = -8.70039722074823
+     R2_manual = -5.242962479552723
+     Diff R2 = 3.46
+Testing with sklearn:
+     R2_sklearn = -1.1885938360759742
+     R2_manual = -0.33722774002012135
+     Diff R2 = 0.85
+Testing with sklearn:
+     R2_sklearn = -1.1740932236712902
+     R2_manual = -0.32019859463903244
+     Diff R2 = 0.85
+Testing with sklearn:
+     R2_sklearn = -8.470609325274575
+     R2_manual = -5.063748561525846
+     Diff R2 = 3.41
+Testing with sklearn:
+     R2_sklearn = -19.995340581384674
+     R2_manual = -12.543325147474702
+     Diff R2 = 7.45
+Testing with sklearn:
+     R2_sklearn = -32.291609138146256
+     R2_manual = -20.48874704007776
+     Diff R2 = 11.80
+Testing with sklearn:
+     R2_sklearn = -43.13731424747756
+     R2_manual = -27.452740293905183
+     Diff R2 = 15.68
+Testing with sklearn:
+     R2_sklearn = -51.921347894700844
+     R2_manual = -33.06412287748523
+     Diff R2 = 18.86
+Testing with sklearn:
+     R2_sklearn = -59.711972748612276
+     R2_manual = -38.03331982134523
+     Diff R2 = 21.68
+Testing with sklearn:
+     R2_sklearn = -70.89200659121059
+     R2_manual = -45.15247907819205
+     Diff R2 = 25.74
+Testing with sklearn:
+     R2_sklearn = -11.899817123280966
+     R2_manual = -7.313293579504931
+     Diff R2 = 4.59
+Testing with sklearn:
+     R2_sklearn = -1.0531088457406024
+     R2_manual = -0.23177510053213068
+     Diff R2 = 0.82
+Testing with sklearn:
+     R2_sklearn = -5.957144192905753
+     R2_manual = -3.424529799417548
+     Diff R2 = 2.53
+Testing with sklearn:
+     R2_sklearn = -19.73128289520708
+     R2_manual = -12.39554489211315
+     Diff R2 = 7.34
+Testing with sklearn:
+     R2_sklearn = -36.16485047661484
+     R2_manual = -23.081342695292065
+     Diff R2 = 13.08
+Testing with sklearn:
+     R2_sklearn = -51.50372247224679
+     R2_manual = -33.02297629580646
+     Diff R2 = 18.48
+Testing with sklearn:
+     R2_sklearn = -64.02889115670314
+     R2_manual = -41.105125573837604
+     Diff R2 = 22.92
+Testing with sklearn:
+     R2_sklearn = -73.61012834384886
+     R2_manual = -47.26255329749645
+     Diff R2 = 26.35
+Testing with sklearn:
+     R2_sklearn = -81.96232217904746
+     R2_manual = -52.61891318235878
+     Diff R2 = 29.34
+Testing with sklearn:
+     R2_sklearn = -94.83245998930347
+     R2_manual = -60.86392593653238
+     Diff R2 = 33.97
+Testing with sklearn:
+     R2_sklearn = -7.845567651110132
+     R2_manual = -4.649052403335833
+     Diff R2 = 3.20
+Testing with sklearn:
+     R2_sklearn = -14.063118654364885
+     R2_manual = -8.700873972847374
+     Diff R2 = 5.36
+Testing with sklearn:
+     R2_sklearn = -26.366210890822895
+     R2_manual = -16.719479960034366
+     Diff R2 = 9.65
+Testing with sklearn:
+     R2_sklearn = -40.47190091880203
+     R2_manual = -25.906000197127955
+     Diff R2 = 14.57
+Testing with sklearn:
+     R2_sklearn = -54.863853927269
+     R2_manual = -35.2620026516523
+     Diff R2 = 19.60
+Testing with sklearn:
+     R2_sklearn = -68.39702438826126
+     R2_manual = -44.03546026536666
+     Diff R2 = 24.36
+Testing with sklearn:
+     R2_sklearn = -80.07082289210356
+     R2_manual = -51.582915406949446
+     Diff R2 = 28.49
+Testing with sklearn:
+     R2_sklearn = -89.38551557721966
+     R2_manual = -57.59160238591376
+     Diff R2 = 31.79
+Testing with sklearn:
+     R2_sklearn = -98.30262920165553
+     R2_manual = -63.335380280400344
+     Diff R2 = 34.97
+Testing with sklearn:
+     R2_sklearn = -115.26451665262434
+     R2_manual = -74.25996260390848
+     Diff R2 = 41.00
+###############################################
+         Without Resampling
+###############################################
+Optimal model is
+    Deg  : 2
+    Lamb : 0.001
+    RS2  : 0.985
+    MSE  : 4.486
+    Var  : 0.000
+    Bias : 4.486
+    Beta : [1232.42   36.49   40.39    2.91    1.99    3.26]
+    Conf : [10.74 11.97 11.64  1.23  1.11  1.21]
+
+Plotting the RIDGE regression parameters with confidence intervals
+    Figure saved in: output/figures/data/RIDGE_parameters_pdeg2_lamb0_n100_deg2_lamb0.0010.pdf
+
+###############################################
+             With Bootstrap
+###############################################
+Optimal model is
+    Deg  : 3
+    Lamb : 0.001
+    RS2  : 0.981
+    MSE  : 4.079
+    Var  : 1.451
+    Bias : 2.628
+    Beta : [1064.18 -323.29 -219.12  125.07   97.05  143.92   -2.73  -12.48    2.56
+   -8.14]
+    Conf : [27.06 48.18 50.15 33.07 41.12 32.05  3.76  4.22  4.03  3.43]
+
+Plotting the RIDGE regression parameters with confidence intervals
+    Figure saved in: output/figures/data/RIDGE_parameters_pdeg3_lamb0_n100_deg3_lamb0.0010_bs100.pdf
+
+###############################################
+              With kFold
+###############################################
+Optimal model is
+    Deg  : 1
+    Lamb : 0.001
+    RS2  : 0.964
+    MSE  : 8.296
+    Var  : 122.226
+    Bias : 125.495
+    Beta : [1192.89    9.56   10.5 ]
+    Conf : [0.46 0.45 0.46]
+
+Plotting the RIDGE regression parameters with confidence intervals
+    Figure saved in: output/figures/data/RIDGE_parameters_pdeg1_lamb0_n100_deg1_lamb0.0010_kFold5.pdf
+
+Bias variance relations
+
+Testing with sklearn:
+     R2_sklearn = 0.12299436031790842
+     R2_manual = 0.5527893732865394
+     Diff R2 = 0.43
+Testing with sklearn:
+     R2_sklearn = 0.6914985404427202
+     R2_manual = 0.8369583541013759
+     Diff R2 = 0.15
+Testing with sklearn:
+     R2_sklearn = -0.2260922276716654
+     R2_manual = 0.2711223005859965
+     Diff R2 = 0.50
+Testing with sklearn:
+     R2_sklearn = -0.11068957949344096
+     R2_manual = 0.3432967683539273
+     Diff R2 = 0.45
+Testing with sklearn:
+     R2_sklearn = -1.1095919127034626
+     R2_manual = -0.2938826296467676
+     Diff R2 = 0.82
+Testing with sklearn:
+     R2_sklearn = -4.0879419754115425
+     R2_manual = -2.2126310834759693
+     Diff R2 = 1.88
+Testing with sklearn:
+     R2_sklearn = -8.470609325274575
+     R2_manual = -5.063748561525846
+     Diff R2 = 3.41
+Testing with sklearn:
+     R2_sklearn = -19.73128289520708
+     R2_manual = -12.39554489211315
+     Diff R2 = 7.34
+Testing with sklearn:
+     R2_sklearn = -40.47190091880203
+     R2_manual = -25.906000197127955
+     Diff R2 = 14.57
+###############################################
+Bias-variance vs degrees for different lambdas
+###############################################
+Plotting the Bias, Variance and MSE for RIDGE as a function of degrees
+    Figure saved in: output/figures/data/RIDGE_bias_variance_degrees_n100_bs100_lamb1.0000.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of degrees
+    Figure saved in: output/figures/data/RIDGE_bias_variance_degrees_n100_bs100_lamb0.0100.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of degrees
+    Figure saved in: output/figures/data/RIDGE_bias_variance_degrees_n100_bs100_lamb0.0000.pdf
+
+###############################################
+  Comparisons between k-Fold and Bootstrap
+###############################################
+Comparing MSE for k-fold and bootstrap methods
+    Figure saved in: output/figures/data/RIDGE_compare_MSE_n100_lambda0.01_bs10_k100.pdf
+
+Comparing R-score for k-fold and bootstrap methods
+    Figure saved in: output/figures/data/RIDGE_compare_R2_n100_lambda0.01_bs10_k100.pdf
+
+###############################################
+ Bias-variance vs lambdas for different degrees
+###############################################
+Testing with sklearn:
+     R2_sklearn = -1.1463120936458613
+     R2_manual = -0.35056144266374556
+     Diff R2 = 0.80
+Testing with sklearn:
+     R2_sklearn = 0.08841320577912679
+     R2_manual = 0.4589412944644432
+     Diff R2 = 0.37
+Testing with sklearn:
+     R2_sklearn = 0.5248611157708363
+     R2_manual = 0.75151979205094
+     Diff R2 = 0.23
+Testing with sklearn:
+     R2_sklearn = -1.1095919127034626
+     R2_manual = -0.2938826296467676
+     Diff R2 = 0.82
+Testing with sklearn:
+     R2_sklearn = -5.402708851102849
+     R2_manual = -3.040587758999977
+     Diff R2 = 2.36
+Testing with sklearn:
+     R2_sklearn = -11.666928383865855
+     R2_manual = -7.018899216906039
+     Diff R2 = 4.65
+Testing with sklearn:
+     R2_sklearn = -18.2933952172899
+     R2_manual = -11.191540010118892
+     Diff R2 = 7.10
+Testing with sklearn:
+     R2_sklearn = -23.882056197320914
+     R2_manual = -14.688164431893954
+     Diff R2 = 9.19
+Testing with sklearn:
+     R2_sklearn = -28.245031060198027
+     R2_manual = -17.396507155985436
+     Diff R2 = 10.85
+Testing with sklearn:
+     R2_sklearn = -33.28210946175021
+     R2_manual = -20.471571633483762
+     Diff R2 = 12.81
+###############################################
+             With Bootstrap
+###############################################
+Plotting the Bias, Variance and MSE for RIDGE as a function of lambda
+    Figure saved in: output/figures/data/RIDGE_bias_variance_lambda_n100_d2_bs100.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of lambda
+    Figure saved in: output/figures/data/RIDGE_bias_variance_lambda_n100_d6_bs100.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of lambda
+    Figure saved in: output/figures/data/RIDGE_bias_variance_lambda_n100_d9_bs100.pdf
+
+#######################################################################
+                                Lasso
+#######################################################################
+
+Finding the optimal combination of lambda and degree:
+
+Testing with sklearn:
+     R2_sklearn = 0.7289526415551136
+     R2_manual = 0.839487513295584
+     Diff R2 = 0.11
+Testing with sklearn:
+     R2_sklearn = -2.106441873873923
+     R2_manual = -0.6353438644934783
+     Diff R2 = 1.47
+Testing with sklearn:
+     R2_sklearn = -8.765823273948163
+     R2_manual = -8.417852438520047
+     Diff R2 = 0.35
+Testing with sklearn:
+     R2_sklearn = -20.820161989388808
+     R2_manual = -9.57209802590933
+     Diff R2 = 11.25
+Testing with sklearn:
+     R2_sklearn = -9.894907163505886
+     R2_manual = -9.245848796267792
+     Diff R2 = 0.65
+Testing with sklearn:
+     R2_sklearn = -188.85393748082865
+     R2_manual = -181.68298494758145
+     Diff R2 = 7.17
+Testing with sklearn:
+     R2_sklearn = -430.332628276239
+     R2_manual = -200.19228081930257
+     Diff R2 = 230.14
+Testing with sklearn:
+     R2_sklearn = -213.17931247702137
+     R2_manual = -199.86603158966108
+     Diff R2 = 13.31
+Testing with sklearn:
+     R2_sklearn = -4068.7347425781045
+     R2_manual = -3914.567105452515
+     Diff R2 = 154.17
+Testing with sklearn:
+     R2_sklearn = -9300.29784698419
+     R2_manual = -4306.979625122363
+     Diff R2 = 4993.32
+Testing with sklearn:
+     R2_sklearn = -4592.8090599764255
+     R2_manual = -4306.653375892722
+     Diff R2 = 286.16
+Testing with sklearn:
+     R2_sklearn = 0.7934148798423866
+     R2_manual = 0.9028029223154467
+     Diff R2 = 0.11
+Testing with sklearn:
+     R2_sklearn = -1.3723503055791935
+     R2_manual = -0.29364456622909185
+     Diff R2 = 1.08
+Testing with sklearn:
+     R2_sklearn = -8.690227009531151
+     R2_manual = -8.335832500926921
+     Diff R2 = 0.35
+Testing with sklearn:
+     R2_sklearn = -20.74159106044609
+     R2_manual = -9.52082410200861
+     Diff R2 = 11.22
+Testing with sklearn:
+     R2_sklearn = -9.833880013702132
+     R2_manual = -9.202208221311448
+     Diff R2 = 0.63
+Testing with sklearn:
+     R2_sklearn = -188.84264167380098
+     R2_manual = -181.67170625573323
+     Diff R2 = 7.17
+Testing with sklearn:
+     R2_sklearn = -430.332628276239
+     R2_manual = -200.19228081930257
+     Diff R2 = 230.14
+Testing with sklearn:
+     R2_sklearn = -213.17931247702137
+     R2_manual = -199.86603158966108
+     Diff R2 = 13.31
+Testing with sklearn:
+     R2_sklearn = -4068.7308810682216
+     R2_manual = -3914.5626062596357
+     Diff R2 = 154.17
+Testing with sklearn:
+     R2_sklearn = -9300.29784698419
+     R2_manual = -4306.979625122363
+     Diff R2 = 4993.32
+Testing with sklearn:
+     R2_sklearn = -4592.8090599764255
+     R2_manual = -4306.653375892722
+     Diff R2 = 286.16
+Testing with sklearn:
+     R2_sklearn = 0.7648478876465481
+     R2_manual = 0.8688495545249741
+     Diff R2 = 0.10
+Testing with sklearn:
+     R2_sklearn = 0.5187204823089634
+     R2_manual = 0.7362000522194873
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = 0.5428800969683224
+     R2_manual = 0.7554563472662577
+     Diff R2 = 0.21
+Testing with sklearn:
+     R2_sklearn = 0.5406070858972172
+     R2_manual = 0.780039667890941
+     Diff R2 = 0.24
+Testing with sklearn:
+     R2_sklearn = -1.100353962544776
+     R2_manual = -0.057753781147378946
+     Diff R2 = 1.04
+Testing with sklearn:
+     R2_sklearn = -8.3928973811075
+     R2_manual = -8.031654544631822
+     Diff R2 = 0.36
+Testing with sklearn:
+     R2_sklearn = -24.792332337045764
+     R2_manual = -11.34520383026963
+     Diff R2 = 13.45
+Testing with sklearn:
+     R2_sklearn = -9.26815319002176
+     R2_manual = -8.61346117779225
+     Diff R2 = 0.65
+Testing with sklearn:
+     R2_sklearn = -188.94106299132042
+     R2_manual = -181.7663306606614
+     Diff R2 = 7.17
+Testing with sklearn:
+     R2_sklearn = -474.52141175591714
+     R2_manual = -220.54345208127344
+     Diff R2 = 253.98
+Testing with sklearn:
+     R2_sklearn = -214.11733177524866
+     R2_manual = -200.51496147040237
+     Diff R2 = 13.60
+Testing with sklearn:
+     R2_sklearn = -4073.7970913675667
+     R2_manual = -3919.712148914127
+     Diff R2 = 154.08
+Testing with sklearn:
+     R2_sklearn = -9907.310460000645
+     R2_manual = -4593.388938169079
+     Diff R2 = 5313.92
+Testing with sklearn:
+     R2_sklearn = -4621.643383559436
+     R2_manual = -4328.756304190458
+     Diff R2 = 292.89
+Testing with sklearn:
+     R2_sklearn = 0.49966894182260735
+     R2_manual = 0.7075968166417951
+     Diff R2 = 0.21
+Testing with sklearn:
+     R2_sklearn = 0.4674899486103083
+     R2_manual = 0.6881678048555337
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = 0.2752820870365351
+     R2_manual = 0.5814787434938922
+     Diff R2 = 0.31
+Testing with sklearn:
+     R2_sklearn = -0.043215042639036395
+     R2_manual = 0.41060335048497043
+     Diff R2 = 0.45
+Testing with sklearn:
+     R2_sklearn = 0.022784983163594674
+     R2_manual = 0.4578708179780686
+     Diff R2 = 0.44
+Testing with sklearn:
+     R2_sklearn = 0.2056060183077438
+     R2_manual = 0.6009561030481654
+     Diff R2 = 0.40
+Testing with sklearn:
+     R2_sklearn = -1.5757276015945556
+     R2_manual = -0.32090123863953357
+     Diff R2 = 1.25
+Testing with sklearn:
+     R2_sklearn = -8.797196691611417
+     R2_manual = -8.462572137522702
+     Diff R2 = 0.33
+Testing with sklearn:
+     R2_sklearn = -24.820142303329412
+     R2_manual = -11.328908084515094
+     Diff R2 = 13.49
+Testing with sklearn:
+     R2_sklearn = -9.321744942178732
+     R2_manual = -8.653795999731573
+     Diff R2 = 0.67
+Testing with sklearn:
+     R2_sklearn = -201.94015832833068
+     R2_manual = -195.18188344052516
+     Diff R2 = 6.76
+Testing with sklearn:
+     R2_sklearn = -477.41873923405365
+     R2_manual = -221.60377003715968
+     Diff R2 = 255.81
+Testing with sklearn:
+     R2_sklearn = -215.15499294381146
+     R2_manual = -201.29619823692377
+     Diff R2 = 13.86
+Testing with sklearn:
+     R2_sklearn = -4358.483354044923
+     R2_manual = -4213.4180388876075
+     Diff R2 = 145.07
+Testing with sklearn:
+     R2_sklearn = -10003.51800601203
+     R2_manual = -4632.805754757926
+     Diff R2 = 5370.71
+Testing with sklearn:
+     R2_sklearn = -4644.365663618666
+     R2_manual = -4345.98972163927
+     Diff R2 = 298.38
+Testing with sklearn:
+     R2_sklearn = 0.6694710434709243
+     R2_manual = 0.8210611192397038
+     Diff R2 = 0.15
+Testing with sklearn:
+     R2_sklearn = 0.5051125103282798
+     R2_manual = 0.716942568037575
+     Diff R2 = 0.21
+Testing with sklearn:
+     R2_sklearn = -0.5675432987941246
+     R2_manual = 0.04683232227033163
+     Diff R2 = 0.61
+Testing with sklearn:
+     R2_sklearn = -0.9264526375746245
+     R2_manual = -0.1284213771133247
+     Diff R2 = 0.80
+Testing with sklearn:
+     R2_sklearn = -0.7807710744104082
+     R2_manual = -0.03155740872103108
+     Diff R2 = 0.75
+Testing with sklearn:
+     R2_sklearn = -0.3022495637536967
+     R2_manual = 0.30749207284304747
+     Diff R2 = 0.61
+Testing with sklearn:
+     R2_sklearn = -2.0032905404163386
+     R2_manual = -0.5576907844635615
+     Diff R2 = 1.45
+Testing with sklearn:
+     R2_sklearn = -8.523469998791883
+     R2_manual = -8.202780489219741
+     Diff R2 = 0.32
+Testing with sklearn:
+     R2_sklearn = -25.69016335063342
+     R2_manual = -11.696608210281582
+     Diff R2 = 13.99
+Testing with sklearn:
+     R2_sklearn = -9.427086633902283
+     R2_manual = -8.74492388318021
+     Diff R2 = 0.68
+Testing with sklearn:
+     R2_sklearn = -198.08311312167743
+     R2_manual = -191.44347420151254
+     Diff R2 = 6.64
+Testing with sklearn:
+     R2_sklearn = -497.6015565288952
+     R2_manual = -230.5715321309844
+     Diff R2 = 267.03
+Testing with sklearn:
+     R2_sklearn = -217.3146659072244
+     R2_manual = -203.12528689415228
+     Diff R2 = 14.19
+Testing with sklearn:
+     R2_sklearn = -4232.499548929106
+     R2_manual = -4091.8691322903564
+     Diff R2 = 140.63
+Testing with sklearn:
+     R2_sklearn = -10482.533387321993
+     R2_manual = -4846.341197153604
+     Diff R2 = 5636.19
+Testing with sklearn:
+     R2_sklearn = -4694.822791612142
+     R2_manual = -4389.687326254206
+     Diff R2 = 305.14
+Testing with sklearn:
+     R2_sklearn = -0.41218060664462525
+     R2_manual = 0.13330684797111858
+     Diff R2 = 0.55
+Testing with sklearn:
+     R2_sklearn = 0.537650648991334
+     R2_manual = 0.7575045525614845
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -1.8735637570707628
+     R2_manual = -0.7779001413143409
+     Diff R2 = 1.10
+Testing with sklearn:
+     R2_sklearn = -2.3749839088070095
+     R2_manual = -1.0478352394567523
+     Diff R2 = 1.33
+Testing with sklearn:
+     R2_sklearn = -1.8684546150257564
+     R2_manual = -0.7102844112369955
+     Diff R2 = 1.16
+Testing with sklearn:
+     R2_sklearn = -0.8579743298376019
+     R2_manual = -0.02971434879110957
+     Diff R2 = 0.83
+Testing with sklearn:
+     R2_sklearn = -2.1490868638650165
+     R2_manual = -0.6211499101288673
+     Diff R2 = 1.53
+Testing with sklearn:
+     R2_sklearn = -8.778750473915018
+     R2_manual = -8.383697540388916
+     Diff R2 = 0.40
+Testing with sklearn:
+     R2_sklearn = -26.35466986385873
+     R2_manual = -11.975223100510583
+     Diff R2 = 14.38
+Testing with sklearn:
+     R2_sklearn = -9.582441652544553
+     R2_manual = -8.891864904171351
+     Diff R2 = 0.69
+Testing with sklearn:
+     R2_sklearn = -200.99062721101228
+     R2_manual = -192.86262009891354
+     Diff R2 = 8.13
+Testing with sklearn:
+     R2_sklearn = -511.3895106204301
+     R2_manual = -236.552506470692
+     Diff R2 = 274.84
+Testing with sklearn:
+     R2_sklearn = -219.60093984718236
+     R2_manual = -205.2454360497881
+     Diff R2 = 14.36
+Testing with sklearn:
+     R2_sklearn = -4335.835317853477
+     R2_manual = -4160.783580538093
+     Diff R2 = 175.05
+Testing with sklearn:
+     R2_sklearn = -10791.53392757259
+     R2_manual = -4981.7038541493575
+     Diff R2 = 5809.83
+Testing with sklearn:
+     R2_sklearn = -4744.610714738017
+     R2_manual = -4435.822337455665
+     Diff R2 = 308.79
+Testing with sklearn:
+     R2_sklearn = -0.9541109208250722
+     R2_manual = -0.19374980640356698
+     Diff R2 = 0.76
+Testing with sklearn:
+     R2_sklearn = -0.339676994169159
+     R2_manual = 0.21118070152249235
+     Diff R2 = 0.55
+Testing with sklearn:
+     R2_sklearn = -2.531235897390413
+     R2_manual = -1.1938086532660437
+     Diff R2 = 1.34
+Testing with sklearn:
+     R2_sklearn = -4.321960699385374
+     R2_manual = -2.305536582025455
+     Diff R2 = 2.02
+Testing with sklearn:
+     R2_sklearn = -1.976817118178897
+     R2_manual = -0.7594460964296474
+     Diff R2 = 1.22
+Testing with sklearn:
+     R2_sklearn = -0.19307240352172864
+     R2_manual = 0.41282820569275325
+     Diff R2 = 0.61
+Testing with sklearn:
+     R2_sklearn = -1.9417154376741963
+     R2_manual = -0.5428590933993567
+     Diff R2 = 1.40
+Testing with sklearn:
+     R2_sklearn = -9.0141457307159
+     R2_manual = -8.688361264991805
+     Diff R2 = 0.33
+Testing with sklearn:
+     R2_sklearn = -22.12539603844025
+     R2_manual = -10.152886526304444
+     Diff R2 = 11.97
+Testing with sklearn:
+     R2_sklearn = -9.72028396532154
+     R2_manual = -9.028017560622146
+     Diff R2 = 0.69
+Testing with sklearn:
+     R2_sklearn = -207.60414756248923
+     R2_manual = -200.8361561598203
+     Diff R2 = 6.77
+Testing with sklearn:
+     R2_sklearn = -442.20452853973666
+     R2_manual = -206.2920593600428
+     Diff R2 = 235.91
+Testing with sklearn:
+     R2_sklearn = -220.39570911922382
+     R2_manual = -205.95708632792395
+     Diff R2 = 14.44
+Testing with sklearn:
+     R2_sklearn = -4350.228694739497
+     R2_manual = -4202.229322470275
+     Diff R2 = 148.00
+Testing with sklearn:
+     R2_sklearn = -9568.294196653234
+     R2_manual = -4444.353897578793
+     Diff R2 = 5123.94
+Testing with sklearn:
+     R2_sklearn = -4754.779390167432
+     R2_manual = -4443.991323017352
+     Diff R2 = 310.79
+Testing with sklearn:
+     R2_sklearn = -14.85762724931907
+     R2_manual = -9.247894005663124
+     Diff R2 = 5.61
+Testing with sklearn:
+     R2_sklearn = -0.2896670506737252
+     R2_manual = 0.2607797557332434
+     Diff R2 = 0.55
+Testing with sklearn:
+     R2_sklearn = -8.132855006512406
+     R2_manual = -4.831205386940076
+     Diff R2 = 3.30
+Testing with sklearn:
+     R2_sklearn = -8.80962889244116
+     R2_manual = -5.209207469100719
+     Diff R2 = 3.60
+Testing with sklearn:
+     R2_sklearn = -6.282830274258179
+     R2_manual = -3.549467676545648
+     Diff R2 = 2.73
+Testing with sklearn:
+     R2_sklearn = -1.9527458167862932
+     R2_manual = -0.7035274480926683
+     Diff R2 = 1.25
+Testing with sklearn:
+     R2_sklearn = -2.3602770195923264
+     R2_manual = -0.7140999682489015
+     Diff R2 = 1.65
+Testing with sklearn:
+     R2_sklearn = -11.919528763751446
+     R2_manual = -11.389044752319425
+     Diff R2 = 0.53
+Testing with sklearn:
+     R2_sklearn = -27.367816854230703
+     R2_manual = -12.400306294457783
+     Diff R2 = 14.97
+Testing with sklearn:
+     R2_sklearn = -9.908752844112655
+     R2_manual = -9.210471105351038
+     Diff R2 = 0.70
+Testing with sklearn:
+     R2_sklearn = -265.8088135120452
+     R2_manual = -254.71465962031192
+     Diff R2 = 11.09
+Testing with sklearn:
+     R2_sklearn = -533.5594568685523
+     R2_manual = -246.05051150974398
+     Diff R2 = 287.51
+Testing with sklearn:
+     R2_sklearn = -224.99284951006257
+     R2_manual = -210.4996001598274
+     Diff R2 = 14.49
+Testing with sklearn:
+     R2_sklearn = -5677.634891409499
+     R2_manual = -5441.6780221576755
+     Diff R2 = 235.96
+Testing with sklearn:
+     R2_sklearn = -11287.036661855196
+     R2_manual = -5195.388698092478
+     Diff R2 = 6091.65
+Testing with sklearn:
+     R2_sklearn = -4859.086898429157
+     R2_manual = -4547.378971633417
+     Diff R2 = 311.71
+Testing with sklearn:
+     R2_sklearn = -17.565722153049123
+     R2_manual = -11.005617836308307
+     Diff R2 = 6.56
+Testing with sklearn:
+     R2_sklearn = -2.8600677819345988
+     R2_manual = -1.40036392429929
+     Diff R2 = 1.46
+Testing with sklearn:
+     R2_sklearn = -15.106189633829496
+     R2_manual = -9.361308327484792
+     Diff R2 = 5.74
+Testing with sklearn:
+     R2_sklearn = -15.662635992628093
+     R2_manual = -9.66339131292688
+     Diff R2 = 6.00
+Testing with sklearn:
+     R2_sklearn = -10.077234348280498
+     R2_manual = -6.01714589860267
+     Diff R2 = 4.06
+Testing with sklearn:
+     R2_sklearn = -2.215654470310892
+     R2_manual = -0.858443196068762
+     Diff R2 = 1.36
+Testing with sklearn:
+     R2_sklearn = -2.397108013137024
+     R2_manual = -0.7317940424482572
+     Diff R2 = 1.67
+Testing with sklearn:
+     R2_sklearn = -8.63951059843431
+     R2_manual = -8.297887272327992
+     Diff R2 = 0.34
+Testing with sklearn:
+     R2_sklearn = -27.22980961544958
+     R2_manual = -12.334535032046702
+     Diff R2 = 14.90
+Testing with sklearn:
+     R2_sklearn = -9.94091588687437
+     R2_manual = -9.243562031588427
+     Diff R2 = 0.70
+Testing with sklearn:
+     R2_sklearn = -196.8103855383205
+     R2_manual = -189.72238964870644
+     Diff R2 = 7.09
+Testing with sklearn:
+     R2_sklearn = -530.6996794391194
+     R2_manual = -244.67597746624713
+     Diff R2 = 286.02
+Testing with sklearn:
+     R2_sklearn = -225.01798167990788
+     R2_manual = -210.55422236690137
+     Diff R2 = 14.46
+Testing with sklearn:
+     R2_sklearn = -4154.912521977298
+     R2_manual = -4007.6185835832907
+     Diff R2 = 147.29
+Testing with sklearn:
+     R2_sklearn = -11233.078958150447
+     R2_manual = -5169.223824764557
+     Diff R2 = 6063.86
+Testing with sklearn:
+     R2_sklearn = -4859.27002065026
+     R2_manual = -4548.213020241965
+     Diff R2 = 311.06
+Testing with sklearn:
+     R2_sklearn = -8.732716645603867
+     R2_manual = -5.2281026653145295
+     Diff R2 = 3.50
+Testing with sklearn:
+     R2_sklearn = -11.788030588029809
+     R2_manual = -7.198462832895087
+     Diff R2 = 4.59
+Testing with sklearn:
+     R2_sklearn = -27.774449040226244
+     R2_manual = -17.600821806106815
+     Diff R2 = 10.17
+Testing with sklearn:
+     R2_sklearn = -25.393289984770828
+     R2_manual = -16.003423027761503
+     Diff R2 = 9.39
+Testing with sklearn:
+     R2_sklearn = -16.1397197102006
+     R2_manual = -9.962455844542118
+     Diff R2 = 6.18
+Testing with sklearn:
+     R2_sklearn = -1.7881462096419192
+     R2_manual = -0.5682192086625044
+     Diff R2 = 1.22
+Testing with sklearn:
+     R2_sklearn = -2.4336028515690757
+     R2_manual = -0.7449918199371939
+     Diff R2 = 1.69
+Testing with sklearn:
+     R2_sklearn = -8.708186168055828
+     R2_manual = -8.365196423515888
+     Diff R2 = 0.34
+Testing with sklearn:
+     R2_sklearn = -27.354960991005747
+     R2_manual = -12.38482500209048
+     Diff R2 = 14.97
+Testing with sklearn:
+     R2_sklearn = -10.027684858734833
+     R2_manual = -9.330525621904005
+     Diff R2 = 0.70
+Testing with sklearn:
+     R2_sklearn = -197.78376028363826
+     R2_manual = -190.67074206563754
+     Diff R2 = 7.11
+Testing with sklearn:
+     R2_sklearn = -533.93949775057
+     R2_manual = -246.00355217927446
+     Diff R2 = 287.94
+Testing with sklearn:
+     R2_sklearn = -226.32183717054303
+     R2_manual = -211.86964430518557
+     Diff R2 = 14.45
+Testing with sklearn:
+     R2_sklearn = -4170.897572444339
+     R2_manual = -4023.2916000485875
+     Diff R2 = 147.61
+Testing with sklearn:
+     R2_sklearn = -11310.257896354264
+     R2_manual = -5201.197779464822
+     Diff R2 = 6109.06
+Testing with sklearn:
+     R2_sklearn = -4886.820728994719
+     R2_manual = -4576.0252772365775
+     Diff R2 = 310.80
+###############################################
+         Without Resampling
+###############################################
+no variance formula for lasso!!!!
+Optimal model is
+    Deg  : 1
+    Lamb : 0.001
+    RS2  : 0.981
+    MSE  : 4.958
+    Var  : 0.000
+    Bias : 4.958
+    Beta : [1193.02    9.77   11.09]
+    Conf : [1.96 1.96 1.96]
+
+Plotting the LASSO regression parameters with confidence intervals
+    Figure saved in: output/figures/data/LASSO_parameters_pdeg1_lamb0_n100.pdf
+
+###############################################
+             With Bootstrap
+###############################################
+no variance formula for lasso!!!!
+Optimal model is
+    Deg  : 1
+    Lamb : 0.001
+    RS2  : 0.976
+    MSE  : 5.033
+    Var  : 0.249
+    Bias : 4.784
+    Beta : [1195.23   10.34   11.44]
+    Conf : [1.96 1.96 1.96]
+
+Plotting the LASSO regression parameters with confidence intervals
+    Figure saved in: output/figures/data/LASSO_parameters_pdeg1_lamb0_n100_bs0.001.pdf
+
+###############################################
+              With kFold
+###############################################
+no variance formula for lasso!!!!
+Optimal model is
+    Deg  : 1
+    Lamb : 0.001
+    RS2  : 0.964
+    MSE  : 8.268
+    Var  : 122.283
+    Bias : 125.477
+    Beta : [1193.72    9.85   11.02]
+    Conf : [1.96 1.96 1.96]
+
+Plotting the LASSO regression parameters with confidence intervals
+    Figure saved in: output/figures/data/LASSO_parameters_pdeg1_lamb0_n100_kFold0.001.pdf
+
+Bias variance relations
+
+Testing with sklearn:
+     R2_sklearn = 0.4483722166437012
+     R2_manual = 0.6779621273651382
+     Diff R2 = 0.23
+Testing with sklearn:
+     R2_sklearn = 0.3496026506087477
+     R2_manual = 0.6252094773191165
+     Diff R2 = 0.28
+Testing with sklearn:
+     R2_sklearn = -0.27231191993380577
+     R2_manual = 0.23789693216282481
+     Diff R2 = 0.51
+Testing with sklearn:
+     R2_sklearn = -1.2013567846583733
+     R2_manual = -0.3441768903067608
+     Diff R2 = 0.86
+Testing with sklearn:
+     R2_sklearn = -2.1399933123643478
+     R2_manual = -0.9353268994801183
+     Diff R2 = 1.20
+Testing with sklearn:
+     R2_sklearn = -12.182961780313944
+     R2_manual = -7.478771810151867
+     Diff R2 = 4.70
+Testing with sklearn:
+     R2_sklearn = -26.058627473130446
+     R2_manual = -16.50347296857553
+     Diff R2 = 9.56
+###############################################
+Bias-variance vs degrees for different lambdas
+###############################################
+Plotting the Bias, Variance and MSE for LASSO as a function of degrees
+    Figure saved in: output/figures/data/LASSO_bias_variance_degrees_n100_bs100_lamb1.0000.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of degrees
+    Figure saved in: output/figures/data/LASSO_bias_variance_degrees_n100_bs100_lamb0.0100.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of degrees
+    Figure saved in: output/figures/data/LASSO_bias_variance_degrees_n100_bs100_lamb0.0000.pdf
+
+###############################################
+  Comparisons between k-Fold and Bootstrap
+###############################################
+Comparing MSE for k-fold and bootstrap methods
+    Figure saved in: output/figures/data/LASSO_compare_MSE_n100_lambda0.01_bs10_k100.pdf
+
+Comparing R-score for k-fold and bootstrap methods
+    Figure saved in: output/figures/data/LASSO_compare_R2_n100_lambda0.01_bs10_k100.pdf
+
+###############################################
+ Bias-variance vs lambdas for different degrees
+###############################################
+Testing with sklearn:
+     R2_sklearn = -0.41218060664462525
+     R2_manual = 0.13330684797111858
+     Diff R2 = 0.55
+Testing with sklearn:
+     R2_sklearn = 0.537650648991334
+     R2_manual = 0.7575045525614845
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -1.8735637570707628
+     R2_manual = -0.7779001413143409
+     Diff R2 = 1.10
+Testing with sklearn:
+     R2_sklearn = -2.3749839088070095
+     R2_manual = -1.0478352394567523
+     Diff R2 = 1.33
+Testing with sklearn:
+     R2_sklearn = -1.8684546150257564
+     R2_manual = -0.7102844112369955
+     Diff R2 = 1.16
+Testing with sklearn:
+     R2_sklearn = -0.8579743298376019
+     R2_manual = -0.02971434879110957
+     Diff R2 = 0.83
+Testing with sklearn:
+     R2_sklearn = -2.1490868638650165
+     R2_manual = -0.6211499101288673
+     Diff R2 = 1.53
+Testing with sklearn:
+     R2_sklearn = -26.35466986385873
+     R2_manual = -11.975223100510583
+     Diff R2 = 14.38
+Testing with sklearn:
+     R2_sklearn = -9.582441652544553
+     R2_manual = -8.891864904171351
+     Diff R2 = 0.69
+Testing with sklearn:
+     R2_sklearn = -9.368664703780823
+     R2_manual = -8.98208951189476
+     Diff R2 = 0.39
+Testing with sklearn:
+     R2_sklearn = -8.933836804380935
+     R2_manual = -8.532143188737841
+     Diff R2 = 0.40
+Testing with sklearn:
+     R2_sklearn = -9.945185984541872
+     R2_manual = -9.479142701544982
+     Diff R2 = 0.47
+Testing with sklearn:
+     R2_sklearn = -511.3895106204301
+     R2_manual = -236.552506470692
+     Diff R2 = 274.84
+Testing with sklearn:
+     R2_sklearn = -219.60093984718236
+     R2_manual = -205.2454360497881
+     Diff R2 = 14.36
+Testing with sklearn:
+     R2_sklearn = -202.8171551321253
+     R2_manual = -194.8998946749309
+     Diff R2 = 7.92
+Testing with sklearn:
+     R2_sklearn = -206.3428901774492
+     R2_manual = -197.93269425437532
+     Diff R2 = 8.41
+Testing with sklearn:
+     R2_sklearn = -224.57627200476225
+     R2_manual = -214.98361750056267
+     Diff R2 = 9.59
+Testing with sklearn:
+     R2_sklearn = -10791.53392757259
+     R2_manual = -4981.7038541493575
+     Diff R2 = 5809.83
+Testing with sklearn:
+     R2_sklearn = -4744.610714738017
+     R2_manual = -4435.822337455665
+     Diff R2 = 308.79
+Testing with sklearn:
+     R2_sklearn = -4369.563147502294
+     R2_manual = -4199.323693594136
+     Diff R2 = 170.24
+Testing with sklearn:
+     R2_sklearn = -4373.314286622837
+     R2_manual = -4191.2120145713125
+     Diff R2 = 182.10
+Testing with sklearn:
+     R2_sklearn = -4756.199464312772
+     R2_manual = -4539.127403972883
+     Diff R2 = 217.07
+###############################################
+             With Bootstrap
+###############################################
+Plotting the Bias, Variance and MSE for LASSO as a function of lambda
+    Figure saved in: output/figures/data/LASSO_bias_variance_lambda_n100_d2_bs100.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of lambda
+    Figure saved in: output/figures/data/LASSO_bias_variance_lambda_n100_d6_bs100.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of lambda
+    Figure saved in: output/figures/data/LASSO_bias_variance_lambda_n100_d9_bs100.pdf

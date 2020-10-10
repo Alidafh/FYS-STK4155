@@ -1,0 +1,588 @@
+alida ~/Documents/uio/Master/FYS-STK4155/project1 master(*) $ source run.sh
+Do you want to run on the Franke Function [f] or real data [d]?
+f
+Do you want OLS [o], RIDGE [r], LASSO [l] or all [a]?
+a
+Generating data for the Franke function with n = 100 datapoints
+
+#######################################################################
+                        Ordinary least squares
+#######################################################################
+###############################################
+         Without Resampling
+###############################################
+Plotting the MSE of the training and test results(2.11 Hastie)
+    Figure saved in: output/figures/franke/OLS_MSE_test_train_n100_d10.pdf
+
+Optimal model is
+    Deg  : 6
+    RS2  : 0.980 (train: 0.992)
+    MSE  : 0.002 (train: 0.001)
+    Var  : 0.000 (train: 0.000)
+    Bias : 0.002 (train: 0.001)
+    Beta : [ -0.08   1.61   2.5    2.38  -9.43  -6.55 -36.36   7.15  33.12  -3.86
+  84.32   8.2   -6.79 -64.95  30.5  -75.54 -23.52  -2.15   9.92  55.92
+ -35.08  23.78  12.29   2.04   1.69  -7.18 -16.52  12.57]
+    Conf : [ 0.43  1.4   1.21  7.01  7.49  5.68 20.04 22.31 18.02 16.52 33.06 35.34
+ 27.95 25.22 27.74 27.91 25.96 26.79 22.43 21.3  23.69  9.23  8.02 11.77
+  8.64  8.99  8.33  7.96]
+
+Plotting the OLS regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/OLS_parameters_pdeg6_n100_d10.pdf
+
+###############################################
+             With Bootstrap
+###############################################
+Plotting the MSE of the training and test results(2.11 Hastie)
+    Figure saved in: output/figures/franke/OLS_MSE_test_train_n100_d10_bs100.pdf
+
+Plotting the Bias, Variance and MSE for OLS as a function of degrees
+    Figure saved in: output/figures/franke/OLS_bias_variance_degrees_n100_d10_bs100.pdf
+
+Optimal model is
+    Deg  : 3
+    RS2  : 0.865 (train: 0.919)
+    MSE  : 0.011 (train: 0.007)
+    Var  : 0.002 (train: 0.081)
+    Bias : 0.009 (train: 0.088)
+    Beta : [ 0.71 -0.03  0.62 -0.72  0.7  -2.57  0.36  0.3  -0.71  1.86]
+    Conf : [0.12 0.27 0.29 0.51 0.49 0.59 0.32 0.32 0.38 0.4 ]
+
+Plotting the OLS regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/OLS_parameters_pdeg3_n100_d10_bs100.pdf
+
+###############################################
+              With kFold
+###############################################
+Plotting the MSE of the training and test results(2.11 Hastie)
+    Figure saved in: output/figures/franke/OLS_MSE_test_train_n100_d10_kFold10.pdf
+
+Optimal model is
+    Deg  : 8
+    RS2  : 0.983 (train: 0.999)
+    MSE  : 0.001 (train: 0.000)
+    Var  : 0.085 (train: 0.039)
+    Bias : 0.084 (train: 0.039)
+    Beta : [    1.19    -1.46    -3.25     6.2     30.      28.28    -3.86   -40.
+  -234.46   -69.6    -62.19  -165.45   478.73   731.61   -66.94   204.81
+   647.    -454.67  -968.55 -1289.01   567.76  -268.68  -913.6     80.5
+   764.33  1010.61  1272.5   -972.02   159.34   619.35   119.64  -336.23
+  -348.43  -646.69  -623.74   709.09   -34.1   -177.29   -18.16   -10.58
+   145.      18.93   197.13   111.29  -193.49]
+    Conf : [  0.56   2.9    1.96  27.71  17.28  19.51 141.2  109.98  78.75 105.58
+ 426.57 379.04 228.09 261.29 340.23 780.16 741.5  475.91 417.95 522.59
+ 662.76 840.61 837.04 634.01 469.99 493.78 650.64 751.67 487.21 500.07
+ 476.37 333.21 358.77 410.31 474.95 456.09 116.24 126.58 179.36 151.77
+ 169.38 148.25 148.86 145.33 114.76]
+
+Plotting the OLS regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/OLS_parameters_pdeg8_n100_d10_kFold10.pdf
+
+###############################################
+              Comparisons
+###############################################
+Comparing R-score for k-fold and bootstrap methods
+    Figure saved in: output/figures/franke/OLS_compare_R2_n100_d10_bs100_k10.pdf
+
+Comparing MSE for k-fold and bootstrap methods
+    Figure saved in: output/figures/franke/OLS_compare_MSE_n100_d10_bs100_k10.pdf
+
+###############################################
+     Bias-variance as a function of ndata
+              (Bootstrap)
+###############################################
+Plotting the Bias, Variance and MSE for OLS as a function of data
+    Figure saved in: output/figures/franke/OLS_bias_variance_data_min100_max500_step50_d6_bs100.pdf
+
+Plotting the Bias, Variance and MSE for OLS for multiple degrees
+    Figure saved in: output/figures/franke/OLS_bias_variance_data_deg_min100_max500_step50_bs100.pdf
+
+Generating data for the Franke function with n = 100 datapoints
+
+#######################################################################
+                                Ridge
+#######################################################################
+
+Finding the optimal combination of lambda and degree:
+
+###############################################
+         Without Resampling
+###############################################
+Optimal model is
+    Deg  : 9
+    Lamb : 0.001
+    RS2  : 0.972
+    MSE  : 0.003
+    Var  : 0.000
+    Bias : 0.003
+    Beta : [ 0.46  1.03  0.63 -3.34 -0.61 -1.51  1.27  0.24  1.22 -0.62  2.3   0.44
+  1.97 -1.47  1.26  0.72 -0.11  0.29 -0.07 -0.93  1.23 -0.98 -0.61 -0.67
+ -0.72  0.06  0.04  0.15 -1.56 -0.63 -0.71 -0.72 -0.31  0.44  0.44 -0.73
+ -0.77 -0.11 -0.14 -0.11 -0.08 -0.06  0.32  0.35 -0.74  1.21  0.82  0.74
+  0.76  0.56  0.08 -0.38 -0.25  0.07  0.25]
+    Conf : [0.28 0.51 0.48 1.43 1.2  1.38 1.4  1.38 1.47 1.43 1.05 1.23 1.5  1.34
+ 1.02 0.78 0.92 1.16 1.11 0.95 0.83 0.94 1.14 0.88 1.06 0.98 1.   0.86
+ 1.14 1.01 1.   0.89 1.07 1.09 1.   1.07 0.58 0.73 0.98 0.6  0.78 0.73
+ 1.   0.68 0.6  1.42 1.57 1.43 1.01 1.2  1.05 1.25 1.38 1.51 1.27]
+
+Plotting the RIDGE regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/RIDGE_parameters_pdeg9_lamb0_n100_deg9_lamb0.0010.pdf
+
+###############################################
+             With Bootstrap
+###############################################
+Optimal model is
+    Deg  : 6
+    Lamb : 0.004641588833612777
+    RS2  : 0.910
+    MSE  : 0.006
+    Var  : 0.002
+    Bias : 0.004
+    Beta : [ 0.62  0.45  0.55 -2.03  0.33 -1.82  0.97  0.44 -0.45  0.26  1.11  0.17
+  0.2  -0.21  1.22  0.02 -0.24 -0.09  0.02  0.05  0.56 -0.81 -0.14  0.18
+ -0.14  0.    0.1  -0.87]
+    Conf : [0.17 0.23 0.24 0.5  0.46 0.52 0.43 0.55 0.52 0.41 0.4  0.48 0.48 0.4
+ 0.39 0.36 0.34 0.48 0.44 0.33 0.33 0.46 0.57 0.56 0.47 0.57 0.54 0.46]
+
+Plotting the RIDGE regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/RIDGE_parameters_pdeg6_lamb0_n100_deg6_lamb0.0046_bs100.pdf
+
+###############################################
+              With kFold
+###############################################
+Optimal model is
+    Deg  : 8
+    Lamb : 0.001
+    RS2  : 0.965
+    MSE  : 0.003
+    Var  : 0.082
+    Bias : 0.084
+    Beta : [ 0.46  1.12  0.7  -4.02 -0.71 -1.9   2.26  0.92  0.71 -0.03  2.53  0.77
+  1.61 -0.91  1.4  -0.06 -0.59 -0.2  -0.01 -0.53  0.85 -1.84 -1.23 -1.1
+ -0.83  0.02  0.04 -0.33 -1.41 -0.58 -0.5  -0.52 -0.34  0.17  0.26 -0.8
+  1.25  1.18  1.15  0.88  0.39 -0.14 -0.06  0.34  0.01]
+    Conf : [0.18 0.4  0.35 1.19 0.92 1.1  1.13 1.09 1.16 1.18 0.78 0.84 1.08 0.93
+ 0.73 0.64 0.78 0.89 0.86 0.8  0.63 0.99 0.89 0.84 0.87 0.89 0.85 0.94
+ 0.59 0.57 0.84 0.61 0.66 0.79 0.59 0.58 1.1  1.21 1.18 0.89 1.01 0.89
+ 1.24 1.17 1.03]
+
+Plotting the RIDGE regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/RIDGE_parameters_pdeg8_lamb0_n100_deg8_lamb0.0010_kFold10.pdf
+
+Bias variance relations
+
+###############################################
+Bias-variance vs degrees for different lambdas
+###############################################
+Plotting the Bias, Variance and MSE for RIDGE as a function of degrees
+    Figure saved in: output/figures/franke/RIDGE_bias_variance_degrees_n100_bs100_lamb1.0000.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of degrees
+    Figure saved in: output/figures/franke/RIDGE_bias_variance_degrees_n100_bs100_lamb0.0100.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of degrees
+    Figure saved in: output/figures/franke/RIDGE_bias_variance_degrees_n100_bs100_lamb0.0000.pdf
+
+###############################################
+  Comparisons between k-Fold and Bootstrap
+###############################################
+Comparing MSE for k-fold and bootstrap methods
+    Figure saved in: output/figures/franke/RIDGE_compare_MSE_n100_lambda0.01_bs10_k100.pdf
+
+Comparing R-score for k-fold and bootstrap methods
+    Figure saved in: output/figures/franke/RIDGE_compare_R2_n100_lambda0.01_bs10_k100.pdf
+
+###############################################
+ Bias-variance vs lambdas for different degrees
+###############################################
+###############################################
+             With Bootstrap
+###############################################
+Plotting the Bias, Variance and MSE for RIDGE as a function of lambda
+    Figure saved in: output/figures/franke/RIDGE_bias_variance_lambda_n100_d2_bs100.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of lambda
+    Figure saved in: output/figures/franke/RIDGE_bias_variance_lambda_n100_d6_bs100.pdf
+
+Plotting the Bias, Variance and MSE for RIDGE as a function of lambda
+    Figure saved in: output/figures/franke/RIDGE_bias_variance_lambda_n100_d9_bs100.pdf
+
+Generating data for the Franke function with n = 100 datapoints
+
+#######################################################################
+                                Lasso
+#######################################################################
+
+Finding the optimal combination of lambda and degree:
+
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+###############################################
+         Without Resampling
+###############################################
+no variance formula for lasso!!!!
+Optimal model is
+    Deg  : 8
+    Lamb : 0.001
+    RS2  : 0.903
+    MSE  : 0.008
+    Var  : 0.000
+    Bias : 0.008
+    Beta : [ 0.86 -0.    0.1  -0.48  0.27 -0.57  0.    0.   -0.    0.    0.48  0.03
+ -0.   -0.14  0.    0.    0.   -0.   -0.   -0.    0.34  0.    0.   -0.
+ -0.   -0.   -0.    0.   -0.   -0.   -0.   -0.   -0.   -0.   -0.    0.
+ -0.22 -0.   -0.   -0.   -0.   -0.   -0.   -0.   -0.  ]
+    Conf : [1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96]
+
+Plotting the LASSO regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/LASSO_parameters_pdeg8_lamb0_n100.pdf
+
+###############################################
+             With Bootstrap
+###############################################
+no variance formula for lasso!!!!
+Optimal model is
+    Deg  : 7
+    Lamb : 0.001
+    RS2  : 0.878
+    MSE  : 0.009
+    Var  : 0.002
+    Bias : 0.007
+    Beta : [ 0.88 -0.1   0.13 -0.29  0.28 -0.64  0.    0.   -0.   -0.    0.33  0.05
+ -0.   -0.18  0.    0.    0.    0.   -0.   -0.    0.4  -0.    0.    0.
+  0.    0.   -0.    0.   -0.17 -0.    0.    0.    0.    0.   -0.    0.  ]
+    Conf : [1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96]
+
+Plotting the LASSO regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/LASSO_parameters_pdeg7_lamb0_n100_bs0.001.pdf
+
+###############################################
+              With kFold
+###############################################
+no variance formula for lasso!!!!
+Optimal model is
+    Deg  : 10
+    Lamb : 0.001
+    RS2  : 0.892
+    MSE  : 0.009
+    Var  : 0.071
+    Bias : 0.084
+    Beta : [ 0.87 -0.    0.1  -0.43  0.19 -0.57  0.    0.   -0.    0.    0.41  0.04
+ -0.   -0.08  0.    0.    0.   -0.   -0.   -0.    0.42  0.    0.   -0.
+ -0.   -0.   -0.    0.    0.    0.   -0.   -0.   -0.   -0.   -0.    0.
+ -0.    0.   -0.   -0.   -0.   -0.   -0.   -0.   -0.   -0.    0.   -0.
+ -0.   -0.   -0.   -0.   -0.   -0.   -0.   -0.19  0.   -0.   -0.   -0.
+ -0.   -0.   -0.   -0.   -0.   -0.09]
+    Conf : [1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96
+ 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96 1.96]
+
+Plotting the LASSO regression parameters with confidence intervals
+    Figure saved in: output/figures/franke/LASSO_parameters_pdeg10_lamb0_n100_kFold0.001.pdf
+
+Bias variance relations
+
+Testing with sklearn:
+     R2_sklearn = -2.3603437569440118
+     R2_manual = -2.2441281456541033
+     Diff R2 = 0.12
+Testing with sklearn:
+     R2_sklearn = -2.3484691048502437
+     R2_manual = -2.24799380741745
+     Diff R2 = 0.10
+###############################################
+Bias-variance vs degrees for different lambdas
+###############################################
+Plotting the Bias, Variance and MSE for LASSO as a function of degrees
+    Figure saved in: output/figures/franke/LASSO_bias_variance_degrees_n100_bs100_lamb1.0000.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of degrees
+    Figure saved in: output/figures/franke/LASSO_bias_variance_degrees_n100_bs100_lamb0.0100.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of degrees
+    Figure saved in: output/figures/franke/LASSO_bias_variance_degrees_n100_bs100_lamb0.0000.pdf
+
+###############################################
+  Comparisons between k-Fold and Bootstrap
+###############################################
+Comparing MSE for k-fold and bootstrap methods
+    Figure saved in: output/figures/franke/LASSO_compare_MSE_n100_lambda0.01_bs10_k100.pdf
+
+Comparing R-score for k-fold and bootstrap methods
+    Figure saved in: output/figures/franke/LASSO_compare_R2_n100_lambda0.01_bs10_k100.pdf
+
+###############################################
+ Bias-variance vs lambdas for different degrees
+###############################################
+Testing with sklearn:
+     R2_sklearn = -2.3371155158047063
+     R2_manual = -2.233635387278668
+     Diff R2 = 0.10
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.3484691048502437
+     R2_manual = -2.24799380741745
+     Diff R2 = 0.10
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.3484691048502437
+     R2_manual = -2.24799380741745
+     Diff R2 = 0.10
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.3484691048502437
+     R2_manual = -2.24799380741745
+     Diff R2 = 0.10
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.3484691048502437
+     R2_manual = -2.24799380741745
+     Diff R2 = 0.10
+Testing with sklearn:
+     R2_sklearn = -2.4042586048915373
+     R2_manual = -2.1862256001604288
+     Diff R2 = 0.22
+Testing with sklearn:
+     R2_sklearn = -2.3484691048502437
+     R2_manual = -2.24799380741745
+     Diff R2 = 0.10
+###############################################
+             With Bootstrap
+###############################################
+Plotting the Bias, Variance and MSE for LASSO as a function of lambda
+    Figure saved in: output/figures/franke/LASSO_bias_variance_lambda_n100_d2_bs100.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of lambda
+    Figure saved in: output/figures/franke/LASSO_bias_variance_lambda_n100_d6_bs100.pdf
+
+Plotting the Bias, Variance and MSE for LASSO as a function of lambda
+    Figure saved in: output/figures/franke/LASSO_bias_variance_lambda_n100_d9_bs100.pdf
