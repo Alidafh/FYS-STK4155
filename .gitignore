@@ -3,7 +3,6 @@
 hw*/
 test*
 project1/__pycache__
-project1/output
 
 # Prerequisites
 *.d
