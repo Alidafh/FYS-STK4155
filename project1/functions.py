@@ -5,10 +5,12 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Lasso, LinearRegression
 from sklearn.utils import resample
 import scipy as scl
 from tools import SVDinv, foldIndex
 import sys
+from imageio import imread
 
 ###############################################################################
 
@@ -99,12 +101,13 @@ def PolyDesignMatrix(x, y, d):
 
 def scale_X(train, test, scaler="manual"):
     """
-    Scales the training and test data using sklearn's StandardScaler.
+    Scales the training and test data either by subtracting the mean and
+    dividing by the std manually or using sklearn's StandardScaler.
     --------------------------------
     Input
         train: The training set
         test:  The test set
-        scaler: Choose what scaler you want to use
+        scaler: Choose what scaler you want to use "manual" or "sklearn"
     --------------------------------
     Returns
         train_scl: The scaled training set
@@ -112,7 +115,7 @@ def scale_X(train, test, scaler="manual"):
     --------------------------------
     TO DO: FINISHED
     """
-    """
+
     if scaler == "sklearn":
         scaler = StandardScaler()
         scaler.fit(train[:,1:])
@@ -120,24 +123,15 @@ def scale_X(train, test, scaler="manual"):
         test_scl = np.ones(test.shape)
         train_scl[:,1:] = scaler.transform(train[:,1:])
         test_scl[:,1:] = scaler.transform(test[:,1:])
-    """
 
-    train_scl =  np.ones(train.shape)
-    test_scl = np.ones(test.shape)
-    mean_train = np.mean(train[:,1:])
-    std_train = np.std(train[:,1:])
-    train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
-    test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
+    if scaler=="manual":
+        train_scl =  np.ones(train.shape)
+        test_scl = np.ones(test.shape)
+        mean_train = np.mean(train[:,1:])
+        std_train = np.std(train[:,1:])
+        train_scl[:,1:] = (train[:,1:] - mean_train)/std_train
+        test_scl[:,1:]= (test[:,1:] - mean_train)/std_train
 
-    """
-    train_scl =  np.ones(train.shape)
-    test_scl = np.ones(test.shape)
-    mean_train = np.mean(train[:,1:])
-    #mean_train = np.mean(train)
-    train_scl[:,1:] = (train[:,1:] - mean_train)
-    test_scl[:,1:]= (test[:,1:] - mean_train)
-
-    """
     return train_scl, test_scl
 
 def metrics(z_true, z_pred, test=False):
@@ -181,10 +175,10 @@ def metrics(z_true, z_pred, test=False):
             print("     R2_sklearn =", r2_sklearn)
             print("     R2_manual =", R2)
             print("     Diff R2 = {:.2f}". format(R2-r2_sklearn))
-            print("-------------")
-            print("    MSE = ", MSE)
-            print("    bias+variance = ", bias+var)
-            print("-------------\n")
+            #print("-------------")
+            #print("    MSE = ", MSE)
+            #print("    bias+variance = ", bias+var)
+            #print("-------------\n")
 
         if np.abs(MSE-mse_sklearn) > 0.1:
             print("     Diff MSE = {:.2f}\n".format(MSE-mse_sklearn))
@@ -255,8 +249,6 @@ def OLS(z, X, var = False):
     - var=False
         beta: The estimated OLS regression parameters, shape (p,1)
         (var_beta: The variance of the parameters (p,1), returned if var=True)
-    --------------------------------
-    TODO: Find out if the absoultevalue thing in variance calculations is legit.
     """
 
     #beta = np.linalg.pinv(X) @ z
@@ -311,17 +303,32 @@ def Ridge(z, X, lamb, var=False):
 
     return beta
 
-def lasso(dm, z, lam):
+def lasso(z, dm, lam, var=False):
+    """
+    Preforming Lasso regression using sklearn
+    --------------------------------
+    Input
+        z: response variable
+        dm: Design matrix
+        lam: The regularization parameter
+        var: This is added to get the same functionality as for Ridge and OLS
+             but we have not had time to fix this.
+    --------------------------------
+    Returns
+    - var=False
+        beta: The estimated OLS regression parameters, shape (p,1)
+    - var=True:
+        beta: The estimated OLS regression parameters, shape (p,1)
+        var_beta: The variance of the parameters (p,1)
+    """
     reg = Lasso(alpha=lam, fit_intercept = False, max_iter=100000)
     reg.fit(dm,z)
-    # print(reg.intercept_)
-    return np.transpose(np.array([reg.coef_]))
-
-def OLSskl(dm, z, dummy):
-    reg = LinearRegression()
-    reg.fit(dm, z)
-    # print(reg.intercept_)
-    return np.transpose(np.array([reg.coef_]))
+    beta = np.transpose(np.array([reg.coef_]))
+    if var ==True:
+        print("no variance formula for lasso!!!!")
+        var_beta = np.ones(beta.shape)
+        return beta, var_beta
+    return beta
 
 def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
     """
@@ -333,7 +340,8 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
         n_bootstraps: The number of bootstraps
         RegType:      "OLS" for Ordinary least squares(default)
                       "RIDGE" for Ridge
-        lamb:         the lambda value if RegType="RIDGE"
+                      "LASSO" for Lasso
+        lamb:         the lambda value if RegType="RIDGE" or "LASSO"
     --------------------------------
     Returns
         z_train_cp: (train_size, n_bootstraps)
@@ -361,6 +369,7 @@ def Bootstrap(x, y, z, d, n_bootstraps, RegType, lamb=0):
         z_train_cp[:,j] = tmp_z_train.ravel()
         if RegType == "OLS": tmp_beta = OLS(tmp_z_train, tmp_X_train)
         if RegType == "RIDGE": tmp_beta = Ridge(tmp_z_train, tmp_X_train, lamb)
+        if RegType == "LASSO": tmp_beta = lasso(tmp_z_train, tmp_X_train, lamb)
         z_pred[:,j] = (X_test @ tmp_beta).ravel()
         z_fit[:,j] = (tmp_X_train @ tmp_beta).ravel()
 
@@ -377,6 +386,7 @@ def kFold(x, y, z, d, k=5, shuffle = False, RegType="OLS", lamb=0):
         shuffle:      Bool, shuffle the design matrix(default:False)
         RegType:      "OLS" for Ordinary least squares(default)
                       "RIDGE" for Ridge
+                      "LASSO" for Lasso
         lamb:         the lambda value if RegType="RIDGE"
     --------------------------------
     Returns
@@ -385,7 +395,6 @@ def kFold(x, y, z, d, k=5, shuffle = False, RegType="OLS", lamb=0):
         z_fit:      (train_size, k)
         z_pred      (test_size, k)
     --------------------------------
-    TODO:
     """
     X_ = PolyDesignMatrix(x, y, d)
 
@@ -409,6 +418,7 @@ def kFold(x, y, z, d, k=5, shuffle = False, RegType="OLS", lamb=0):
 
         if RegType == "OLS": beta = OLS(z_train, X_train)
         if RegType == "RIDGE": beta = Ridge(z_train, X_train, lamb)
+        if RegType == "LASSO": beta = lasso(z_train, X_train, lamb)
 
         z_fit_tmp = X_train @ beta
         z_pred_tmp = X_test @ beta
@@ -440,6 +450,7 @@ def regression(z, X, rType="OLS", lamb=0):
 
     if rType =="OLS": beta = OLS(z_train, X_train_scl)
     if rType =="RIDGE": beta = Ridge(z_train, X_train_scl, lamb)
+    if rType == "LASSO": beta = lasso(z_train, X_train_scl, lamb)
 
     z_fit = X_train_scl @ beta
     z_pred = X_test_scl @ beta
@@ -454,6 +465,7 @@ def get_beta(x, y, z, d, rType="OLS", lamb=0):
 
     if rType =="OLS": beta, var_beta = OLS(z_train, X_train_scl, var=True)
     if rType =="RIDGE": beta, var_beta = Ridge(z_train, X_train_scl, lamb, var=True)
+    if rType =="LASSO": beta, var_beta = lasso(z_train, X_train_scl, lamb, var=True)
 
     conf_beta = 1.96*np.sqrt(var_beta)  # 95% confidence
 
@@ -462,7 +474,7 @@ def get_beta(x, y, z, d, rType="OLS", lamb=0):
 
     return beta, conf_beta
 
-def optimal_model_degree(x, y, z, metrics_test, metrics_train, rType = "OLS", lamb = 0, quiet = True, info=""):
+def optimal_model_degree(x, y, z, metrics_test, metrics_train, rType = "OLS", lamb = 0, quiet = True, info="", f=""):
 
     mse_min = metrics_test[1].min()     # The lowest MSE
     at_ = metrics_test[1].argmin()      # The index of mse_min
@@ -486,11 +498,11 @@ def optimal_model_degree(x, y, z, metrics_test, metrics_train, rType = "OLS", la
         print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
         print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
         print("")
-        plot.beta_conf(beta, conf_beta, best_degree, mse_min, m_test_best[0], rType, lamb, info)
+        plot.beta_conf(beta, conf_beta, best_degree, mse_min, m_test_best[0], rType, lamb, info, f)
 
     return beta, best_degree, m_test_best
 
-def optimal_model_lamb(x, y, z, metrics_test, metrics_train, d, lambdas, rType = "RIDGE", quiet = True, info=""):
+def optimal_model_lamb(x, y, z, metrics_test, metrics_train, d, lambdas, rType = "RIDGE", quiet = True, info="", f=""):
 
     mse_min = metrics_test[1].min()     # The lowest MSE
     at_ = metrics_test[1].argmin()      # The index of mse_min
@@ -516,7 +528,7 @@ def optimal_model_lamb(x, y, z, metrics_test, metrics_train, d, lambdas, rType =
         print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
         print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
         print("")
-        plot.beta_conf(beta, conf_beta, d, mse_min, m_test_best[0], rType="RIDGE", lamb = best_lamb, info = info)
+        plot.beta_conf(beta, conf_beta, d, mse_min, m_test_best[0], rType="RIDGE", lamb = best_lamb, info = info, FOLDER=f)
 
     return beta, best_lamb, m_test_best
 
@@ -527,9 +539,9 @@ def optimal(x, metrics_test):
     m_test_best = metrics_test[:,at_]   # The corresponding statistics
     return best_x, m_test_best
 
-def print_plot_modelparams(x, y, z, m_test, d, lamb, rType = "RIDGE", quiet = True, info=""):
-    # Find the regression parameters for best_lamb
-    beta, conf_beta = func.get_beta(x, y, z, d, rType, lamb)
+def print_plot_modelparams(x, y, z, m_test, d, lamb, rType = "RIDGE", quiet = True, info="", f=""):
+
+    beta, conf_beta = get_beta(x, y, z, d, rType, lamb)
 
     if quiet==False:
         print("Optimal model is")
@@ -542,40 +554,46 @@ def print_plot_modelparams(x, y, z, m_test, d, lamb, rType = "RIDGE", quiet = Tr
         print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
         print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
         print("")
-        plot.beta_conf(beta, conf_beta, d, m_test[1], m_test[0], rType , lamb, info)
+        plot.beta_conf(beta, conf_beta, d, m_test[1], m_test[0], rType , lamb, info, f)
 
+def resize_terrain(data, x1, x2, y1, y2):
+    """
+    Resize the provided terrain data to a smaller sample for testing
+    and or computational efficiency if needed.
+    :return: Subset of the terrain data.
+    Credit: Geir
+    """
+    data_subset = data[x1:x2, y1:y2]
+    return data_subset
 
-def map_to_data(mapdat):
-    rows, columns = np.shape(mapdat)
-    factor = max(rows, columns)
-    xdim = np.linspace(0,columns,columns)/factor
-    ydim = np.linspace(0,rows,rows)/factor
-    x, y = np.meshgrid(xdim,ydim)
-    x = np.array([x.ravel()]).T
-    y = np.array([y.ravel()]).T
-    z = np.array([mapdat.ravel()]).T
-    return  [x,y], z, factor
+def map_to_data(PATH):
+    """
+    Creates arrays of data from an .tif file
+    --------------------------------
+    Input
+        PATH: The path to the file
+    --------------------------------
+    Returns
+        x, y, z
+    --------------------------------
+    """
+    terrain = imread(PATH)
+    terrain_resized = resize_terrain(terrain, 0, 10, 0, 10)
+
+    # Set up coordinates and data for regression.
+    x = np.arange(terrain_resized.shape[1])
+    y = np.arange(terrain_resized.shape[0])
+    x, y = np.meshgrid(x, y)
+    z = terrain_resized.ravel().reshape(-1,1)
+    x = x.ravel().reshape(-1,1)
+    y = y.ravel().reshape(-1,1)
+    return x, y, z
 
 if __name__ == '__main__':
-    x, y, z = GenerateData(100, 0.01)
-    degrees = np.arange(1, 10+1)
-
-    n_bootstraps = 100
-    d_max = 2
-    degrees = np.arange(2, d_max+1)
-    print(degrees)
-    m_test, m_train = OLS_bootstrap_degrees(x, y, z, degrees, n_bootstraps)
-    print(m_test.shape, m_train.shape)
-    print("--------------")
-    print(m_test)
-
-    plt.plot(degrees, m_test[1], label="MSE test")
-    plt.plot(degrees, m_train[1], label="MSE train")
-    plt.plot(degrees, m_test[2], label="variance")
-    plt.plot(degrees, m_test[3], label="bias")
-    plt.legend()
-    plt.semilogy()
-    plt.show()
+    x1,y1,z1 = GenerateData(100, 0.01)
+    print(x1.shape, y1.shape, z1.shape)
+    x,y,z = map_to_data("datafiles/SRTM_data_Norway_1.tif")
+    print(x.shape, y.shape, z.shape)
 
 
     """
