@@ -90,7 +90,6 @@ def RIDGE_optimal_model(x, y, z, metrics_test, metrics_train, quiet = True, info
     at_ = metrics_test[1].argmin()      # The index of mse_min
     best_degree = at_+1                 # The coresponding polynomial degree
 
-
     r2_best = metrics_test[0][at_]
 
     # Find the regression parameters for best_degree
@@ -158,9 +157,9 @@ for i in range(d_max):
     m_train_bs[:,i] = func.metrics(z_train_2, z_fit_2, test=True)
 
     # With kFold
-    z_train_4, z_test_4, z_fit_4, z_pred_4 = func.kFold(x, y, z, degrees[i], k, shuffle=True, RegType="OLS", lamb=0)
-    m_test_k[:,i] = func.metrics(z_test_4, z_pred_4, test=True)
-    m_train_k[:,i] = func.metrics(z_train_4, z_fit_4, test=True)
+    z_train_3, z_test_3, z_fit_3, z_pred_3 = func.kFold(x, y, z, degrees[i], k, shuffle=True, RegType="OLS", lamb=0)
+    m_test_k[:,i] = func.metrics(z_test_3, z_pred_3, test=True)
+    m_train_k[:,i] = func.metrics(z_train_3, z_fit_3, test=True)
 
 print("###############################################")
 print("         Without Resampling                    ")
@@ -212,24 +211,43 @@ print("###############################################")
 min = 100               # minimum data
 max = 500               # maximum data
 steps = 50              # steps between
-d_1 = 5                 # degree
+d_1 = best_degree_1      # degree
+d_2 = best_degree_bs
+d_3 = best_degree_k
+
 
 ndata = np.arange(min, max, steps)  # array of datapoints
 n = len(ndata)
 
-m_test_ndata = np.zeros((4, n))
-m_train_ndata = np.zeros((4, n))
+m_test_ndata1 = np.zeros((4, n))
+m_train_ndata1 = np.zeros((4, n))
+
+m_test_ndata2 = np.zeros((4, n))
+m_train_ndata2 = np.zeros((4, n))
+
+m_test_ndata3 = np.zeros((4, n))
+m_train_ndata3 = np.zeros((4, n))
 
 for i in range(n):
     x_tmp, y_tmp, z_tmp = func.GenerateData(ndata[i], 0.01, pr=False)
 
-    z_train_2, z_test_2, z_fit_2, z_pred_2 = func.Bootstrap(x_tmp, y_tmp, z_tmp, d_1, n_bootstraps, RegType="OLS", lamb=0)
-    m_test_ndata[:,i] = func.metrics(z_test_2, z_pred_2, test=True)
-    m_train_ndata[:,i]= func.metrics(z_train_2, z_fit_2, test=True)
+    z_train_4, z_test_4, z_fit_4, z_pred_4 = func.Bootstrap(x_tmp, y_tmp, z_tmp, d_1, n_bootstraps, RegType="OLS", lamb=0)
+    m_test_ndata1[:,i] = func.metrics(z_test_4, z_pred_4, test=True)
+    m_train_ndata1[:,i]= func.metrics(z_train_4, z_fit_4, test=True)
 
-info_ndata = "min{:.0f}_max{:.0f}_step{:.0f}_d{:.0f}_bs{:.0f}".format(min, max, steps, d_1, n_bootstraps)
-plot.bias_variance(ndata, m_test_ndata[1], m_test_ndata[2], m_test_ndata[3], "data", "OLS", info_ndata, log=True)
+    z_train_5, z_test_5, z_fit_5, z_pred_5 = func.Bootstrap(x_tmp, y_tmp, z_tmp, d_2, n_bootstraps, RegType="OLS", lamb=0)
+    m_test_ndata2[:,i] = func.metrics(z_test_5, z_pred_5, test=True)
+    m_train_ndata2[:,i]= func.metrics(z_train_5, z_fit_5, test=True)
 
+    z_train_6, z_test_6, z_fit_6, z_pred_6 = func.Bootstrap(x_tmp, y_tmp, z_tmp, d_3, n_bootstraps, RegType="OLS", lamb=0)
+    m_test_ndata3[:,i] = func.metrics(z_test_6, z_pred_6, test=True)
+    m_train_ndata3[:,i]= func.metrics(z_train_6, z_fit_6, test=True)
+
+info_ndata1 = "min{:.0f}_max{:.0f}_step{:.0f}_d{:.0f}_bs{:.0f}".format(min, max, steps, d_1, n_bootstraps)
+plot.bias_variance(ndata, m_test_ndata1[1], m_test_ndata1[2], m_test_ndata1[3], "data", "OLS", info_ndata1, log=True)
+
+info_ndata2 = "min{:.0f}_max{:.0f}_step{:.0f}_bs{:.0f}".format(min, max, steps, n_bootstraps)
+plot.bias_variance_m(ndata, m_test_ndata1, m_test_ndata2, m_test_ndata3, d_1, d_2, d_3, x_type="data", RegType ="OLS", info=info_ndata2, log=True)
 
 print("#######################################################################")
 print("                                Ridge                                  ")

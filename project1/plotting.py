@@ -488,15 +488,44 @@ def compare_MSE(x, mse, mse_bs, mse_k, rType = "OLS", lamb=0, info="", log=False
     plt.close()
 
 
+def bias_variance_m(x, m1, m2, m3, d1, d2, d3, x_type="degrees", RegType ="OLS", info="", log=False):
+    """
+    """
+    print("Plotting the Bias, Variance and MSE for {:},".format(RegType, info))
+
+    fig = plt.figure()
+    plt.grid()
+    plt.title("{:} Bias-Variance, d = {:}, {:}, {:}".format(RegType, d1, d2, d3), fontsize = 14, fontname = "serif")
+
+    if x_type == "degrees": plt.xlabel("Model complexity (degrees)", fontsize = 12, fontname = "serif")
+    if x_type == "data": plt.xlabel("Number of datapoints (n)", fontsize = 12, fontname = "serif")
+    if x_type == "lambda": plt.xlabel("$\lambda$ (log scale)", fontsize = 12, fontname = "serif")
+    met = [m1, m2, m3]
+    deg = [d1, d2, d3]
+    lines = ["solid", "dotted", "dashed"]
+    for i in range(3):
+        plt.plot(x, met[i][1], "tab:red", linestyle=lines[i], label="MSE (d={:.0f})".format(deg[i]))
+        plt.plot(x, met[i][2], "tab:red", linestyle=lines[i], label="Variance (d={:.0f})".format(deg[i]))
+        plt.plot(x, met[i][3], "tab:green", linestyle=lines[i], label="Bias (d={:.0f})".format(deg[i]))
+
+    plt.legend()
+
+    if log==True: plt.semilogy()
+    fig.savefig("output/figures/{:}_bias_variance_{:}_deg_{:}.pdf".format(RegType, x_type, info))
+    fig.savefig("output/figures/{:}_bias_variance_{:}_deg_{:}.png".format(RegType, x_type, info))
+    print("    Figure saved in: output/figures/{:}_bias_variance_{:}_deg_{:}.pdf\n".format(RegType,x_type, info))
+    plt.close()
+
 if __name__ == '__main__':
     plot_franke("Illustration of the Franke Function", "franke_func_illustration", 0.1)
     x = np.linspace(0, 10, 11)
-    y1 = [2*x, 2*x+1]
-    y2 = [3*x, 3*x+1]
-    y3 = [4*x, 4*x+1]
+    y1 = [0, 2*x, 2*x+1, 2*x+2]
+    y2 = [0, 3*x, 3*x+1, 3*x+2]
+    y3 = [0, 4*x, 4*x+1, 4*x+2]
 
-    z1 = 2*x
-    z2 = 3*x
-    z3 = 4*x
+    #z1 = 2*x
+    #z2 = 3*x
+    #z3 = 4*x
+    bias_variance_m(x, y1, y2, y3,1,2,3, x_type="degrees", RegType ="OLS", info="test", log=False)
     compare_MSE(x, z1, z2, z3, rType = "OLS", info="test", log=True)
     #all_metrics_test_train(x, y, z, x_type="degrees", reg_type="OLS", other="Bootstrap", info="k", log=False)
