@@ -11,57 +11,12 @@ import tools as tools
 import sys
 from array import array
 
+##############################################################################
+FOLDER = sys.argv[1]
 ###############################################################################
-
-def GenDat2(ndata):
-
-    x_ = np.arange(0, 1, 0.1)
-    y_ = np.arange(0, 1, 0.1)
-
-    x, y = np.meshgrid(x_,y_)
-
-    noise = 0.01
-    z = func.FrankeFunction(x,y) + np.random.normal(0, noise, len(x))
-
-    x = x.ravel().reshape(-1,1)
-    y = y.ravel().reshape(-1,1)
-    z = z.ravel().reshape(-1,1)
-    return x,y,z
-
-
-###############################################################################
-#np.random.seed(42)
-x, y, z = func.GenerateData(100, 0.01)
-#x, y, z = GenDat2()
-#X = func.PolyDesignMatrix(x,y,2)
-#z_train, z_test, z_fit, z_pred = func.regression(z, X, "OLS")
-#print(X)
-#beta, conf_beta = get_beta(x, y, z, 2, reg_type="OLS", lamb=0)
-#quit()
-
-def optimal(x, metrics_test):
-    mse_min = metrics_test[1].min()     # The lowest MSE
-    at_ = metrics_test[1].argmin()      # The index of mse_min
-    best_x = x[at_]
-    m_test_best = metrics_test[:,at_]   # The corresponding statistics
-    return best_x, m_test_best
-
-def print_plot_modelparams(x, y, z, m_test, d, lamb, rType = "RIDGE", quiet = True, info=""):
-    # Find the regression parameters for best_lamb
-    beta, conf_beta = func.get_beta(x, y, z, d, rType, lamb)
-
-    if quiet==False:
-        print("Optimal model is")
-        print ("    Deg  : {}".format(d))
-        print ("    Lamb : {}".format(lamb))
-        print ("    RS2  : {:.3f}".format(m_test[0]))
-        print ("    MSE  : {:.3f}".format(m_test[1]))
-        print ("    Var  : {:.3f}".format(m_test[2]))
-        print ("    Bias : {:.3f}".format(m_test[3]))
-        print ("    Beta :", np.array_str(beta.ravel(), precision=2, suppress_small=True))
-        print ("    Conf :", np.array_str(conf_beta.ravel(), precision=2, suppress_small=True))
-        print("")
-        plot.beta_conf(beta, conf_beta, d, m_test[1], m_test[0], rType , lamb, info)
+if FOLDER == "franke": x, y, z = func.GenerateData(100, 0.01)
+if FOLDER == "data": x, y, z = func.map_to_data("datafiles/SRTM_data_Norway_1.tif")
+################################################################################
 
 print("#######################################################################")
 print("                                Ridge                                  ")
@@ -71,7 +26,7 @@ print("\nFinding the optimal combination of lambda and degree: \n")
 
 d_max = 10
 n_bootstraps = 100
-k = 10   # Works for 5, 10
+k = 5
 nlamb = 10
 
 degrees = np.arange(1, d_max+1)
@@ -120,40 +75,40 @@ for j in range(d_max):
 
     # Find the lambda value that has the lowest Mean Squared Error,
     # and store both the lambda and the corresponding metrics
-    lamb_1[j],  m_1[:,j]  = optimal(lambdas, m_test)
-    lamb_bs[j], m_bs[:,j] = optimal(lambdas, m_test_bs)
-    lamb_k[j],  m_k[:,j]  = optimal(lambdas, m_test_k)
+    lamb_1[j],  m_1[:,j]  = func.optimal(lambdas, m_test)
+    lamb_bs[j], m_bs[:,j] = func.optimal(lambdas, m_test_bs)
+    lamb_k[j],  m_k[:,j]  = func.optimal(lambdas, m_test_k)
 
 
 print("###############################################")
 print("         Without Resampling                    ")
 print("###############################################")
 # Find the degree with the lowest mean squared error
-best_degree_ridge, best_m_ridge = optimal(degrees, m_1)
+best_degree_ridge, best_m_ridge = func.optimal(degrees, m_1)
 best_lamb_ridge = lamb_1[best_degree_ridge-1]
 
 info_ridge1 = "n{:.0f}_deg{:.0f}_lamb{:.4f}".format(len(z), best_degree_ridge, best_lamb_ridge)
-print_plot_modelparams(x, y, z, m_test=best_m_ridge, d =best_degree_ridge, lamb=best_lamb_ridge, rType = "RIDGE", quiet = False, info=info_ridge1)
+func.print_plot_modelparams(x, y, z, m_test=best_m_ridge, d =best_degree_ridge, lamb=best_lamb_ridge, rType = "RIDGE", quiet = False, info=info_ridge1, f=FOLDER)
 
 print("###############################################")
 print("             With Bootstrap                    ")
 print("###############################################")
 
-best_degree_ridge_bs, best_m_ridge_bs = optimal(degrees, m_bs)
+best_degree_ridge_bs, best_m_ridge_bs = func.optimal(degrees, m_bs)
 best_lamb_ridge_bs = lamb_bs[best_degree_ridge_bs-1]
 
 info_ridge_bs = "n{:.0f}_deg{:.0f}_lamb{:.4f}_bs{:}".format(len(z), best_degree_ridge_bs, best_lamb_ridge_bs, n_bootstraps)
-print_plot_modelparams(x, y, z, best_m_ridge_bs, best_degree_ridge_bs, best_lamb_ridge_bs, rType = "RIDGE", quiet = False, info=info_ridge_bs)
+func.print_plot_modelparams(x, y, z, best_m_ridge_bs, best_degree_ridge_bs, best_lamb_ridge_bs, rType = "RIDGE", quiet = False, info=info_ridge_bs, f=FOLDER)
 
 print("###############################################")
 print("              With kFold                       ")
 print("###############################################")
 
-best_degree_ridge_k, best_m_ridge_k = optimal(degrees, m_k)
+best_degree_ridge_k, best_m_ridge_k = func.optimal(degrees, m_k)
 best_lamb_ridge_k = lamb_k[best_degree_ridge_k-1]
 
 info_ridge_k = "n{:.0f}_deg{:.0f}_lamb{:.4f}_kFold{:}".format(len(z), best_degree_ridge_k, best_lamb_ridge_k, k)
-print_plot_modelparams(x, y, z, best_m_ridge_k, best_degree_ridge_k, best_lamb_ridge_k, rType = "RIDGE", quiet = False, info=info_ridge_k)
+func.print_plot_modelparams(x, y, z, best_m_ridge_k, best_degree_ridge_k, best_lamb_ridge_k, rType = "RIDGE", quiet = False, info=info_ridge_k, f=FOLDER)
 
 
 print("Bias variance relations\n")
@@ -210,17 +165,17 @@ info_r_bs1 = "n{:.0f}_bs{:}_lamb{:.4f}".format(len(z), n_bootstraps, 1)
 info_r_bs2 = "n{:.0f}_bs{:}_lamb{:.4f}".format(len(z), n_bootstraps, 0.01)
 info_r_bs3 = "n{:.0f}_bs{:}_lamb{:.4f}".format(len(z), n_bootstraps, 0.0)
 
-plot.bias_variance(degrees, m_test_bs1[1], m_test_bs1[2], m_test_bs1[3], x_type="degrees", RegType ="RIDGE", info=info_r_bs1, log=True)
-plot.bias_variance(degrees, m_test_bs2[1], m_test_bs2[2], m_test_bs2[3], x_type="degrees", RegType ="RIDGE", info=info_r_bs2, log=True)
-plot.bias_variance(degrees, m_test_bs3[1], m_test_bs3[2], m_test_bs3[3], x_type="degrees", RegType ="RIDGE", info=info_r_bs3, log=True)
+plot.bias_variance(degrees, m_test_bs1[1], m_test_bs1[2], m_test_bs1[3], x_type="degrees", RegType ="RIDGE", info=info_r_bs1, log=True, FOLDER=FOLDER)
+plot.bias_variance(degrees, m_test_bs2[1], m_test_bs2[2], m_test_bs2[3], x_type="degrees", RegType ="RIDGE", info=info_r_bs2, log=True, FOLDER=FOLDER)
+plot.bias_variance(degrees, m_test_bs3[1], m_test_bs3[2], m_test_bs3[3], x_type="degrees", RegType ="RIDGE", info=info_r_bs3, log=True, FOLDER=FOLDER)
 
 print("###############################################")
 print("  Comparisons between k-Fold and Bootstrap     ")
 print("###############################################")
 
 info_comp = "n{:}_lambda{:}_bs{:}_k{:}".format(len(z), 0.01, d_max, n_bootstraps, k)
-plot.compare_MSE(degrees, m_test[1], m_test_bs2[1], m_test_k[1], rType = "RIDGE", lamb=0.01, info=info_comp, log=True)
-
+plot.compare_MSE(degrees, m_test[1], m_test_bs2[1], m_test_k[1], rType = "RIDGE", lamb=0.01, info=info_comp, log=True, FOLDER=FOLDER)
+plot.compare_R2(degrees, [m_test[0], m_train[0]], [m_test_bs2[0], m_train_bs2[0]], [m_test_k[0],m_train_k[0]] , rType = "RIDGE", info=info_comp, FOLDER=FOLDER)
 
 print("###############################################")
 print(" Bias-variance vs lambdas for different degrees")
@@ -276,6 +231,6 @@ info_ridge_d2 = "n{:.0f}_d{:.0f}_bs{:.0f}".format(len(z), 2, n_bootstraps)
 info_ridge_d6 = "n{:.0f}_d{:.0f}_bs{:.0f}".format(len(z), 6, n_bootstraps)
 info_ridge_d9 = "n{:.0f}_d{:.0f}_bs{:.0f}".format(len(z), 9, n_bootstraps)
 
-plot.bias_variance(lambdas, m_test_bs1[1], m_test_bs1[2], m_test_bs1[3], x_type="lambda", RegType ="RIDGE", info=info_ridge_d2, log=True)
-plot.bias_variance(lambdas, m_test_bs2[1], m_test_bs2[2], m_test_bs2[3], x_type="lambda", RegType ="RIDGE", info=info_ridge_d6, log=True)
-plot.bias_variance(lambdas, m_test_bs3[1], m_test_bs3[2], m_test_bs3[3], x_type="lambda", RegType ="RIDGE", info=info_ridge_d9, log=True)
+plot.bias_variance(lambdas, m_test_bs1[1], m_test_bs1[2], m_test_bs1[3], x_type="lambda", RegType ="RIDGE", info=info_ridge_d2, log=True, FOLDER=FOLDER)
+plot.bias_variance(lambdas, m_test_bs2[1], m_test_bs2[2], m_test_bs2[3], x_type="lambda", RegType ="RIDGE", info=info_ridge_d6, log=True, FOLDER=FOLDER)
+plot.bias_variance(lambdas, m_test_bs3[1], m_test_bs3[2], m_test_bs3[3], x_type="lambda", RegType ="RIDGE", info=info_ridge_d9, log=True, FOLDER=FOLDER)
