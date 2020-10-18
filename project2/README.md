@@ -1,4 +1,4 @@
-# Regression analysis and resampling methods
+# Classification and Regression, from linear and logistic regression to neural networks
 
 ## Overview of files:
 
