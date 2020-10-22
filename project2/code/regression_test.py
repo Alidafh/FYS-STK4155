@@ -15,7 +15,6 @@ def FrankeFunction(x,y):
     return z
 
 ##############################################################################
-
 # Set up data
 x1 = np.arange(0, 1, 0.1)
 x2 = np.arange(0, 1, 0.1)
@@ -26,7 +25,27 @@ y = y + noise
 
 # set up design matrix
 input = np.c_[x1.ravel(), x2.ravel()]
-X = PolynomialFeatures(degree=4).fit_transform(input)
+X = PolynomialFeatures(degree=3).fit_transform(input)
+##############################################################################
+# Egen klasse
+
+model = OLS()
+model.fit(X, y)
+coef = model.beta
+y_pred = model.predict(X)
+r2 = model.r2score(X,y)
+mse = model.mse(X,y)
+coef_var = model.beta_var
+
+print("--------------------------------")
+print("MANUELL")
+print("--------------------------------")
+print('coefficients:', np.array2string(coef, formatter={'float_kind':lambda x: "%.3f" % x}), sep='\n')
+print('coefficients variance:', np.array2string(coef_var, formatter={'float_kind':lambda x: "%.3f" % x}), sep='\n')
+print('Mean squared error: %.6f' %mse, sep='\n')
+print('Coefficient of determination:%.6f'%r2, sep='\n')
+#print('predicted response:', np.array2string(y_pred, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
+print()
 
 ##############################################################################
 
@@ -40,30 +59,12 @@ r2_sklearn = r2_score(y, y_pred_sklearn)
 print("--------------------------------")
 print("SKLEARN")
 print("--------------------------------")
-print('coefficients:', np.array2string(coef_sklearn, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
+print('coefficients:', np.array2string(coef_sklearn, formatter={'float_kind':lambda x: "%.2f" % x}), sep='\n')
 print('Mean squared error: %.6f' %mse_sklearn, sep='\n')
 print('Coefficient of determination:%.6f'%r2_sklearn, sep='\n')
-print('predicted response:', np.array2string(y_pred_sklearn, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
+#print('predicted response:', np.array2string(y_pred_sklearn, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
 print()
 
-##############################################################################
-
-# Egen klasse
-model = OLS()
-model.fit(X, y)
-coef = model.beta
-y_pred = model.predict(X)
-r2 = model.r2_score(X,y)
-mse = model.mse(X,y)
-
-print("--------------------------------")
-print("MANUELL")
-print("--------------------------------")
-print('coefficients:', np.array2string(coef, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
-print('Mean squared error: %.6f' %mse, sep='\n')
-print('Coefficient of determination:%.6f'%r2, sep='\n')
-print('predicted response:', np.array2string(y_pred, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
-print()
 ##############################################################################
 # Comparison
 
@@ -75,8 +76,59 @@ diff_y_pred = np.abs(y_pred_sklearn - y_pred)
 print("--------------------------------")
 print("comparison sklearn - manuell")
 print("--------------------------------")
+
 print('coefficients:', np.array2string(diff_coef, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
 print('Mean squared error: %.6f' %diff_mse, sep='\n')
 print('Coefficient of determination: %.6f'% diff_r2, sep='\n')
 print('predicted response:', np.array2string(diff_y_pred, formatter={'float_kind':lambda x: "%.6f" % x}), sep='\n')
+print()
+
+#############################################################################
+import statsmodels.api as sm
+ols = sm.OLS(y, X)
+ols_result = ols.fit()
+print(ols_result.summary())
+
+##############################################################################
+# Egen klasse
+print("TOTAL:", X.shape)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
+X_train, X_test = tools.scale_X(X_train, X_test)
+print("TRAIN:", X_train.shape)
+print("TEST:", X_test.shape)
+print()
+
+model = OLS()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+r2 = model.r2score(X_test, y_test)
+mse = model.mse(X_test, y_test)
+
+coef = model.beta
+coef_var = model.beta_var
+
+print("--------------------------------")
+print("MANUELL")
+print("--------------------------------")
+print('coefficients:', np.array2string(coef, formatter={'float_kind':lambda x: "%.2f" % x}), sep='\n')
+print('coefficients variance:', np.array2string(coef_var, formatter={'float_kind':lambda x: "%.2f" % x}), sep='\n')
+print('Mean squared error: %.6f' %mse, sep='\n')
+print('Coefficient of determination:%.6f'%r2, sep='\n')
+print('predicted response:', np.array2string(y_pred, formatter={'float_kind':lambda x: "%.2f" % x}), sep='\n')
+print()
+
+# SKLEARN
+model_sklearn = LinearRegression(fit_intercept=False).fit(X_train, y_train)
+coef_sklearn = model_sklearn.coef_
+y_pred_sklearn = model_sklearn.predict(X_test)
+mse_sklearn = mean_squared_error(y_test, y_pred_sklearn)
+r2_sklearn = r2_score(y_test, y_pred_sklearn)
+
+print("--------------------------------")
+print("SKLEARN")
+print("--------------------------------")
+print('coefficients:', np.array2string(coef_sklearn, formatter={'float_kind':lambda x: "%.2f" % x}), sep='\n')
+print('Mean squared error: %.6f' %mse_sklearn, sep='\n')
+print('Coefficient of determination:%.6f'%r2_sklearn, sep='\n')
+print('predicted response:', np.array2string(y_pred_sklearn, formatter={'float_kind':lambda x: "%.2f" % x}), sep='\n')
 print()

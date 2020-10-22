@@ -1,58 +1,54 @@
 import numpy as np
-import tools as tools
-from sklearn.model_selection import train_test_split
 
-class Regression:
+class OLS:
     def __init__(self):
         self.X = None
         self.y = None
         self.beta = None
-        self.beta_var=None
-        self.lamb = None
+
+    def fit(self, X, y):
+        self.beta = np.linalg.pinv(X.T @ X) @ X.T @ y
 
     def predict(self, X):
-        print("PREDICT   ")
-        print("X:  ", X.shape)
-        print()
         y_predict = X @ self.beta
         return y_predict
 
     def mse(self, X, y):
-        print("MSE:  ")
         y_predict = self.predict(X)
         mse = np.mean(np.mean((y - y_predict)**2))
         return mse
 
-    def r2score(self, X, y):
-        print("R2     ")
+    def r2_score(self, X, y):
         y_predict = self.predict(X)
         r2score = 1 - ((np.sum((y-y_predict)**2))/(np.sum((y-np.mean(y))**2)))
         return r2score
 
-class OLS(Regression):
-    def fit(self, X, y):
-        print("FIT   ")
-        self.beta = np.linalg.pinv(X.T @ X) @ X.T @ y
+class Ridge:
+    def __init__(self):
+        self.X = None
+        self.y = None
+        self.beta = None
+        self.lamb = None
 
-        y_predict = self.predict(X)
-        residuals = y - y_predict
-        residual_sum_squares = residuals.T @ residuals
-        lower = len(y) - len(self.beta)
-        sigma_hat = residual_sum_squares/lower
-        self.beta_var = np.sqrt(sigma_hat * tools.SVDinv(X.T @ X).diagonal())
-
-class Ridge(Regression):
     def fit(self, X, y, lamb):
         I = np.eye(X.shape[1])  # Identity matrix - (p,p)
         self.beta = np.linalg.pinv( X.T @ X + lamb*I) @ X.T @ y
 
+    def predict(self, X):
+        y_predict = X @ self.beta
+        return y_predict
+
+    def mse(self, X, y):
         y_predict = self.predict(X)
-        residuals = y - y_predict
-        residual_sum_squares = residuals.T @ residuals
-        lower = len(y) - len(self.beta)
-        sigma_hat = residual_sum_squares/lower
-        a = np.linalg.pinv(X.T @ X + lamb*I)
-        self.beta_var = np.sqrt(sigma_hat * (a @ (X.T @ X) @ a.T).diagonal())
+        mse = np.mean(np.mean((y - y_predict)**2))
+        return mse
+
+    def r2_score(self, X, y):
+        y_predict = self.predict(X)
+        r2score = 1 - ((np.sum((y-y_predict)**2))/(np.sum((y-np.mean(y))**2)))
+        return r2score
+
+
 
 #==============================================================================
 def test_OLS():
@@ -77,7 +73,7 @@ def test_OLS():
     model.fit(X, y)
     coef = model.beta
     y_pred = model.predict(X)
-    r2 = model.r2score(X,y)
+    r2 = model.r2_score(X,y)
     mse = model.mse(X,y)
 
     # Using Scikitlearn
