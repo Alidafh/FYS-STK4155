@@ -8,32 +8,58 @@ import matplotlib.pyplot as plt
 np.random.seed(42)
 
 ##############################################################################
-input, y = tools.GenerateDataFranke(1000, noise_str=0.1)  # Set up the data
-X = PolynomialFeatures(degree=2).fit_transform(input)
+#input, y = tools.GenerateDataFranke(1000, noise_str=0.1)  # Set up the data
+#X = PolynomialFeatures(degree=2).fit_transform(input)
+
+X, y = tools.GenerateDataLine(ndata=1000)
+
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+#X_train, X_test = tools.scale_X(X_train, X_test)
 ##############################################################################
 
 linreg = OLS()
-linreg.fit(X,y)
+linreg.fit(X, y)
 
 print('Own OLS', linreg.beta, sep='\n')
 
 linreg1 = LinearRegression(fit_intercept=False)
-linreg1.fit(X,y)
+linreg1.fit(X, y)
 print("Sklearn OLS", linreg1.coef_, sep='\n')
 
-#gdreg = OLS()
-#gdreg.GD(X, y, 1000, 0.1)
-#print("Own GD", gdreg.beta, sep='\n')
+gdreg = OLS()
+gdreg.GD(X, y, 1000, 0.1)
+print("Own GD", gdreg.beta, sep='\n')
 
 sgdreg = OLS()
-sgdreg.SGD(X, y, learn_rate = 0.1, n_epochs=50)
+l, ep = sgdreg.SGD(X, y, learn_rate = 0.1, n_epochs=100, batch_size=2)
 print("Own SGD", sgdreg.beta, sep='\n')
 
 sgdreg1 = SGDRegressor(max_iter = 1000, penalty=None, eta0=0.1, loss="squared_loss")
 sgdreg1.fit(X, y)
 print("Sklearn SGD:", sgdreg1.coef_, sep='\n')
 
-print("diff:", np.abs(sgdreg.beta-linreg.beta), sep='\n')
+##############################################################################
+ypredict = X.dot(theta)
+ypredict2 = X.dot(theta_linreg)
+
+plt.plot(x, ypredict, "r-")
+plt.plot(x, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+
+
+
+
+
+
+
+
+
 
 """
 # Importing various packages

@@ -15,6 +15,11 @@ class Regression:
         y_predict = X @ self.beta
         return y_predict
 
+    def residuals(self, X, y):
+        y_predict = self.predict(X)
+        self.residuals = y_predict - y
+        self.loss = self.residuals.T @ self.residuals
+
     def mse(self, X, y):
         y_predict = self.predict(X)
         mse = np.mean(np.mean((y - y_predict)**2))
@@ -55,8 +60,8 @@ class OLS(Regression):
         self.beta = np.linalg.pinv(X) @ y
 
         y_predict = self.predict(X)
-        self.residuals = y - y_predict
-        residual_sum_squares = self.residuals.T @ self.residuals
+        residual = y - y_predict
+        residual_sum_squares = residual.T @ residual
         lower = len(y) - len(self.beta)
         sigma_hat = residual_sum_squares/lower
         bv = np.sqrt(sigma_hat * tools.SVDinv(X.T @ X).diagonal())
@@ -65,7 +70,6 @@ class OLS(Regression):
     def GD(self, X, y, maxiter, learn_rate):
         n = X.shape[0]
         p = X.shape[1]
-
         beta_ = np.random.randn(p)
         for iter in range(maxiter):
             gradient = (2.0/n)*X.T @ (X @ beta_ -  y)
@@ -74,20 +78,35 @@ class OLS(Regression):
         self.beta = beta_
 
     @nb.jit(forceobj=True)
-    def SGD(self, X, y, maxiter = 1000, learn_rate=0.1, n_epochs=50):
-        n = X.shape[0]
-        p = X.shape[1]
+    def SGD(self, X, y, learn_rate = 0.1, n_epochs=50, batch_size=5):
+        n = X.shape[0]          # number of datapoints
+        p = X.shape[1]          # number of parameters
+        m = int(n/batch_size)   # number of minibatches
+
+        #print()
+        #print("# data   ", n)
+        #print("# batches", m)
+        #print("# epochs ", n_epochs)
+        #print()
+
+        loss = np.zeros(n_epochs)
+        epochs = np.zeros(n_epochs)
         beta_ = np.random.randn(p)
         for ep in range(n_epochs):
-            for i in range(maxiter):
-                random_index = np.random.randint(n)
-                xi = X[random_index:random_index+1]
-                yi = y[random_index:random_index+1]
+            for i in range(m):
+                random_index = np.random.randint(m)
+                xi = X[random_index:random_index+batch_size]
+                yi = y[random_index:random_index+batch_size]
                 gradient = 2 * xi.T @ ((xi @ beta_) - yi)
-                #step_size = gradient*learning_schedule(ep*n+i)
                 step_size = gradient*learn_rate
                 beta_ = beta_ - step_size
+            self.beta = beta_
+            y_predict = self.predict(X)
+            self.residuals = y - y_predict
+            loss[ep] = self.residuals.T @ self.residuals
+            epochs[ep] = ep
         self.beta = beta_
+        return loss, epochs
 
 class Ridge(Regression):
     def fit(self, X, y, lamb):
@@ -95,17 +114,45 @@ class Ridge(Regression):
         self.beta = np.linalg.pinv( X.T @ X + lamb*I) @ X.T @ y
 
         y_predict = self.predict(X)
-        self.residuals = y - y_predict
-        residual_sum_squares = self.residuals.T @ self.residuals
+        residuals = y - y_predict
+        residual_sum_squares = residuals.T @ residuals
         lower = len(y) - len(self.beta)
         sigma_hat = residual_sum_squares/lower
         a = np.linalg.pinv(X.T @ X + lamb*I)
         bv = np.sqrt(sigma_hat * (a @ (X.T @ X) @ a.T).diagonal())
         self.beta_var = bv.ravel()
 
+class GradientDesent(Regression):
+    @nb.jit(forceobj=True)
+    def SGD(self, X, y, learn_rate = 0.1, n_epochs=50, batch_size=5):
+        n = X.shape[0]          # number of datapoints
+        p = X.shape[1]          # number of parameters
+        m = int(n/batch_size)   # number of minibatches
 
+        print()
+        print("# data   ", n)
+        print("# batches", m)
+        print("# epochs ", n_epochs)
+        print()
 
-
+        loss = np.zeros(n_epochs)
+        epochs = np.zeros(n_epochs)
+        beta_ = np.random.randn(p)
+        for ep in range(n_epochs):
+            for i in range(m):
+                random_index = np.random.randint(m)
+                xi = X[random_index:random_index+batch_size]
+                yi = y[random_index:random_index+batch_size]
+                gradient = 2 * xi.T @ ((xi @ beta_) - yi)
+                step_size = gradient*learn_rate
+                beta_ = beta_ - step_size
+            self.beta = beta_
+            y_predict = self.predict(X)
+            self.residuals = y - y_predict
+            loss[ep] = self.residuals.T @ self.residuals
+            epochs[ep] = ep
+        self.beta = beta_
+        return loss, epochs
 
 
 

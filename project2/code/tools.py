@@ -151,5 +151,15 @@ def PolyDesignMatrix(x, y, d):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
 
+def learning_schedule(t):
+    return t0/(t+t1)
+
+def GenerateDataLine(ndata=100):
+    np.random.seed(42)
+    x = 2*np.random.rand(ndata,1)
+    y = 4+3*x+np.random.randn(ndata,1)
+    X = np.c_[np.ones((ndata,1)), x]
+    return X, y.ravel()
+
 if __name__ == '__main__':
     input, y = GenerateDataFranke(0.1)
