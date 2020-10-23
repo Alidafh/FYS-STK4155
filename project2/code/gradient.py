@@ -3,64 +3,83 @@ import numpy as np
 import tools as tools
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import SGDRegressor, LinearRegression
-from regression import OLS, Ridge
+from sklearn.model_selection import train_test_split
+from regression import OLS, Ridge, GradientDesent
 import matplotlib.pyplot as plt
 np.random.seed(42)
 
 ##############################################################################
-#input, y = tools.GenerateDataFranke(1000, noise_str=0.1)  # Set up the data
-#X = PolynomialFeatures(degree=2).fit_transform(input)
+input, y = tools.GenerateDataFranke(1000, noise_str=0.1)
+X = PolynomialFeatures(degree=3).fit_transform(input)
 
-X, y = tools.GenerateDataLine(ndata=1000)
+#X, y = tools.GenerateDataLine(ndata=1000)
 
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-#X_train, X_test = tools.scale_X(X_train, X_test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+X_train, X_test = tools.scale_X(X_train, X_test)
 ##############################################################################
-
+print("-------", "OLS","-------", sep='\n' )
 linreg = OLS()
-linreg.fit(X, y)
-
-print('Own OLS', linreg.beta, sep='\n')
-
-linreg1 = LinearRegression(fit_intercept=False)
-linreg1.fit(X, y)
-print("Sklearn OLS", linreg1.coef_, sep='\n')
+linreg.fit(X_train, y_train)
+print('Own linreg', linreg.beta, sep='\n')
 
 gdreg = OLS()
-gdreg.GD(X, y, 1000, 0.1)
+gdreg.GD(X_train, y_train, maxiter=1000, learn_rate=0.1)
 print("Own GD", gdreg.beta, sep='\n')
 
 sgdreg = OLS()
-l, ep = sgdreg.SGD(X, y, learn_rate = 0.1, n_epochs=100, batch_size=2)
+sgdreg.SGD(X_train, y_train, learn_rate = 0.1, n_epochs=100, batch_size=1)
 print("Own SGD", sgdreg.beta, sep='\n')
 
-sgdreg1 = SGDRegressor(max_iter = 1000, penalty=None, eta0=0.1, loss="squared_loss")
-sgdreg1.fit(X, y)
-print("Sklearn SGD:", sgdreg1.coef_, sep='\n')
+##############################################################################
+print("-------", "ridge","-------", sep='\n' )
+rrlinreg = Ridge(lamb=0.1)
+rrlinreg.fit(X_train, y_train)
+print('Own linreg', rrlinreg.beta, sep='\n')
+
+rrgdreg = Ridge(lamb=0.1)
+rrgdreg.GD(X_train, y_train, maxiter=1000, learn_rate=0.1)
+print("Own GD", rrgdreg.beta, sep='\n')
+
+rrsgdreg = Ridge(lamb=0.1)
+rrsgdreg.SGD(X_train, y_train, learn_rate = 0.1, n_epochs=100, batch_size=1)
+print("Own SGD", rrsgdreg.beta, sep='\n')
 
 ##############################################################################
-ypredict = X.dot(theta)
-ypredict2 = X.dot(theta_linreg)
+ols = OLS()
+ols.fit(X, y)
+y_hat = ols.predict(X)
 
-plt.plot(x, ypredict, "r-")
-plt.plot(x, ypredict2, "b-")
-plt.plot(x, y ,'ro')
+sd=int(round(np.sqrt(len(y))))
+x1 = input[:,0].reshape(sd,sd)
+x2 = input[:,1].reshape(sd,sd)
+y1 = y.reshape(sd,sd)
+y2 = y_hat.reshape(sd,sd)
 
-plt.axis([0,2.0,0, 15.0])
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.scatter(x1,x2,y1, s=0.5, c="k")
+ax.plot_surface(x1,x2,y2)
+plt.show()
+"""
+ypredict = rrlinreg.predict(X_test)
+ypredict2 = rrgdreg.predict(X_test)
+ypredict3 = rrsgdreg.predict(X_test)
+
+plt.plot()
+
+plt.plot(X_test[:,1], y_test ,'ro')
+plt.plot(X_test[:,1], ypredict, "k-", label="linreg")
+plt.plot(X_test[:,1], ypredict2, "b-", label="gdreg")
+plt.plot(X_test[:,1], ypredict3, "g-", label="sgdreg")
+plt.legend()
+
+#plt.axis([0, 2.0, 0, 15.0])
 plt.xlabel(r'$x$')
 plt.ylabel(r'$y$')
 plt.title(r'Random numbers ')
 plt.show()
 
-
-
-
-
-
-
-
-
-
+"""
 """
 # Importing various packages
 from random import random, seed
