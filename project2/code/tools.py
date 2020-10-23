@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 def SVDinv(A):
     """
@@ -24,6 +25,14 @@ def SVDinv(A):
     invD = np.linalg.inv(D)
     invA = np.matmul(V,np.matmul(invD,UT))
     return invA
+
+def pinv(A):
+    U, D, Vt = np.linalg.svd(A)
+    V = Vt.T
+    diagonal = np.zeros([V.shape[1], U.shape[1]])
+    np.fill_diagonal(diagonal, D**(-1))
+    pinvA = (V @ diagonal @ U.T)
+    return pinvA
 
 
 def foldIndex(dataset,i, k):
@@ -50,7 +59,6 @@ def foldIndex(dataset,i, k):
     train_index[:a] = indices[:a]
     train_index[a:] = indices[b:]
     return train_index, test_index
-
 
 def scale_X(train, test, scaler="manual"):
     """
@@ -85,18 +93,63 @@ def scale_X(train, test, scaler="manual"):
 
     return train_scl, test_scl
 
+def GenerateDataFranke(ndata, noise_str=0.1):
+    """
+    Generates data using the Franke Function with normally distributed noise
+    of strength noise_str
+    --------------------------------
+    Input
+        ndata: the number of datapoints you want
+        noise_str: the strength of the noise, default is zero
+    --------------------------------
+    Returns
+        input_features: the x1 and x2 values, shape (400, 2)
+        y: Franke function values using the input features, shape (400,)
+
+    """
+    def FrankeFunction(x,y):
+        term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+        term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+        term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+        term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+        z = term1 + term2 + term3 + term4
+        return z
+    sqrtndata= int(round(np.sqrt(ndata)))
+    np.random.seed(42)
+    x1 = np.linspace(0,1, sqrtndata)
+    x2 = np.linspace(0,1, sqrtndata)
+    x1, x2 = np.meshgrid(x1, x2)
+    y = FrankeFunction(x1, x2).ravel()
+    noise = noise_str*np.random.normal(0, 1, y.shape)
+    y = y + noise
+    input_features = np.c_[x1.ravel(), x2.ravel()]
+    print("ndata:", y.shape)
+    return input_features, y
+
+def PolyDesignMatrix(x, y, d):
+    """
+    Generates a design matrix of size (n,p) with monomials up to degree d as
+    the columns. As an example if d=2 the columns of the design matrixs will be
+    [1  x  y  x**2  y**2  xy].
+    --------------------------------
+    Input
+        x: numpy array with shape (n,) or (n,1)
+        y: numpy array with shape (n,) or (n,1)
+        d: the degree of the polynomial (scalar)
+    --------------------------------
+    Returns
+        X: Design matrix of shape (n, p)
+    """
+    n = len(x)
+    p = int(((d+2)*(d+1))/2)  # number of terms in beta
+    X = np.ones((n, p))       # Matrix of size (n,p) where all entries are zero
+
+    # fill colums of X with the polynomials [1  x  y  x**2  y**2  xy ...]
+    for i in range(1, d+1):
+        j = int(((i)*(i+1))/2)
+        for k in range(i+1):
+            X[:,j+k] = x**(i-k)*y**(k)
+    return X
 
 if __name__ == '__main__':
-    import functions as func
-    x, y, z = func.GenerateData(100, 0.1)
-    X = func.PolyDesignMatrix(x, y, 2)
-    k = 6
-
-    for i in range(1, k+1):
-        print("------------")
-        print("i=", i)
-        print("------------")
-        train_index, test_index = foldIndex(z, i, k)
-        #print(train_index, test_index)
-        z_test = z[test_index]
-        z_train = z[train_index]
+    input, y = GenerateDataFranke(0.1)
