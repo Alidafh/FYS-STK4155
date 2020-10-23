@@ -1,7 +1,5 @@
 # Classification and Regression - from linear and logistic regression to neural networks
 About the project
-## Overview of files
-
 ## How to run
 
 ## Credit
