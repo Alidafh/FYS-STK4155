@@ -114,6 +114,7 @@ def GenerateDataFranke(ndata, noise_str=0.1):
         term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
         z = term1 + term2 + term3 + term4
         return z
+
     sqrtndata= int(round(np.sqrt(ndata)))
     np.random.seed(42)
     x1 = np.linspace(0,1, sqrtndata)
@@ -123,7 +124,6 @@ def GenerateDataFranke(ndata, noise_str=0.1):
     noise = noise_str*np.random.normal(0, 1, y.shape)
     y = y + noise
     input_features = np.c_[x1.ravel(), x2.ravel()]
-    print("ndata:", y.shape)
     return input_features, y
 
 def PolyDesignMatrix(x, y, d):
@@ -162,4 +162,4 @@ def GenerateDataLine(ndata=100):
     return X, y.ravel()
 
 if __name__ == '__main__':
-    input, y = GenerateDataFranke(0.1)
+    input, y = GenerateDataFranke(10, 0.1)
