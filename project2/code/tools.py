@@ -26,15 +26,6 @@ def SVDinv(A):
     invA = np.matmul(V,np.matmul(invD,UT))
     return invA
 
-def pinv(A):
-    U, D, Vt = np.linalg.svd(A)
-    V = Vt.T
-    diagonal = np.zeros([V.shape[1], U.shape[1]])
-    np.fill_diagonal(diagonal, D**(-1))
-    pinvA = (V @ diagonal @ U.T)
-    return pinvA
-
-
 def foldIndex(dataset,i, k):
     """
     Generates the indices of fold i of k for the k-fold routine
@@ -105,7 +96,6 @@ def GenerateDataFranke(ndata, noise_str=0.1):
     Returns
         input_features: the x1 and x2 values, shape (400, 2)
         y: Franke function values using the input features, shape (400,)
-
     """
     def FrankeFunction(x,y):
         term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
@@ -125,6 +115,23 @@ def GenerateDataFranke(ndata, noise_str=0.1):
     y = y + noise
     input_features = np.c_[x1.ravel(), x2.ravel()]
     return input_features, y
+
+def GenerateDataLine(ndata=100):
+    """
+    Generates data for straight line regression
+    --------------------------------
+    Input
+        ndata: the number of datapoints you want
+    --------------------------------
+    Returns
+        X: The design matrix
+        y: Datapoints
+    """
+    np.random.seed(42)
+    x = 2*np.random.rand(ndata,1)
+    y = 4+3*x+np.random.randn(ndata,1)
+    X = np.c_[np.ones((ndata,1)), x]
+    return X, y.ravel()
 
 def PolyDesignMatrix(x, y, d):
     """
@@ -151,15 +158,9 @@ def PolyDesignMatrix(x, y, d):
             X[:,j+k] = x**(i-k)*y**(k)
     return X
 
-def learning_schedule(t):
+def learning_schedule(t, t0, t1):
     return t0/(t+t1)
 
-def GenerateDataLine(ndata=100):
-    np.random.seed(42)
-    x = 2*np.random.rand(ndata,1)
-    y = 4+3*x+np.random.randn(ndata,1)
-    X = np.c_[np.ones((ndata,1)), x]
-    return X, y.ravel()
 
 if __name__ == '__main__':
     input, y = GenerateDataFranke(10, 0.1)
