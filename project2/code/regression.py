@@ -123,8 +123,6 @@ class Regression:
         loss_ep : ndarray, shape(n_epochs,)
             The loss as a function of epoch
 
-        epochs : ndarray, shape(n_epochs,)
-            The epoch number
         """
         n = X.shape[0]          # number of datapoints
         p = X.shape[1]          # number of parameters
@@ -133,18 +131,18 @@ class Regression:
         np.random.seed(42)
         self.beta = np.random.randn(p)
         momentum = np.zeros(p)
-        #loss_ = np.zeros((m+1, n_epochs))
         loss_ = np.zeros((m, n_epochs))
 
         for ep in range(n_epochs):
-            #loss_[0, ep] = self.get_loss(X, y)
+            #np.random.shuffle(X)    # added
             for i in range(m):
                 random_index = np.random.randint(m)
                 xi = X[random_index:random_index+batch_size]
                 yi = y[random_index:random_index+batch_size]
                 gradient = self.gradient(xi, yi)
-                momentum =  gamma*momentum + (1 - gamma)*gradient if gamma else gradient
-                step_size = momentum*learn_rate if learn_rate else momentum*tools.learning_schedule(ep*m+i, batch_size, n_epochs)
+                momentum = gamma*momentum + (1 - gamma)*gradient if gamma else gradient
+                #step_size = momentum*learn_rate if learn_rate else momentum*tools.learning_schedule(ep*m+i, batch_size, n_epochs)
+                step_size = momentum*learn_rate if learn_rate else momentum*tools.learning_schedule(ep*m+i, 5, 50)
                 self.beta -= step_size
 
                 self.residual(X,y)
@@ -156,11 +154,6 @@ class Regression:
 
         self.loss_SGD = loss_
         return loss_
-        # saves the losses to file
-        #lr = learn_rate if learn_rate else "schedule"
-        #gm = gamma if gamma else "standard"
-        #filename = "output/data/SGDLOG_{:}_{:}_{:}_{:}_.txt".format(n_epochs, batch_size, lr, gm)
-        #np.savetxt(filename, loss_, fmt="%.8f")
 
 
 class OLS(Regression):
@@ -194,6 +187,30 @@ class Ridge(Regression):
     def gradient(self,X,y):
         n = X.shape[0]
         return (2.0/n)*X.T @ (X @ (self.beta) - y) + 2*self.lamb*self.beta
+
+
+class SGD(Regression):
+    def __init__(self, model):
+        super().__init__(self)
+        self.model = model
+
+    def GD1(self, X, y, maxiter, learn_rate):
+        n = X.shape[0]
+        p = X.shape[1]
+
+        self.loss = np.zeros(maxiter)
+        self.epochs = np.zeros(maxiter)
+        self.beta = np.random.randn(p)
+        iter = 0
+        while iter < maxiter:
+            gradient = self.gradient(X, y)
+            #gradient = model.gradient(X, y)
+            step_size = learn_rate*gradient
+            self.beta = self.beta - step_size
+            self.residual(X, y)
+            self.loss[iter] = (1/(n-p))*self.residual_sum_squares
+            self.epochs = iter
+            iter += 1
 
 #==============================================================================
 def test_OLS():
@@ -239,6 +256,22 @@ def test_OLS():
     assert sucsess_coef, "Coefficients are not the same"
     assert sucsess_y_pred, "predicted y-values are not the same"
 
+
+def test_Regression():
+    X, y = tools.GenerateDataLine(100)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test = tools.scale_X(X_train, X_test)
+
+    model = OLS()
+    model.fit(X_train, y_train)
+    print("Beta : ", model.beta, sep='\n')
+    print("r2 : ", model.r2score(X_test, y_test), '\n')
+
+    model2 = OLS()
+    model2.GD1(X_train, y_train, maxiter=1000, learn_rate=0.1)
+    print("Beta : ", model2.beta, sep='\n')
+    print("r2 : ", model2.r2score(X_test, y_test), '\n')
 if __name__=="__main__":
-    test_OLS()
-    print("Passed sklearn test")
+    #test_OLS()
+    #print("Passed sklearn test")
+    test_Regression()
