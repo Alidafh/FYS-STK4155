@@ -3,19 +3,24 @@
 | File | Description |
 | ------ | ------ |
 | tools.py | Contains various helper functions|
-| gradient.py | Preform SGD |
+| skynet | Contains the neural network and regression classes |
+| mnist_loader | needed to load the mnist data, written by M. Nielsen |
+| ------ | ------ |
 | QuickPlot  | Classes made for convenient plotting |
 | super_main | Main script for making regression results |
-| skynet | Contains the neural network and regression classes |
 | mega_main | main script for making classification results |
-| mnist_loader | needed to load the mnist data, written by M. Nielsen |
+| gradient.py | Script to generate results using SGD with different parameter choises specified in the command line.|
+| run_gradient.py | run the gradient script to generate the results we need for plotting |
+| stochastic.py | plotting the results |
 | ------ | ------ |
 | sgd_v1/regression.py | The old regression class |
 | sgd_v1/gradient.py | same as the other gradient.py |
 | sgd_v1/run_gradient.py | run the gradient script to generate the results we need for plotting |
 | sgd_v1/stochastic.py | plotting the results |
 
-## Example of use: gradient.py
+## Use: gradient.py
+Script to generate results using SGD with different parameter choises specified in the command line. Path to where results should be stored must bespecified on line 119.
+
 ```
 $ python gradient.py -h
 usage: gradient.py [-h] [-r --method] [-l --lambda] [-d --gamma]
