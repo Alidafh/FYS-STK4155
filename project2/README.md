@@ -13,7 +13,7 @@ In this project we will be using a FFNN to study both classification and regress
 This code builds on example-code used/created by Morten Hjorth-Jensen for the class [FYS-STK4155](https://github.com/CompPhysics/MachineLearning/)
 
 
-It also uses portions of the 'mnist_loader.py' script written by Michael Nielsen which can be found in his github repository[https://github.com/mnielsen/neural-networks-and-deep-learning](https://github.com/mnielsen/neural-networks-and-deep-learning)
+It also uses portions of the scripts written by Michael Nielsen which can be found in his github repository[https://github.com/mnielsen/neural-networks-and-deep-learning](https://github.com/mnielsen/neural-networks-and-deep-learning)
 
 MIT License
 
