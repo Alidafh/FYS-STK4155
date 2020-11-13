@@ -19,8 +19,6 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import train_test_split
 
 
-
-
 ###############################################################################
 ################## Handily available plotting parameters ######################
 ###############################################################################
@@ -51,10 +49,6 @@ training_data = list(training_data)
 validation_data = list(validation_data)
 test_data = list(test_data)
 x_train,y_train = sky.split_data(training_data)             # x is collection of independent variables, y the collection of expected outputs.
-
-
-
-
 
 
 ###############################################################################
