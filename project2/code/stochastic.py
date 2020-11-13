@@ -16,7 +16,6 @@ import pandas as pd
 import os
 
 
-
 def get_data(filename):
     def make_dict(var, stat, beta):
         dict = {}
@@ -462,4 +461,4 @@ def main_Ridge():
 
 if __name__ == '__main__':
     main_OLS()
-    #main_Ridge()
+    main_Ridge()

@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from numba import jit
 import numba as nb
 
+
 class Regression:
     def __init__(self):
         self.beta = None            # Regression coefficients
@@ -161,7 +162,7 @@ class Regression:
 
         stop criterion: string, default="mse"
             The stopping criterion used, options are "mse", "accuracy" or None
-            if no criterion is needed. It wil then run over all epochs. 
+            if no criterion is needed. It wil then run over all epochs.
 
 
         Attributes
@@ -227,8 +228,8 @@ class Regression:
                 len_batch = len(x_batch)
                 beta_temp = self.beta
 
-                lr = learn_rate if learn_rate else tools.learning_schedule(ep*m+i, 5, 50)
-                #lr = learn_rate if learn_rate else tools.learning_schedule(ep+i, 5, 50)
+                #lr = learn_rate if learn_rate else tools.learning_schedule(ep*m+i, 5, 50)
+                lr = learn_rate if learn_rate else tools.learning_schedule(ep+i, 5, 50)
 
                 for k, el in enumerate(beta_temp):
                     momentum[k] = gamma*momentum[k] + (1 - gamma)*gradient[k] if gamma else gradient[k]
@@ -671,6 +672,7 @@ class Ridge(Regression):
     """
     def __init__(self, lamb):
         self.lamb = lamb
+        super().__init__()
 
     def fit(self, X, y):
         lamb=self.lamb

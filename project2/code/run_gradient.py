@@ -59,15 +59,15 @@ def run_bs(r="OLS", lamb=0.001, d=4, ep=100, bs = 5, lr=None, p="False"):
 
 
 if __name__ == '__main__':
-    run_degree(d_max=10, lr=0.1)
-    run_degree(d_max=10, lr=0.05)
+    #run_degree(d_max=10, lr=0.1)
+    #run_degree(d_max=10, lr=0.05)
 
-    run_learn_rate(d=7)
-    run_learn_rate2(d=7, gm=0.9)
+    #run_learn_rate(d=7)
+    #run_learn_rate2(d=7, gm=0.9)
 
-    learning_rates = [0.1, 0.05, 0.001, 0.0001]
-    for lr in learning_rates:
-        run_bs(d = 7, lr=lr)
+    #learning_rates = [0.1, 0.05, 0.001, 0.0001]
+    #for lr in learning_rates:
+    #    run_bs(d = 7, lr=lr)
 
     run_momentum(lr=0.1, d=7)
 
