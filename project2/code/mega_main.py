@@ -11,7 +11,8 @@ Created on Wed Nov 11 22:54:43 2020
 import skynet as sky
 import mnist_loader
 import tools
-import quickplot as qupl
+#import quickplot as qupl
+import QuickPlot as qupl
 
 import numpy as np
 import matplotlib.pyplot as plt
