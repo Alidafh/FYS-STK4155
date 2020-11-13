@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
 def SVDinv(A):
     """
@@ -84,6 +85,11 @@ def scale_X(train, test, scaler="manual"):
 
     return train_scl, test_scl
 
+def split_scale(X, y):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test = scale_X(X_train, X_test)
+    return X_train, X_test, y_train, y_test
+
 def GenerateDataFranke(ndata, noise_str=0.1):
     """
     Generates data using the Franke Function with normally distributed noise
@@ -133,7 +139,7 @@ def GenerateDataLine(ndata=100):
     X = np.c_[np.ones((ndata,1)), x]
     return X, y.ravel()
 
-def PolyDesignMatrix(x, y, d):
+def PolyDesignMatrix(input, d):
     """
     Generates a design matrix of size (n,p) with monomials up to degree d as
     the columns. As an example if d=2 the columns of the design matrixs will be
@@ -147,6 +153,9 @@ def PolyDesignMatrix(x, y, d):
     Returns
         X: Design matrix of shape (n, p)
     """
+    x = input[0]
+    y = input[1]
+
     n = len(x)
     p = int(((d+2)*(d+1))/2)  # number of terms in beta
     X = np.ones((n, p))       # Matrix of size (n,p) where all entries are zero
@@ -156,11 +165,45 @@ def PolyDesignMatrix(x, y, d):
         j = int(((i)*(i+1))/2)
         for k in range(i+1):
             X[:,j+k] = x**(i-k)*y**(k)
-    return X
+    return X, p
+
+def reshape_franke(input, y):
+    """
+    Reshapes the data for plotting
+    """
+    sd=int(round(np.sqrt(len(y))))
+    x1 = input[:,0].reshape(sd,sd)
+    x2 = input[:,1].reshape(sd,sd)
+    y1 = y.reshape(sd,sd)
+    data = [x1,x2,y1]
+    return x1, x2, y1
 
 def learning_schedule(t, t0, t1):
     return t0/(t+t1)
 
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
 
-if __name__ == '__main__':
-    input, y = GenerateDataFranke(10, 0.1)
+    n_epoch = 100
+    m = int(1024*0.8/5)
+    eps = np.arange(1, n_epoch+1)
+
+    lr = np.zeros((n_epoch, m))
+    lr2 = np.zeros((n_epoch, m))
+    ll = []
+
+    for ep in range(n_epoch):
+        for i in range(m):
+            y1 = learning_schedule(ep*m+i, 5, 50)
+            y2 = learning_schedule(ep+i, 5, 50)
+            ll.append(y1)
+            lr[ep, i] = y1
+            lr2[ep,i] = y2
+
+    x = np.linspace(0, n_epoch, len(ll))
+    plt.plot(x, lr2.ravel(), "tab:blue", label="shedule2")
+    plt.plot(x, lr.ravel(), "tab:green", label="shedule")
+    plt.xlabel("Epochs")
+    plt.ylabel(r"Learning rate $\alpha$")
+    plt.legend()
+    plt.show()
