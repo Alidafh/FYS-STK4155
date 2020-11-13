@@ -2,7 +2,6 @@
 
 | File | Description |
 | ------ | ------ |
-| regression.py | Contains the Regression class |
 | tools.py | Contains various helper functions|
 | gradient.py | Preform SGD |
 | QuickPlot  | Classes made for convenient plotting |
@@ -10,6 +9,11 @@
 | skynet | Contains the neural network and regression classes |
 | mega_main | main script for making classification results |
 | mnist_loader | needed to load the mnist data, written by M. Nielsen |
+| ------ | ------ |
+| sgd_v1/regression.py | The old regression class |
+| sgd_v1/gradient.py | same as the other gradient.py |
+| sgd_v1/run_gradient.py | run the gradient script to generate the results we need for plotting |
+| sgd_v1/stochastic.py | plotting the results |
 
 ## Example of use: gradient.py
 ```
