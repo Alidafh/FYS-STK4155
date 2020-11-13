@@ -156,10 +156,12 @@ class Regression:
             Regularization parameter for l1 or l2 regularization
 
         stop_threshhold: int, defualt=5
-            TBD
+            The number of epochs we will use to chech the stopping criterion.
+            Can be set to None in order to run over all epochs
 
         stop criterion: string, default="mse"
-            The stopping criterion used, TBD
+            The stopping criterion used, options are "mse", "accuracy" or None
+            if no criterion is needed. It wil then run over all epochs. 
 
 
         Attributes
@@ -224,7 +226,9 @@ class Regression:
                 gradient = self.gradient(x_batch, y_batch)
                 len_batch = len(x_batch)
                 beta_temp = self.beta
+
                 lr = learn_rate if learn_rate else tools.learning_schedule(ep*m+i, 5, 50)
+                #lr = learn_rate if learn_rate else tools.learning_schedule(ep+i, 5, 50)
 
                 for k, el in enumerate(beta_temp):
                     momentum[k] = gamma*momentum[k] + (1 - gamma)*gradient[k] if gamma else gradient[k]
@@ -360,8 +364,9 @@ class Network(Regression):
         return a
 
 
-    def train(self, x, z, n_epochs=30, batch_size=10, learn_rate=3, gamma=None, prin=True, accuracy=False, test_data=None,
-              lamb = 0,stop_threshhold=5, stop_criterion="mse"):
+    def train(self, x, z, n_epochs=30, batch_size=10, learn_rate=3, gamma=None,
+              prin=True, accuracy=False, test_data=None,lamb = 0,stop_threshhold=5,
+              stop_criterion="mse"):
         """
         The function that trains the neural network. In practice takes the
         parameters that have been optimized by the SGD function and uses them
@@ -369,8 +374,9 @@ class Network(Regression):
         SGD method.
         """
 
-        self.SGD(x,z, n_epochs=n_epochs, batch_size=batch_size, learn_rate=learn_rate, gamma=gamma, prin=prin,
-                 accuracy=accuracy, test_data=test_data, lamb = lamb,stop_threshhold=stop_threshhold, stop_criterion=stop_criterion)
+        self.SGD(x,z, n_epochs=n_epochs, batch_size=batch_size, learn_rate=learn_rate,
+                gamma=gamma, prin=prin, accuracy=accuracy, test_data=test_data,
+                lamb = lamb,stop_threshhold=stop_threshhold, stop_criterion=stop_criterion)
 
         beta_temp = self.beta
         weights_temp, biases_temp = self.beta_to_wb(beta_temp)
@@ -649,6 +655,9 @@ class OLS(Regression):
         self.beta_var = bv.ravel()
 
     def gradient(self, X, y):
+        if isinstance(X, list):
+            X = np.array(X)
+
         n = X.shape[0]
         return (2.0/n)*X.T @ (X @ self.beta -  y)
 
@@ -674,6 +683,9 @@ class Ridge(Regression):
         self.beta_var = bv.ravel()
 
     def gradient(self,X,y):
+        if isinstance(X, list):
+            X = np.array(X)
+
         n = X.shape[0]
         return (2.0/n)*X.T @ (X @ (self.beta) - y) + 2*self.lamb*self.beta
 
