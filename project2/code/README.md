@@ -1,4 +1,5 @@
 # Overview of files
+The Neural Network and regression classes are contained in:
 
 | Files | Description |
 | ------ | ------ |
@@ -6,6 +7,7 @@
 | skynet | Contains the neural network and regression classes |
 | mnist_loader | needed to load the mnist data, written by M. Nielsen |
 
+The following files are examples of use and are what we have used to generate the results for the report in the report folder.
 
 | Files | Description |
 | ------ | ------ |
@@ -16,6 +18,7 @@
 | run_gradient.py | run the gradient script to generate the results we need for plotting |
 | stochastic.py | plotting the results |
 
+These files are using a previous version of the Stochastic Gradient descent method in skynet.py, some of the results in the report are created
 | Files | Description |
 | ------ | ------ |
 | sgd_v1/regression.py | The old regression class |
@@ -24,7 +27,7 @@
 | sgd_v1/stochastic.py | plotting the results |
 
 ## Use: gradient.py
-Script to generate results using SGD with different parameter choises specified in the command line. Path to where results should be stored must bespecified on line 119.
+Script to generate results using SGD with different parameter choises specified in the command line. Path to where results should be stored must be specified on line 119.
 
 ```
 $ python gradient.py -h
