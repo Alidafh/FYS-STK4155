@@ -1,14 +1,23 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 1 09:14:21 2020
+
+Script to easily generate results using SGD with different parameter choises
+specified in the command line. Path to where results should be stored must be
+specified on line 119.
+
+@author: Alida Hardersen
+"""
 import argparse
 import numpy as np
 import tools as tools
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import train_test_split
-from regression import OLS, Ridge
-import regression as reg
+import skynet as reg
 import sys
 
-def stochastic():
+def stochastic(PATH):
     print("Method:     ", r)
     print("Lambda:     ", lamb, "(Only if Ridge)")
     print("Polydegree: ", d)
@@ -27,8 +36,10 @@ def stochastic():
     # Set up the linear model
     if r =="OLS": model = reg.OLS()
     if r == "Ridge": model = reg.Ridge(lamb)
-    loss = model.SGD(X_train, y_train, n_epochs=ep, batch_size=bs, learn_rate=lr, gamma=gm, prin=p)
-    #loss = model.SGD(X_train, y_train, n_epochs=ep, batch_size=bs, learn_rate=lr, gamma=gm, prin=p, tol=1e-5)
+
+    loss = model.SGD(X_train, y_train, n_epochs=ep, batch_size=bs, learn_rate=lr,
+                    gamma=gm, prin=p, accuracy=False, test_data=None, lamb = 0,
+                    stop_threshhold=None, stop_criterion=None)
 
     print("Stochastic Gradient Descent")
     print("-----------------------------------")
@@ -42,8 +53,8 @@ def stochastic():
     info[0, 2:] = model.beta
 
     ## Do normal regression to compare
-    if r =="OLS": model_basic = OLS()
-    if r == "Ridge": model_basic = Ridge(lamb)
+    if r =="OLS": model_basic = reg.OLS()
+    if r == "Ridge": model_basic = reg.Ridge(lamb)
 
     model_basic.fit(X_train, y_train)
     print()
@@ -64,11 +75,11 @@ def stochastic():
     gm_s = gm if gm else "standard"
 
     if r=="OLS":
-        filename = "output/SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_.csv".format(r, d, ep, bs, lr_s, gm_s)
-        filename2 = "output/SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_.txt".format(r, d, ep, bs, lr_s, gm_s)
+        filename = PATH+"SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_.csv".format(r, d, ep, bs, lr_s, gm_s)
+        filename2 = PATH+"SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_.txt".format(r, d, ep, bs, lr_s, gm_s)
     if r=="Ridge":
-        filename = "output/SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_{:}_.csv".format(r, lamb, d, ep, bs, lr_s, gm_s)
-        filename2 = "output/SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_{:}_.txt".format(r, lamb, d, ep, bs, lr_s, gm_s)
+        filename = PATH+"SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_{:}_.csv".format(r, lamb, d, ep, bs, lr_s, gm_s)
+        filename2 = PATH+"SGDLOG_{:}_{:}_{:}_{:}_{:}_{:}_{:}_.txt".format(r, lamb, d, ep, bs, lr_s, gm_s)
 
     np.savetxt(filename, loss, fmt="%.8f")
     np.savetxt(filename2, info, fmt="%.8f")
@@ -108,4 +119,4 @@ def main():
 
 if __name__ == "__main__":
     r, lamb, d, ep, bs, lr, gm, p = main()
-    stochastic()
+    stochastic(PATH="../output/")
