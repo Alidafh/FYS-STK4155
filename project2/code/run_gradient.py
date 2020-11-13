@@ -57,19 +57,29 @@ def run_bs(r="OLS", lamb=0.001, d=4, ep=100, bs = 5, lr=None, p="False"):
             options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -lr {:} -p {:}".format(r, lamb, d, ep, bs, lr, p)
         os.system("python gradient.py "+ options)
 
+def run_lamb(r="Ridge", d=4, ep=100, bs=5, p="False", lr=None):
+    lambs = [0.1, 0.001, 0.0001, 0.00001]
+    for lamb in lambs:
+        options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -p {:}".format(r, lamb, d, ep, bs, p)
+        if lr:
+            options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -lr {:} -p {:}".format(r, lamb, d, ep, bs, lr, p)
+        os.system("python gradient.py "+ options)
+
 
 if __name__ == '__main__':
-    #run_degree(d_max=10, lr=0.1)
-    #run_degree(d_max=10, lr=0.05)
-    run_degree(d_max=10)
+    run_degree(d_max=10, lr=0.1)
+    run_degree(d_max=10, lr=0.05)
+    #run_degree(d_max=10)
 
-    #run_learn_rate(d=7)
-    #run_learn_rate2(d=7, gm=0.9)
+    run_learn_rate(d=7)
+    run_learn_rate2(d=7, gm=0.9)
 
     #learning_rates = [0.1, 0.05, 0.001, 0.0001]
     #for lr in learning_rates:
     #    run_bs(d = 7, lr=lr)
 
-    #run_momentum(lr=0.1, d=7)
-
-    #run_learn_rate(d=4)
+    run_momentum(lr=0.1, d=7)
+    #run_degree(r="Ridge", d_max=10, lr=0.1, lamb=0.1)
+    run_lamb(d=7, lr=0.1)
+    run_lamb(d=7, lr=0.05)
+    run_lamb(d=7)

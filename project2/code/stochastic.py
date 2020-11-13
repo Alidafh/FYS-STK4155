@@ -469,15 +469,15 @@ def main_lamb(d, title=None):
 
 ##############################################################################
 def main_OLS():
-    #main_LR(d=7, title="OLS_all_lr")
+    main_LR(d=7, title="OLS_all_lr")
     #main_LR_schedule(d=7, title="OLS_shedule_lr")
-    #main_LR_GM(d=7, title="OLS_learn_momentum")
-    main_complexity(lr = 0.1, lr2 = 0.05, lr3="schedule", title="OLS_complexity")
-    #main_momentum(d=7, title= "OLS_momentum")
+    main_LR_GM(d=7, title="OLS_learn_momentum")
+    main_complexity(lr = 0.1, lr2 = 0.05, lr3=0.05, title="OLS_complexity")
+    main_momentum(d=7, title= "OLS_momentum")
 
 def main_Ridge():
     main_lamb(d=7, title="ridge_2")
 
 if __name__ == '__main__':
     main_OLS()
-    main_Ridge()
+    #main_Ridge()

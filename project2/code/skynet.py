@@ -344,7 +344,7 @@ class Network(Regression):
 
         self.accuracies_train = []
 
-
+        self.cost = QuadraticCost()
 
     def predict(self, x):
         y = list(np.zeros(len(x)))
@@ -411,7 +411,6 @@ class Network(Regression):
         beta_temp = self.beta
         weights_temp, biases_temp = self.beta_to_wb(beta=beta_temp)
 
-
         nabla_b = [np.zeros(b.shape) for b in biases_temp]
         nabla_w = [np.zeros(w.shape) for w in weights_temp]
 
@@ -427,9 +426,7 @@ class Network(Regression):
             activation = self.afs[k].func(z)
             activations.append(activation)
 
-        delta = self.cost_derivative(activations[-1], y) * \
-            self.afs[-1].prime(zs[-1])
-
+        delta = self.cost.delta(zs[-1], activations[-1], y, self.afs[-1])
 
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
@@ -440,6 +437,7 @@ class Network(Regression):
             delta = np.dot(weights_temp[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+
 
         return self.wb_to_beta(weights=nabla_w, biases=nabla_b)
 
@@ -638,6 +636,24 @@ class Binary:
 
     def prime(self, z):
             return 0
+
+class QuadraticCost():
+
+    def func(self, a, y):
+        return 0.5*np.linalg.norm(a-y)**2
+
+    def delta(self,z,a,y,act_func):
+
+        return (a-y)*act_func.prime(z)
+
+
+class CrossEntropy():
+
+    def func(self,a, y):
+        return np.sum(-y*np.log(a)-(1-y)*np.log(1-a))
+
+    def delta(self,z, a, y, act_func):
+        return (a-y)
 
 
 class OLS(Regression):

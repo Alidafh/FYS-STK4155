@@ -1,4 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 13 09:12:22 2020
+
+Helper functions
+
+@author: Alida Hardersen
+"""
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -180,30 +188,3 @@ def reshape_franke(input, y):
 
 def learning_schedule(t, t0, t1):
     return t0/(t+t1)
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    n_epoch = 100
-    m = int(1024*0.8/5)
-    eps = np.arange(1, n_epoch+1)
-
-    lr = np.zeros((n_epoch, m))
-    lr2 = np.zeros((n_epoch, m))
-    ll = []
-
-    for ep in range(n_epoch):
-        for i in range(m):
-            y1 = learning_schedule(ep*m+i, 5, 50)
-            y2 = learning_schedule(ep+i, 5, 50)
-            ll.append(y1)
-            lr[ep, i] = y1
-            lr2[ep,i] = y2
-
-    x = np.linspace(0, n_epoch, len(ll))
-    plt.plot(x, lr2.ravel(), "tab:blue", label="shedule2")
-    plt.plot(x, lr.ravel(), "tab:green", label="shedule")
-    plt.xlabel("Epochs")
-    plt.ylabel(r"Learning rate $\alpha$")
-    plt.legend()
-    plt.show()
