@@ -156,15 +156,18 @@ def plot_lr_epoch_shedule(PATH, filenames, title=None):
     if not title: fig.savefig("../figures/OLS_schedule12.png")
     plt.show()
 
-def plot_mse_r2(PATH, filenames1, filenames2, title=None):
+def plot_mse_r2(PATH, filenames1, filenames2, filenames3, title=None):
 
     n = len(filenames1)
     mse_sgd1 = np.zeros(n)
     mse_sgd2 = np.zeros(n)
+    mse_sgd3 = np.zeros(n)
     mse_basic1 = np.zeros(n)
     mse_basic2 = np.zeros(n)
+    mse_basic3 = np.zeros(n)
     r2_sgd1 = np.zeros(n)
     r2_sgd2 = np.zeros(n)
+    r2_sgd3 = np.zeros(n)
     r2_basic1 = np.zeros(n)
 
     degrees = np.zeros(n)
@@ -172,15 +175,19 @@ def plot_mse_r2(PATH, filenames1, filenames2, title=None):
     for i in range(n):
         name1 = filenames1[i]
         name2 = filenames2[i]
+        name3 = filenames3[i]
         sgd1, basic1 = get_data(PATH+name1)
         sgd2, basic2 = get_data(PATH+name2)
+        sgd3, basic3 = get_data(PATH+name3)
 
         mse_sgd1[i] = sgd1["mse"]
         mse_sgd2[i] = sgd2["mse"]
+        mse_sgd3[i] = sgd3["mse"]
         mse_basic1[i] = basic1["mse"]
 
         r2_sgd1[i] = sgd1["r2"]
         r2_sgd2[i] = sgd2["r2"]
+        r2_sgd3[i] = sgd3["r2"]
         r2_basic1[i] = basic1["r2"]
 
         degrees[i] = sgd1["d"]
@@ -195,12 +202,14 @@ def plot_mse_r2(PATH, filenames1, filenames2, title=None):
     ax[0].set_ylabel("MSE",fontsize = 10, fontname = "serif" )
     ax[0].plot(degrees, mse_sgd1, "tab:green", label = r"SGD $\alpha: $"+sgd1["lr"])
     ax[0].plot(degrees, mse_sgd2, "tab:blue", label = r"SGD $\alpha: $"+sgd2["lr"])
+    ax[0].plot(degrees, mse_sgd3, "tab:red", label = r"SGD $\alpha: $"+sgd3["lr"])
     ax[0].plot(degrees, mse_basic1, "tab:gray", linestyle="dashed", label = "Basic OLS")
 
     #ax[1].grid()
     ax[1].set_ylabel("R2",fontsize = 10, fontname = "serif" )
     ax[1].plot(degrees, r2_sgd1, "tab:green", label = r"SGD $\alpha: $"+sgd1["lr"])
     ax[1].plot(degrees, r2_sgd2, "tab:blue", label = r"SGD $\alpha: $"+sgd2["lr"])
+    ax[1].plot(degrees, r2_sgd3, "tab:red", label = r"SGD $\alpha: $"+sgd3["lr"])
     ax[1].plot(degrees, r2_basic1, "tab:gray", linestyle="dashed", label = "Basic OLS")
 
     lines = []
@@ -211,7 +220,7 @@ def plot_mse_r2(PATH, filenames1, filenames2, title=None):
         lines.extend(axLine)
         labels.extend(axLabel)
 
-    fig.legend(lines[:3], labels[:3], loc = 'upper right')
+    fig.legend(lines[:4], labels[:4], loc = 'upper right')
     plt.xlabel("Model complexity (Degrees)")
     if title: fig.savefig("../figures/"+title+".png")
     if not title: fig.savefig("../figures/OLS_complexity.png")
@@ -392,7 +401,7 @@ def main_LR_GM(d, title=None):
 
     plot_lr_epoch3(PATH, filenames1, filenames2, title=title)
 
-def main_complexity(lr, lr2, title=None):
+def main_complexity(lr, lr2, lr3, title=None):
     PATH = "../output/"
 
     filenames1 = ["SGDLOG_OLS_1_100_5_{:}_standard_".format(lr),
@@ -415,7 +424,17 @@ def main_complexity(lr, lr2, title=None):
                  "SGDLOG_OLS_8_100_5_{:}_standard_".format(lr2),
                  "SGDLOG_OLS_9_100_5_{:}_standard_".format(lr2)]
 
-    plot_mse_r2(PATH, filenames1, filenames2, title=title)
+    filenames3 = ["SGDLOG_OLS_1_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_2_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_3_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_4_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_5_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_6_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_7_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_8_100_5_{:}_standard_".format(lr3),
+                 "SGDLOG_OLS_9_100_5_{:}_standard_".format(lr3)]
+
+    plot_mse_r2(PATH, filenames1, filenames2, filenames3, title=title)
 
 def main_momentum(d, title=None):
     PATH = "../output/"
@@ -450,11 +469,11 @@ def main_lamb(d, title=None):
 
 ##############################################################################
 def main_OLS():
-    main_LR(d=7, title="OLS_all_lr")
-    main_LR_schedule(d=7, title="OLS_shedule_lr")
-    main_LR_GM(d=7, title="OLS_learn_momentum")
-    main_complexity(lr = 0.1, lr2 = 0.05, title="OLS_complexity")
-    main_momentum(d=7, title= "OLS_momentum")
+    #main_LR(d=7, title="OLS_all_lr")
+    #main_LR_schedule(d=7, title="OLS_shedule_lr")
+    #main_LR_GM(d=7, title="OLS_learn_momentum")
+    main_complexity(lr = 0.1, lr2 = 0.05, lr3="schedule", title="OLS_complexity")
+    #main_momentum(d=7, title= "OLS_momentum")
 
 def main_Ridge():
     main_lamb(d=7, title="ridge_2")

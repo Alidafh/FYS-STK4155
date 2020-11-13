@@ -228,8 +228,8 @@ class Regression:
                 len_batch = len(x_batch)
                 beta_temp = self.beta
 
-                #lr = learn_rate if learn_rate else tools.learning_schedule(ep*m+i, 5, 50)
-                lr = learn_rate if learn_rate else tools.learning_schedule(ep+i, 5, 50)
+                lr = learn_rate if learn_rate else tools.learning_schedule(ep*m+i, 5, 50)
+                #lr = learn_rate if learn_rate else tools.learning_schedule(ep+i, 5, 50)
 
                 for k, el in enumerate(beta_temp):
                     momentum[k] = gamma*momentum[k] + (1 - gamma)*gradient[k] if gamma else gradient[k]

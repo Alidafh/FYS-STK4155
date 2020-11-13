@@ -1,15 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 13 09:12:22 2020
-
-Run gradient.py script and generate results for all combinations of parameters
-needed to write the report.
-
-The path to where the data is stored must be specified in gradient.py line 119
-
-@author: Alida Hardersen
-"""
+#!/usr/bin/python
 import numpy as np
 import os
 
@@ -41,7 +30,7 @@ def run_momentum(r="OLS", lamb=0.001, d=4, ep=100, bs=5, p="False", lr=None):
             options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -lr {:} -p {:} -gm {:}".format(r, lamb, d, ep, bs, lr, p, gm)
         os.system("python gradient.py "+options)
 
-def run_degree(d_max, r="OLS", lamb=0.001, ep=100, bs=5, lr=None, gm = None, p="False"):
+def run_degree(d_max, r="OLS", lamb=0.001, ep=100, bs=5, lr=None, p="False"):
     degrees = np.arange(1, d_max+1, dtype=int)
     for d in degrees:
         options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -p {:}".format(r, lamb, d, ep, bs, p)
@@ -58,18 +47,16 @@ def run_bs(r="OLS", lamb=0.001, d=4, ep=100, bs = 5, lr=None, p="False"):
         os.system("python gradient.py "+ options)
 
 
+def run_lamb(r="Ridge", d=4, ep=100, bs=5, p="False", lr=None):
+    lambs = [0.1, 0.001, 0.0001, 0.00001]
+    for lamb in lambs:
+        options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -p {:}".format(r, lamb, d, ep, bs, p)
+        if lr:
+            options = "-r {:} -l {:} -d {:} -ep {:} -bs {:} -lr {:} -p {:}".format(r, lamb, d, ep, bs, lr, p)
+        os.system("python gradient.py "+ options)
+
 if __name__ == '__main__':
-    #run_degree(d_max=10, lr=0.1)
-    #run_degree(d_max=10, lr=0.05)
-    run_degree(d_max=10)
-
-    #run_learn_rate(d=7)
-    #run_learn_rate2(d=7, gm=0.9)
-
-    #learning_rates = [0.1, 0.05, 0.001, 0.0001]
-    #for lr in learning_rates:
-    #    run_bs(d = 7, lr=lr)
-
-    #run_momentum(lr=0.1, d=7)
-
-    #run_learn_rate(d=4)
+    #run_degree(r="Ridge", d_max=10, lr=0.1, lamb=0.1)
+    run_lamb(d=7, lr=0.1)
+    run_lamb(d=7, lr=0.05)
+    run_lamb(d=7)

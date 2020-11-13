@@ -40,6 +40,10 @@ def stochastic(PATH):
     loss = model.SGD(X_train, y_train, n_epochs=ep, batch_size=bs, learn_rate=lr,
                     gamma=gm, prin=p, accuracy=False, test_data=None, lamb = 0,
                     stop_threshhold=None, stop_criterion=None)
+                    
+    #loss = model.SGD(X_train, y_train, n_epochs=ep, batch_size=bs, learn_rate=lr,
+    #                gamma=gm, prin=p, accuracy=False, test_data=None, lamb = 0,
+    #                stop_threshhold=5, stop_criterion="mse")
 
     print("Stochastic Gradient Descent")
     print("-----------------------------------")
