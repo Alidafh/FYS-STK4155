@@ -1,10 +1,13 @@
 # Overview of files
 
-| File | Description |
+| Files | Description |
 | ------ | ------ |
 | tools.py | Contains various helper functions|
 | skynet | Contains the neural network and regression classes |
 | mnist_loader | needed to load the mnist data, written by M. Nielsen |
+
+
+| Files | Description |
 | ------ | ------ |
 | QuickPlot  | Classes made for convenient plotting |
 | super_main | Main script for making regression results |
@@ -12,6 +15,8 @@
 | gradient.py | Script to generate results using SGD with different parameter choises specified in the command line.|
 | run_gradient.py | run the gradient script to generate the results we need for plotting |
 | stochastic.py | plotting the results |
+
+| Files | Description |
 | ------ | ------ |
 | sgd_v1/regression.py | The old regression class |
 | sgd_v1/gradient.py | same as the other gradient.py |
