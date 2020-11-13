@@ -444,10 +444,10 @@ if 1:
     
     
      
-    clf = MLPClassifier(random_state=1, max_iter=300).fit(x_scikit, y_scikit)
+    clf = MLPClassifier(hidden_layer_sizes=(100,), random_state=1, max_iter=10000, alpha=1, activation="logistic", solver="sgd").fit(x_scikit, y_scikit)
      
     
-    clf.score(x_scikit_test, y_scikit_test)
+    print(clf.score(x_scikit_test, y_scikit_test))
     
     
     
