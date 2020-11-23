@@ -67,7 +67,7 @@ class SkyMap:
         d = matrix_raveled.reshape(self.dim)
         return d
 
-    def Display(self, data, slice):
+    def Display(self, data, slice=None):
         if len(data.shape)==1:
             data_ = self.unravel_map(data)
 
@@ -75,7 +75,7 @@ class SkyMap:
                 data_= data_[:,:,slice]
 
         plt.imshow(data_)
-        plt.show()
+
 
 
 #=============================================================================
@@ -154,8 +154,10 @@ def main1():
     map1 = SkyMap(dim)
     galaxy_to_display = data_galaxy[0]
     dm_to_display = data_dm[0]
+    ax = plt.subplot(2,2,1)
     map1.Display(galaxy_to_display, slice=0)
-    map1.Display(dm_to_display,slice=0)
+    map1.Display(dm_to_display, slice=0)
+    plt.show()
 
 if __name__ == '__main__':
     #main0()
