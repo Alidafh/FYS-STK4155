@@ -18,7 +18,7 @@ def DM_spectrum(E):
     sigma = 1
     mean = 5
     norm = 2
-    
+
     return norm*np.exp(- ( (E - mean)**2 )/(2*sigma**2) )
 
 
@@ -60,7 +60,7 @@ class SkyMap:
 
         noise_ = noise*np.ones(self.dim)
         galaxy = galaxy+noise_
-        
+
         self.matrix += galaxy
 
         return galaxy
@@ -87,7 +87,7 @@ class SkyMap:
     def generate_galaxy_noise(self, noise):
 
         noise = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
-        
+
         self.matrix += noise
 
         return noise
@@ -96,7 +96,7 @@ class SkyMap:
     def generate_DM_noise(self, noise):
 
         noise = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
-        
+
         self.matrix += noise
         return noise
 
@@ -164,15 +164,15 @@ class SkyMap:
         fig.colorbar(im, cax=cax)
         if save_as: fig.savefig(save_as)
 
-          
+
     def display_spectrum(self):
-        
+
         plt.figure(50)
-        
+
         mat = self.matrix
-        
+
         spectrum = np.sum(mat, axis = (0,1))
-        
+
         plt.plot(spectrum)
 
 #=============================================================================
@@ -229,7 +229,7 @@ def read_data(PATH, filename):
     return data, dim
 
 def main_gert():
-    
+
     E = 4
 
     map = SkyMap(dim=(50,100,10))
@@ -259,8 +259,7 @@ def main1():
 
 
 if __name__ == '__main__':
-    gert_generate_dm_and_galaxy
-    main_gert()
+    #main_gert()
     main0()
     main1()
 
@@ -283,4 +282,3 @@ if __name__ == '__main__':
     map1.display(galaxy_to_display)
     plt.show()
 """
-
