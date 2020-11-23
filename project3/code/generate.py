@@ -39,8 +39,6 @@ class SkyMap:
         self.matrix = np.zeros(self.dim)
 
 
-
-
     def generate_galaxy(self, noise):
 
         galaxy = np.zeros(self.dim)
@@ -130,37 +128,42 @@ class SkyMap:
 
 
     def combine_slices(self, data):
+        """Sum up all energy slices"""
         data_ = self.unravel_map(data)
         data_combined = np.sum(data_, axis=2)
         return data_combined
 
 
 
-    def display(self, data, slice=None, save_as=None):
+    def display(self, data, slice=None, save_as=None, lim=None):
         """
         Display the map. If no energy slice option is chosen, the energy levels
-        are added together. Save figure
+        are added together. Save figure.
         """
 
         if slice is not None:
-            #print("SLIIIIZE")
             data_ = self.unravel_map(data)
             data_ = data_[:,:,slice]
+
         else:
-            #print("COMBINE")
             data_= self.combine_slices(data)
 
+        fig = plt.figure()
+
+        #https://imagine.gsfc.nasa.gov/science/toolbox/gamma_generation.html
         y_axis = data_.shape[0]/2
         x_axis = data_.shape[1]/2
         axis_range = [-x_axis,x_axis,-y_axis, y_axis]
 
-        fig = plt.figure()
         plt.xlabel('Galactic Longitude')
         plt.ylabel('Galactic Latitude')
 
         ax = plt.gca()
-        #https://imagine.gsfc.nasa.gov/science/toolbox/gamma_generation.html
-        im = ax.imshow(data_, cmap="inferno", extent = axis_range)
+
+        if lim is not None:
+            im = ax.imshow(data_, cmap="inferno", extent = axis_range, vmax=lim)
+        else:
+            im = ax.imshow(data_, cmap="inferno", extent = axis_range)
 
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -265,23 +268,3 @@ if __name__ == '__main__':
     #main_gert()
     main0()
     main1()
-
-"""
-    fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
-    im0 = ax[0].imshow(data_[:,:,0], vmin=0, vmax=250)
-    fig.colorbar(im0, ax=ax[0])
-    im1 = ax[1].imshow(data_[:,:,-1], vmin=0, vmax=250)
-    fig.colorbar(im1, ax=ax[1])
-    im2 = ax[2].imshow(data_combined,vmin=0, vmax=250)
-    fig.colorbar(im2, ax=ax[2])
-    plt.show()
-
-
-
-    fig = plt.figure(figsize=(10,3))
-    fig.add_subplot(121)
-    map1.display(galaxy_to_display, slice=0)
-    fig.add_subplot(122)
-    map1.display(galaxy_to_display)
-    plt.show()
-"""
