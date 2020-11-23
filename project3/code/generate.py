@@ -141,10 +141,13 @@ class SkyMap:
         Display the map. If no energy slice option is chosen, the energy levels
         are added together. Save figure
         """
-        if slice:
+
+        if slice is not None:
+            #print("SLIIIIZE")
             data_ = self.unravel_map(data)
             data_ = data_[:,:,slice]
         else:
+            #print("COMBINE")
             data_= self.combine_slices(data)
 
         y_axis = data_.shape[0]/2
