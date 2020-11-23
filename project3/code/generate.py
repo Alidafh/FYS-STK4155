@@ -50,7 +50,6 @@ class SkyMap:
                     dark_matter[i, j-1] = i*j
                     dark_matter[i, j+1] = i*j
 
-
         return dark_matter
 
     def write_to_file(self):
@@ -68,12 +67,12 @@ class SkyMap:
         d = matrix_raveled.reshape(self.dim)
         return d
 
-    def Display(self, data):
+    def Display(self, data, slice):
         if len(data.shape)==1:
             data_ = self.unravel_map(data)
 
             if len(data_.shape)>2:
-                data_= data_[:,:,0]
+                data_= data_[:,:,slice]
 
         plt.imshow(data_)
         plt.show()
@@ -155,8 +154,8 @@ def main1():
     map1 = SkyMap(dim)
     galaxy_to_display = data_galaxy[0]
     dm_to_display = data_dm[0]
-    map1.Display(galaxy_to_display)
-    map1.Display(dm_to_display)
+    map1.Display(galaxy_to_display, slice=0)
+    map1.Display(dm_to_display,slice=0)
 
 if __name__ == '__main__':
     #main0()
