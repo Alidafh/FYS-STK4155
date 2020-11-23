@@ -10,15 +10,15 @@ def func(x):
 
 def DM_profile(r):
     # return 1/(r+0.1)
-    return 10 - r/2.5
+    return max(  10 - r/2.5  , 0 )
 
 
 def DM_spectrum(E):
 
     sigma = 1
     mean = 5
-    norm = 10
-
+    norm = 2
+    
     return norm*np.exp(- ( (E - mean)**2 )/(2*sigma**2) )
 
 
@@ -35,6 +35,10 @@ def galaxy_spectrum(E):
 class SkyMap:
     def __init__(self, dim):
         self.dim = dim
+        #print(dim)
+        self.matrix = np.zeros(self.dim)
+
+
 
 
     def generate_galaxy(self, noise):
@@ -56,6 +60,8 @@ class SkyMap:
 
         noise_ = noise*np.ones(self.dim)
         galaxy = galaxy+noise_
+        
+        self.matrix += galaxy
 
         return galaxy
 
@@ -74,13 +80,15 @@ class SkyMap:
 
                     dark_matter[i,j,E] = DM_profile(r)*DM_spectrum(E)
 
-
+        self.matrix += dark_matter
         return dark_matter
 
 
     def generate_galaxy_noise(self, noise):
 
         noise = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
+        
+        self.matrix += noise
 
         return noise
 
@@ -88,6 +96,10 @@ class SkyMap:
     def generate_DM_noise(self, noise):
 
         noise = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
+        
+        self.matrix += noise
+        return noise
+
 
         return noise
 
@@ -152,6 +164,16 @@ class SkyMap:
         fig.colorbar(im, cax=cax)
         if save_as: fig.savefig(save_as)
 
+          
+    def display_spectrum(self):
+        
+        plt.figure(50)
+        
+        mat = self.matrix
+        
+        spectrum = np.sum(mat, axis = (0,1))
+        
+        plt.plot(spectrum)
 
 #=============================================================================
 
@@ -207,7 +229,9 @@ def read_data(PATH, filename):
     return data, dim
 
 def main_gert():
-    E = 8
+    
+    E = 4
+
     map = SkyMap(dim=(50,100,10))
     gal = map.generate_galaxy(noise=0.1)[:,:,E]
     galn = gal + map.generate_galaxy_noise(noise=2)[:,:,E]
@@ -217,6 +241,7 @@ def main_gert():
     ax[0].imshow(gal)
     ax[1].imshow(dm)
     ax[2].imshow(dmn+galn)
+    map.display_spectrum()
     plt.show()
 
 def main0():
@@ -234,10 +259,10 @@ def main1():
 
 
 if __name__ == '__main__':
+    gert_generate_dm_and_galaxy
+    main_gert()
     main0()
     main1()
-
-
 
 """
     fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
@@ -258,3 +283,4 @@ if __name__ == '__main__':
     map1.display(galaxy_to_display)
     plt.show()
 """
+
