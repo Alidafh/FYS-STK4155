@@ -18,13 +18,13 @@ def main1():
     combined = galaxy+dm
 
     map1 = gen.SkyMap(dim)
-    map1.display(dm[0], slice=5, save_as="../figures/test_DM.png", lim=50)
+    map1.display(dm[0], slice=5, save_as="../figures/DM_test.png", lim=50)
     plt.show()
 
-    map1.display(galaxy[0], slice=5, save_as="../figures/test_Gal.png", lim=50)
+    map1.display(galaxy[0], slice=5, save_as="../figures/Galaxy_test.png", lim=50)
     plt.show()
 
-    map1.display(combined[0], slice=5, save_as="../figures/test_combo.png", lim=50)
+    map1.display(combined[0], slice=5, save_as="../figures/Both_test.png", lim=50)
     plt.show()
 
 def main2():
