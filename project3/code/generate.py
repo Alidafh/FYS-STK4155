@@ -34,6 +34,7 @@ def galaxy_spectrum(E):
 class SkyMap:
     def __init__(self, dim):
         self.dim = dim
+        #print(dim)
 
 
 
@@ -57,6 +58,7 @@ class SkyMap:
 
         noise_ = noise*np.ones(self.dim)
         galaxy = galaxy+noise_
+
         return galaxy
 
 
@@ -81,16 +83,11 @@ class SkyMap:
     
     
     
-    
-    
     def generate_galaxy_noise(self, noise):
         
         noise = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
         
         return noise
-    
-    
-    
     
     
     def generate_DM_noise(self, noise):
@@ -110,17 +107,78 @@ class SkyMap:
 
     def ravel_map(self, matrix):
         b = matrix.ravel()
+        self.dim_ravel= b.shape
         return b
 
     def unravel_map(self, matrix_raveled):
         d = matrix_raveled.reshape(self.dim)
         return d
 
-    def Display(self):
-        return 0
+    def Display(self, data, slice=None):
+        if len(data.shape)==1:
+            data_ = self.unravel_map(data)
+
+            if len(data_.shape)>2:
+                data_= data_[:,:,slice]
+
+        plt.imshow(data_)
 
 
-def main():
+
+#=============================================================================
+
+def generate_data(nMaps, dim, PATH):
+    """
+    Generates galaxies and saves them to a datafile. The galaxies are raveled
+    and stored as a row in a numpy array of dimentions(nMaps, dim_ravel)
+    ---------------
+    Input:
+        nMaps: The number of maps needed
+        PATH: The path to where the data should be stored
+    ---------------
+    Returns:
+        data: The data, shape(nMaps, N)
+    """
+    dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
+    galaxies = np.zeros((nMaps, dim_ravel))
+    dark_matter = np.zeros((nMaps, dim_ravel))
+
+    for i in range(nMaps):
+        map = SkyMap(dim)
+
+        galaxy = map.generate_galaxy(noise=0.1)
+        dm = map.generate_DM(noise=0.1)
+
+        galaxies[i,:] = map.ravel_map(galaxy)
+        dark_matter[i,:] = map.ravel_map(dm)
+
+    filename1 = "galaxy_{:}_".format(dim)
+    filename2 = "DM_{:}_".format(dim)
+
+    np.savetxt(PATH+filename1+".csv", galaxies, fmt="%.16f")
+    np.savetxt(PATH+filename2+".csv", dark_matter, fmt="%.16f")
+    return galaxies, dark_matter
+
+
+def read_data(PATH, filename):
+    """
+    Reads the datafile created by the funtion generate_data
+    ---------------
+    Input:
+        PATH: path to where the data is stored
+        filename: the filename of the data
+    ---------------
+    returns:
+        data: ndarray, shape (nMaps, N)
+    """
+    dim = filename.split("_")[1].strip("()").split(",")
+    dim = [int( dim[i]) for i in range(len(dim))]
+
+    data = np.loadtxt(PATH+filename)
+
+    return data, dim
+
+def main_gert():
     
     E = 8
     map = SkyMap(dim=(50,100,10))
@@ -134,49 +192,23 @@ def main():
     ax[2].imshow(dmn+galn)
     plt.show()
 
+def main0():
+    PATH="../data/"
+    generate_data(nMaps=5, dim=(50,100,10), PATH=PATH)
+
+def main1():
+    PATH="../data/"
+    data_galaxy, dim = read_data(PATH, filename="galaxy_(50, 100, 10)_.csv")
+    data_dm, dim = read_data(PATH, filename="DM_(50, 100, 10)_.csv")
+
+    map1 = SkyMap(dim)
+    galaxy_to_display = data_galaxy[0]
+    dm_to_display = data_dm[0]
+    ax = plt.subplot(2,2,1)
+    map1.Display(galaxy_to_display, slice=0)
+    map1.Display(dm_to_display, slice=0)
+    plt.show()
+
 if __name__ == '__main__':
-    main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #main0()
+    main1()
