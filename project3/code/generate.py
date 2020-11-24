@@ -42,16 +42,31 @@ class SkyMap:
         self.dim = dim
         self.matrix = np.zeros(self.dim)
 
+
     def set_matrix(self, matrix):
+        """ set the self.matrix attribute """
         matrix = self.unravel_map(matrix)
         self.matrix = matrix
 
+
     def check_matrix(self):
+        """ check if self.matrix has been updated"""
         self.unravel_map(self.matrix)
         equal_arrays = np.all(self.matrix == np.zeros(self.dim))
+
         if equal_arrays:
             print("Error: no galaxies have been created!")
 
+
+    def add_noise(self, noise):
+        """ add normal-distributed noise to the dataset with strength noise"""
+        if len(self.dim) == 3:
+            normal = np.random.randn(self.dim[0],self.dim[1], self.dim[2])
+
+        if len(self.dim) == 2:
+            normal = np.random.randn(self.dim[0],self.dim[1])
+
+        return noise*normal
 
     def generate_galaxy(self, noise=0):
         """ Generate a galaxy map"""
@@ -71,8 +86,7 @@ class SkyMap:
                     galaxy[i,:,E] = func(x)*np.ones(self.dim[1])*galaxy_spectrum(E)
 
         #noise_ = noise*np.ones(self.dim)
-        noise_ = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
-        galaxy = galaxy + noise_
+        galaxy = galaxy + self.add_noise(noise)
 
         self.matrix += galaxy
 
@@ -94,10 +108,10 @@ class SkyMap:
 
                     dark_matter[i,j,E] = DM_profile(r)*DM_spectrum(E)
 
-        noise_ = noise*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
-        dark_matter = dark_matter + noise_
+        dark_matter = dark_matter + self.add_noise(noise)
 
         self.matrix += dark_matter
+
         return dark_matter
 
 
@@ -128,6 +142,7 @@ class SkyMap:
             d = data.reshape(self.dim)
         else:
             d = data
+
         return d
 
 
@@ -135,11 +150,14 @@ class SkyMap:
         """Sum up all energy slices"""
         data_ = self.unravel_map(data)
         data_combined = np.sum(data_, axis=2)
+
         return data_combined
 
 
     def display(self, data=None, slice=None, save_as=None, lim=None):
-        """ Display the map"""
+        """ Display the generated map, or a map from file. Set an upper limit
+        on the colorbar with lim=max-value-of-colorbar for easy comparison with
+        other map displays. To save set save_as=filename. """
 
         if data is not None:
             data = data
@@ -194,22 +212,24 @@ class SkyMap:
 
 def generate_data(nMaps, dim, noise = 0, PATH=None):
     """
-    Generates nMaps maps of galaxies and dark matter. The maps are raveled
-    and stored as a row in a numpy array of dimentions(nMaps, dim_ravel)
-    If a path is specified, the datasets are stored in files with names:
-        - DM_(m,n,e)_.csv
-        - galaxy_(m,n,e)_.csv
+    Generates nMaps of galaxies and dark matter, both with dimentions
+    dim = (n,m,e) using the SkyMap class. The maps are raveled and stored as
+    a row in a numpy array of dimentions (nMaps, n*m*e). If a path is specified,
+    the arrays are stored in files with filenames: DM_dim_nMaps_.csv and
+    galaxy_dim_nMaps_.csv
     ---------------
     Input:
-        nMaps: The number of maps needed
-        dim: The chosen dimentions of each map (m,n,e) for energy or (m,n)
-        noise:
-        PATH: The path to where the data should be stored
+        nMaps: int,   the number of maps to generate
+        dim:   tuple, the chosen dimentions of the maps.
+                      must either be (m,n) or (m,n,e) for energy
+        noise: float, the strength of the noise
+        PATH:  str,   the path to where the data should be stored
     ---------------
     Returns:
-        galaxies: The galaxy data, shape(nMaps, N)
-        dark_matter: The DM data, shape (nMaps, N)
+        galaxies:    ndarray, shape(nMaps, N), the galaxy maps
+        dark_matter: ndarray, shape(nMaps, N), the DM maps
     """
+
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
     galaxies = np.zeros((nMaps, dim_ravel))
     dark_matter = np.zeros((nMaps, dim_ravel))
@@ -224,68 +244,49 @@ def generate_data(nMaps, dim, noise = 0, PATH=None):
         dark_matter[i,:] = map.ravel_map(dm)
 
     if PATH is not None:
-        filename1 = "galaxy_{:}_{:}_".format(dim, nMaps)
-        filename2 = "DM_{:}_{:}_".format(dim, nMaps)
+        filename1 = "galaxy_{:}_{:}_".format(dim, 2*nMaps)
+        filename2 = "DM_{:}_{:}_".format(dim, 2*nMaps)
         np.savetxt(PATH+filename1+".csv", galaxies, fmt="%.16f")
         np.savetxt(PATH+filename2+".csv", dark_matter, fmt="%.16f")
 
     return galaxies, dark_matter
 
 
-def read_data_old(PATH, filename):
-    """
-    Reads the datafile created by the funtion generate_data
-    ---------------
-    Input:
-        PATH: path to where the data is stored
-        filename: the filename of the data
-    ---------------
-    returns:
-        data: ndarray, shape (nMaps, N)
-        dim:
-    """
-    dim = filename.split("_")[1].strip("()").split(",")
-    dim = [int( dim[i]) for i in range(len(dim))]
-
-    data = np.loadtxt(PATH+filename)
-
-    return data, dim
-
-
-def read_data(PATH, dim, nMaps, combine=True, ddf=False, shuf=True):
+def read_data(PATH, dim, n_maps_in_file, combine=True, ddf=False, shuf=True):
     """
     Reads the datafile created by the function generate_data and outputs
     the full dataset that contains all the galaxies with DM and all galaxies
     without DM. The first element of each row in the returned dataset is an
-    indicator of wether the map in that row is with or without dark matter.
-
-        with DM:    Type = 1
-        without DM: Type = 0
-
-    The dataset can either be returned as a Pandas dataframe or a numpy array.
+    indicator of wether the map in that row is with dark matter (1) or without
+    dark matter(0). The dataset can either be returned as a Pandas dataframe or
+    as a numpy array.
     ---------------
     Input:
-        PATH: str, path to where the data is stored
-        dim:  (m,n,e) or (m,n), the dimentions of the dataset
-        nMaps:
-        ddf:  bool, wether you want the data as a pandas dataframe
-        shuf: bool, if you want the dataset to be shuffled
+        PATH:  str, path to where the data is stored
+        dim:   tuple, shape (m,n,e) or (m,n), the dimentions of the dataset
+        ddf:   bool, return the data as a pandas dataframe
+        shuf:  bool, if you want the rows to be shuffled
+        n_maps_in_file: int, the number of maps (last int in filename)
     ---------------
     returns:
-        dataset:
+        all: ndarray, shape(n_maps_in_file, prod(dim))
     """
 
-    filename1 = "galaxy_{:}_{:}_.csv".format(dim, nMaps)
-    filename2 = "DM_{:}_{:}_.csv".format(dim, nMaps)
+    if n_maps_in_file < 2:
+        print("Not possible with n_maps_in_file < 2.")
+        sys.exit(1)
+
+    filename1 = "galaxy_{:}_{:}_.csv".format(dim, n_maps_in_file)
+    filename2 = "DM_{:}_{:}_.csv".format(dim, n_maps_in_file)
 
     galaxies = np.loadtxt(PATH+filename1)
     dark_matters = np.loadtxt(PATH+filename2)
 
-    if nMaps == 1:
+    if n_maps_in_file == 2:
         galaxies = galaxies.reshape(1,-1)
         dark_matters = dark_matters.reshape(1,-1)
 
-    # Create arrays with shape (nMaps, 1) with bool values
+    # Create arrays with shape (n_maps_in_file, 1) with bool values
     trues = np.ones((dark_matters.shape[0],1), dtype=bool)
     falses = np.zeros((galaxies.shape[0],1), dtype=bool)
 
@@ -301,8 +302,8 @@ def read_data(PATH, dim, nMaps, combine=True, ddf=False, shuf=True):
     # Stack the full datasets on top of eachother
     all = np.vstack((galaxies_, dark_matters_))
 
-    # Shuffle the rows
     if shuf == True:
+        # Shuffle the rows
         all = shuffle(all, random_state=42)
 
     if ddf ==True:
@@ -328,13 +329,31 @@ def main_gert():
     plt.show()
 
 
+def main_gert_new():
+    """
+    This one does the same as the old main_gert function did before changes
+    """
+    E = 4
+    map = SkyMap(dim=(50,100,10))
+    gal = map.generate_galaxy()[:,:,E]
+    galn = gal + map.generate_galaxy_noise(noise=2)[:,:,E]
+    dm = map.generate_DM()[:,:,E]
+    dmn = dm + map.generate_DM_noise(noise=1)[:,:,E]
+    fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
+    ax[0].imshow(gal)
+    ax[1].imshow(dm)
+    ax[2].imshow(dmn+galn)
+    map.display_spectrum()
+    plt.show()
+
+
 def main_alida():
     PATH="../data/"
     dim = (50,100,10)
-    nMaps = 1
+    nm = 2
 
     # Method 1
-    data = read_data(PATH, dim=dim, nMaps=nMaps, combine=False, shuf=False)
+    data = read_data(PATH, dim=dim, n_maps_in_file=nm, combine=False, shuf=False)
 
     gal_data = data[0][1:]
     dm_data = data[1][1:]
@@ -346,7 +365,7 @@ def main_alida():
     map_data.display_spectrum()
 
     # method 2
-    data1 = read_data(PATH, dim=dim, nMaps=nMaps, combine=True, shuf=False)
+    data1 = read_data(PATH, dim=dim, n_maps_in_file=nm, combine=True, shuf=False)
 
     gal_data1 = data1[0][1:]
     comb_data1 = data1[1][1:]
@@ -366,7 +385,8 @@ def main_alida():
     plt.show()
 
 if __name__ == '__main__':
-    PATH = "../data/"
-    generate_data(nMaps=1, dim=(50,100,10), noise=0, PATH=PATH)
-    main_gert()
+    #PATH = "../data/"
+    #generate_data(nMaps=1, dim=(50,100,10), noise=0, PATH=PATH)
+    #main_gert()
+    #main_gert_new()
     main_alida()
