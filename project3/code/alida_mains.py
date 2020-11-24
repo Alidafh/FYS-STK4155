@@ -11,9 +11,9 @@ def plots():
     PATH="../data/"
     FIG ="../figures/"
     dim = (50,100,10)
-    nMaps = 1
+    nm=2
 
-    data = dat.read_data(PATH, dim=dim, nMaps=nMaps, combine=False, shuf=False)
+    data = dat.read_data(PATH, dim=dim, n_maps_in_file=nm, combine=False, shuf=False)
 
     gal = data[0][1:]
     dm = data[1][1:]
