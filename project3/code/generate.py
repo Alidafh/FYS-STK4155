@@ -252,6 +252,51 @@ def generate_data(nMaps, dim, noise = 0, PATH=None):
     return galaxies, dark_matter
 
 
+def generate_data2(nMaps, dim, noise = 0, combine = True, shuf=True, PATH=None):
+    """
+    """
+    dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
+    galaxies = np.zeros((nMaps, dim_ravel))
+    dark_matters = np.zeros((nMaps, dim_ravel))
+
+    for i in range(nMaps):
+        map = SkyMap(dim)
+
+        galaxy = map.generate_galaxy(noise)
+        dm = map.generate_DM(noise)
+
+        galaxies[i,:] = map.ravel_map(galaxy)
+        dark_matters[i,:] = map.ravel_map(dm)
+
+
+    # Create arrays with shape (n_maps_in_file, 1) with bool values
+    trues = np.ones((dark_matters.shape[0], 1), dtype=bool)
+    falses = np.zeros((galaxies.shape[0], 1), dtype=bool)
+
+    # Add the bool value as the first array in the matrices containing the
+    # maps. True appears as 1 and false appears as 0 in the stacked array.
+    galaxies_ = np.hstack((falses, galaxies))
+    dark_matters_ = np.hstack((trues, dark_matters))
+
+    if combine==True:
+        # add the dark matter to the galaxies to create galaxies with DM
+        dark_matters_ = galaxies_+dark_matters_
+
+
+    # Stack the full datasets on top of eachother
+    all = np.vstack((galaxies_, dark_matters_))
+
+    if shuf == True:
+        # Shuffle the rows
+        all = shuffle(all, random_state=42)
+
+    if PATH is not None:
+        filename1 = "data_{:}_{:}_".format(dim, 2*nMaps)
+        np.savetxt(PATH+filename1+".csv", all, fmt="%.16f")
+
+    return all
+
+
 def read_data(PATH, dim, n_maps_in_file, combine=True, ddf=False, shuf=True):
     """
     Reads the datafile created by the function generate_data and outputs
@@ -312,6 +357,33 @@ def read_data(PATH, dim, n_maps_in_file, combine=True, ddf=False, shuf=True):
         return df
 
     return all
+
+def read_data2(PATH, dim, n_maps, slice = None):
+    """
+    Not done
+    """
+
+    if n_maps_in_file < 2:
+        print("Not possible with n_maps_in_file < 2.")
+        sys.exit(1)
+
+    filename1 = "data_{:}_{:}_.csv".format(dim, n_maps)
+    data = np.loadtxt(PATH+filename1)
+
+    labels = data[:,0]
+    maps = data[:,1:]
+
+    new_shape = (n_maps, dim[0], dim[1], dim[2])
+    maps = maps.reshape(new_shape)
+
+    if slice is not None:
+        maps = maps[:,:,:, slice]
+
+    X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=train_size, test_size=test_size)
+
+    return all
+
+
 
 
 def main_gert():
@@ -385,8 +457,9 @@ def main_alida():
     plt.show()
 
 if __name__ == '__main__':
-    #PATH = "../data/"
-    #generate_data(nMaps=1, dim=(50,100,10), noise=0, PATH=PATH)
+    PATH = "../data/"
+    #generate_data(nMaps=20, dim=(50,100,10), noise=0, PATH=PATH)
+    generate_data2(nMaps=20, dim=(50,100,10), noise = 0, combine=True, shuf=True, PATH=PATH)
     #main_gert()
     #main_gert_new()
-    main_alida()
+    #main_alida()
