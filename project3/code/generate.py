@@ -4,9 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import quickplot as qupl
-
-
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 class linear_planar_profile():
@@ -59,8 +57,7 @@ class gaussian_noise():
         return self.noise_level*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
 
 
-    
-    
+
 
 
 class SkyMap:
@@ -123,7 +120,7 @@ class SkyMap:
 
         if is_dm: self.generate_dm()
 
-        
+
      
         
         
@@ -132,13 +129,13 @@ class SkyMap:
         
         galactic_plane = np.zeros(self.dim)
         galactic_center = np.zeros(self.dim)
-        # irregularities = np.zeros(self.dim)
-        
+
         middle_row = int(self.dim[0]/2)
         middle_col = int(self.dim[1]/2)
         
 
         for i in range(self.dim[0]):    # loop over rows
+
             
             d = np.abs(i - middle_row)
             
@@ -207,7 +204,7 @@ class SkyMap:
         
                 # self.walk[pos_i,pos_j,E] += 1
             
-            print(E, up, down)
+            # print(E, up, down)
         
         
         
@@ -225,6 +222,7 @@ class SkyMap:
 
 
 
+
     def generate_dm(self):
         
         dark_matter = np.zeros(self.dim)
@@ -233,10 +231,11 @@ class SkyMap:
 
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
-                
-                r = np.sqrt(   np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2     )
-                
+
+                r = np.sqrt(   np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2)
+
                 for E in range(self.dim[2]):
+
                 
                     dark_matter[i,j,E] = self.dm_profile.func(r)*self.dm_spectrum.func(E)
                     
@@ -258,36 +257,69 @@ class SkyMap:
         self.matrix_noise = self.noise.func()
         self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
     
-    
-    
 
 
 
     def write_to_file(self):
         return 0
 
+
+
     def read_from_file(self):
         return 0
+
 
     def ravel_map(self, matrix):
         b = matrix.ravel()
         self.dim_ravel= b.shape
         return b
 
-    def unravel_map(self, matrix_raveled):
-        d = matrix_raveled.reshape(self.dim)
+
+
+    def unravel_map(self, data):
+        if len(data.shape)==1:
+            d = data.reshape(self.dim)
+        else:
+            d = data
         return d
 
-    def Display(self, data, slice=None):
-        if len(data.shape)==1:
+
+    def combine_slices(self, data):
+        data_ = self.unravel_map(data)
+        data_combined = np.sum(data_, axis=2)
+        return data_combined
+
+
+
+    def display(self, data, slice=None, save_as=None):
+        """
+        Display the map. If no energy slice option is chosen, the energy levels
+        are added together. Save figure
+        """
+        if slice:
             data_ = self.unravel_map(data)
+            data_ = data_[:,:,slice]
+        else:
+            data_= self.combine_slices(data)
 
-            if len(data_.shape)>2:
-                data_= data_[:,:,slice]
+        y_axis = data_.shape[0]/2
+        x_axis = data_.shape[1]/2
+        axis_range = [-x_axis,x_axis,-y_axis, y_axis]
 
-        plt.imshow(data_)
+        fig = plt.figure()
+        plt.xlabel('Galactic Longitude')
+        plt.ylabel('Galactic Latitude')
 
-    
+        ax = plt.gca()
+        #https://imagine.gsfc.nasa.gov/science/toolbox/gamma_generation.html
+        im = ax.imshow(data_, cmap="inferno", extent = axis_range)
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        fig.colorbar(im, cax=cax)
+        if save_as: fig.savefig(save_as)
+
+          
     def display_spectrum(self):
         
         
@@ -389,7 +421,7 @@ def main_gert():
     
     dm = map1.matrix_dm[:,:,E]
     
-    
+
     fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
     ax[0].imshow(gal)
     ax[1].imshow(dm)
@@ -405,16 +437,13 @@ def main0():
 
 def main1():
     PATH="../data/"
-    data_galaxy, dim = read_data(PATH, filename="galaxy_(50, 100, 10)_.csv")
-    data_dm, dim = read_data(PATH, filename="DM_(50, 100, 10)_.csv")
+    galaxy, dim = read_data(PATH, filename="galaxy_(50, 100, 10)_.csv")
+    dm, dim = read_data(PATH, filename="DM_(50, 100, 10)_.csv")
 
     map1 = SkyMap(dim)
-    galaxy_to_display = data_galaxy[0]
-    dm_to_display = data_dm[0]
-    ax = plt.subplot(2,2,1)
-    map1.Display(galaxy_to_display, slice=0)
-    map1.Display(dm_to_display, slice=0)
+    map1.display(dm[0], slice=0, save_as="../figures/test.png")
     plt.show()
+
 
 # if __name__ == '__main__':
 #     #main0()
@@ -434,3 +463,4 @@ ax[1].imshow(dm)
 ax[2].imshow(sky)
 map1.display_spectrum()
 plt.show()
+
