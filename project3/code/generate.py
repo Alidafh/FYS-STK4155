@@ -4,7 +4,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import quickplot as qupl
+import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from sklearn.utils import shuffle
+import sys
 
 
 class linear_planar_profile():
@@ -56,9 +59,7 @@ class gaussian_noise():
     def func(self):
         return self.noise_level*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
 
-
-
-
+      
 
 class SkyMap:
     
@@ -80,7 +81,7 @@ class SkyMap:
         
         self.dm_max_spectrum = 10
         
-        
+       
         self.dim = dim
 
         self.matrix = np.zeros(self.dim)
@@ -120,22 +121,43 @@ class SkyMap:
 
         if is_dm: self.generate_dm()
 
+          
+    def set_matrix(self, matrix):
+        """ set the self.matrix attribute """
+        matrix = self.unravel_map(matrix)
+        self.matrix = matrix
 
-     
-        
-        
+
+    def check_matrix(self):
+        """ check if self.matrix has been updated"""
+        self.unravel_map(self.matrix)
+        equal_arrays = np.all(self.matrix == np.zeros(self.dim))
+
+        if equal_arrays:
+            print("Error: no galaxies have been created!")
+
+            
+    def add_noise(self, noise):
+        """ add normal-distributed noise to the dataset with strength noise"""
+        if len(self.dim) == 3:
+            normal = np.random.randn(self.dim[0],self.dim[1], self.dim[2])
+
+        if len(self.dim) == 2:
+            normal = np.random.randn(self.dim[0],self.dim[1])
+
+        return noise*normal
+
+ 
 
     def generate_galaxy(self):
-        
+         """ Generate a galaxy map"""
         galactic_plane = np.zeros(self.dim)
         galactic_center = np.zeros(self.dim)
 
         middle_row = int(self.dim[0]/2)
         middle_col = int(self.dim[1]/2)
         
-
         for i in range(self.dim[0]):    # loop over rows
-
             
             d = np.abs(i - middle_row)
             
@@ -144,7 +166,6 @@ class SkyMap:
                 galactic_plane[i,:,E] = self.galactic_plane_profile.func(d)*np.ones(self.dim[1])*self.galactic_plane_spectrum.func(E)
                 
                 
-
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
                 
@@ -157,8 +178,8 @@ class SkyMap:
         galaxy = galactic_plane + galactic_center
         
         
-        pos_i = middle_row
-        pos_j = middle_col
+        #pos_i = middle_row
+        #pos_j = middle_col
         
         self.walk = np.zeros(self.dim)
         
@@ -205,9 +226,7 @@ class SkyMap:
                 # self.walk[pos_i,pos_j,E] += 1
             
             # print(E, up, down)
-        
-        
-        
+     
                     
         
         self.matrix_galactic_plane = galactic_plane
@@ -220,11 +239,10 @@ class SkyMap:
 
         return galaxy
 
-
-
-
+      
+      
     def generate_dm(self):
-        
+        """ Generate a DM map """
         dark_matter = np.zeros(self.dim)
         middle_row = int(self.dim[0]/2)
         middle_col = int(self.dim[1]/2)
@@ -250,23 +268,12 @@ class SkyMap:
     
     
     
-    
-    
     def generate_noise(self):
         
         self.matrix_noise = self.noise.func()
         self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
-    
-
-
-
-    def write_to_file(self):
-        return 0
-
-
-
-    def read_from_file(self):
-        return 0
+   
+   
 
 
     def ravel_map(self, matrix):
@@ -274,55 +281,69 @@ class SkyMap:
         self.dim_ravel= b.shape
         return b
 
-
-
     def unravel_map(self, data):
         if len(data.shape)==1:
             d = data.reshape(self.dim)
         else:
             d = data
+
         return d
 
 
     def combine_slices(self, data):
+        """Sum up all energy slices"""
         data_ = self.unravel_map(data)
         data_combined = np.sum(data_, axis=2)
+
         return data_combined
 
 
+    def display(self, data=None, slice=None, save_as=None, lim=None):
+        """ Display the generated map, or a map from file. Set an upper limit
+        on the colorbar with lim=max-value-of-colorbar for easy comparison with
+        other map displays. To save set save_as=filename. """
 
-    def display(self, data, slice=None, save_as=None):
-        """
-        Display the map. If no energy slice option is chosen, the energy levels
-        are added together. Save figure
-        """
-        if slice:
+        if data is not None:
+            data = data
+        else:
+            self.check_matrix()
+            data = self.matrix
+
+        fig = plt.figure()
+
+        if slice is not None:
+            #plt.title("Energy slice: {:}".format(slice))
             data_ = self.unravel_map(data)
             data_ = data_[:,:,slice]
         else:
-            data_= self.combine_slices(data)
+            #plt.title("Energy summed")
+            data_ = self.combine_slices(data)
 
+        #https://imagine.gsfc.nasa.gov/science/toolbox/gamma_generation.html
         y_axis = data_.shape[0]/2
         x_axis = data_.shape[1]/2
         axis_range = [-x_axis,x_axis,-y_axis, y_axis]
 
-        fig = plt.figure()
         plt.xlabel('Galactic Longitude')
         plt.ylabel('Galactic Latitude')
 
         ax = plt.gca()
-        #https://imagine.gsfc.nasa.gov/science/toolbox/gamma_generation.html
-        im = ax.imshow(data_, cmap="inferno", extent = axis_range)
+
+        if lim is not None:
+            im = ax.imshow(data_, cmap="inferno", extent = axis_range, vmax=lim)
+        else:
+            im = ax.imshow(data_, cmap="inferno", extent = axis_range)
 
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         fig.colorbar(im, cax=cax)
+
         if save_as: fig.savefig(save_as)
 
-          
+
     def display_spectrum(self):
-        
-        
+        """ cumulative count vs energy spectrum """
+        # save figure or add to display() 
         spectrum = np.sum(self.matrix, axis = (0,1))
         spectrum_dm = np.sum(self.matrix_dm, axis = (0,1))
         spectrum_galactic_plane = np.sum(self.matrix_galactic_plane, axis = (0,1))
@@ -349,22 +370,31 @@ class SkyMap:
         
         qp.create_plot("spectrum")
         
-    
+ 
+
 
 #=============================================================================
 
-def generate_data(nMaps, dim, PATH):
+def generate_data(nMaps, dim, noise = 0, PATH=None):
     """
-    Generates galaxies and saves them to a datafile. The galaxies are raveled
-    and stored as a row in a numpy array of dimentions(nMaps, dim_ravel)
+    Generates nMaps of galaxies and dark matter, both with dimentions
+    dim = (n,m,e) using the SkyMap class. The maps are raveled and stored as
+    a row in a numpy array of dimentions (nMaps, n*m*e). If a path is specified,
+    the arrays are stored in files with filenames: DM_dim_nMaps_.csv and
+    galaxy_dim_nMaps_.csv
     ---------------
     Input:
-        nMaps: The number of maps needed
-        PATH: The path to where the data should be stored
+        nMaps: int,   the number of maps to generate
+        dim:   tuple, the chosen dimentions of the maps.
+                      must either be (m,n) or (m,n,e) for energy
+        noise: float, the strength of the noise
+        PATH:  str,   the path to where the data should be stored
     ---------------
     Returns:
-        data: The data, shape(nMaps, N)
+        galaxies:    ndarray, shape(nMaps, N), the galaxy maps
+        dark_matter: ndarray, shape(nMaps, N), the DM maps
     """
+
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
     galaxies = np.zeros((nMaps, dim_ravel))
     dark_matter = np.zeros((nMaps, dim_ravel))
@@ -372,56 +402,167 @@ def generate_data(nMaps, dim, PATH):
     for i in range(nMaps):
         map = SkyMap(dim)
 
-        galaxy = map.generate_galaxy(noise=0.1)
-        dm = map.generate_DM(noise=0.1)
+        galaxy = map.generate_galaxy(noise)
+        dm = map.generate_DM(noise)
 
         galaxies[i,:] = map.ravel_map(galaxy)
         dark_matter[i,:] = map.ravel_map(dm)
 
-    filename1 = "galaxy_{:}_".format(dim)
-    filename2 = "DM_{:}_".format(dim)
+    if PATH is not None:
+        filename1 = "galaxy_{:}_{:}_".format(dim, 2*nMaps)
+        filename2 = "DM_{:}_{:}_".format(dim, 2*nMaps)
+        np.savetxt(PATH+filename1+".csv", galaxies, fmt="%.16f")
+        np.savetxt(PATH+filename2+".csv", dark_matter, fmt="%.16f")
 
-    np.savetxt(PATH+filename1+".csv", galaxies, fmt="%.16f")
-    np.savetxt(PATH+filename2+".csv", dark_matter, fmt="%.16f")
     return galaxies, dark_matter
 
 
-def read_data(PATH, filename):
+def generate_data2(nMaps, dim, noise = 0, combine = True, shuf=True, PATH=None):
     """
-    Reads the datafile created by the funtion generate_data
+    """
+    dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
+    galaxies = np.zeros((nMaps, dim_ravel))
+    dark_matters = np.zeros((nMaps, dim_ravel))
+
+    for i in range(nMaps):
+        map = SkyMap(dim)
+
+        galaxy = map.generate_galaxy(noise)
+        dm = map.generate_DM(noise)
+
+        galaxies[i,:] = map.ravel_map(galaxy)
+        dark_matters[i,:] = map.ravel_map(dm)
+
+
+    # Create arrays with shape (n_maps_in_file, 1) with bool values
+    trues = np.ones((dark_matters.shape[0], 1), dtype=bool)
+    falses = np.zeros((galaxies.shape[0], 1), dtype=bool)
+
+    # Add the bool value as the first array in the matrices containing the
+    # maps. True appears as 1 and false appears as 0 in the stacked array.
+    galaxies_ = np.hstack((falses, galaxies))
+    dark_matters_ = np.hstack((trues, dark_matters))
+
+    if combine==True:
+        # add the dark matter to the galaxies to create galaxies with DM
+        dark_matters_ = galaxies_+dark_matters_
+
+
+    # Stack the full datasets on top of eachother
+    all = np.vstack((galaxies_, dark_matters_))
+
+    if shuf == True:
+        # Shuffle the rows
+        all = shuffle(all, random_state=42)
+
+    if PATH is not None:
+        filename1 = "data_{:}_{:}_".format(dim, 2*nMaps)
+        np.savetxt(PATH+filename1+".csv", all, fmt="%.16f")
+
+    return all
+
+
+def read_data(PATH, dim, n_maps_in_file, combine=True, ddf=False, shuf=True):
+    """
+    Reads the datafile created by the function generate_data and outputs
+    the full dataset that contains all the galaxies with DM and all galaxies
+    without DM. The first element of each row in the returned dataset is an
+    indicator of wether the map in that row is with dark matter (1) or without
+    dark matter(0). The dataset can either be returned as a Pandas dataframe or
+    as a numpy array.
     ---------------
     Input:
-        PATH: path to where the data is stored
-        filename: the filename of the data
+        PATH:  str, path to where the data is stored
+        dim:   tuple, shape (m,n,e) or (m,n), the dimentions of the dataset
+        ddf:   bool, return the data as a pandas dataframe
+        shuf:  bool, if you want the rows to be shuffled
+        n_maps_in_file: int, the number of maps (last int in filename)
     ---------------
     returns:
-        data: ndarray, shape (nMaps, N)
+        all: ndarray, shape(n_maps_in_file, prod(dim))
     """
-    dim = filename.split("_")[1].strip("()").split(",")
-    dim = [int( dim[i]) for i in range(len(dim))]
 
-    data = np.loadtxt(PATH+filename)
+    if n_maps_in_file < 2:
+        print("Not possible with n_maps_in_file < 2.")
+        sys.exit(1)
 
-    return data, dim
+    filename1 = "galaxy_{:}_{:}_.csv".format(dim, n_maps_in_file)
+    filename2 = "DM_{:}_{:}_.csv".format(dim, n_maps_in_file)
+
+    galaxies = np.loadtxt(PATH+filename1)
+    dark_matters = np.loadtxt(PATH+filename2)
+
+    if n_maps_in_file == 2:
+        galaxies = galaxies.reshape(1,-1)
+        dark_matters = dark_matters.reshape(1,-1)
+
+    # Create arrays with shape (n_maps_in_file, 1) with bool values
+    trues = np.ones((dark_matters.shape[0],1), dtype=bool)
+    falses = np.zeros((galaxies.shape[0],1), dtype=bool)
+
+    if combine==True:
+        # add the dark matter to the galaxies to create galaxies with DM
+        dark_matters = galaxies+dark_matters
+
+    # Add the bool value as the first array in the matrices containing the
+    # maps. True appears as 1 and false appears as 0 in the stacked array.
+    galaxies_ = np.hstack((falses, galaxies))
+    dark_matters_ = np.hstack((trues, dark_matters))
+
+    # Stack the full datasets on top of eachother
+    all = np.vstack((galaxies_, dark_matters_))
+
+    if shuf == True:
+        # Shuffle the rows
+        all = shuffle(all, random_state=42)
+
+    if ddf ==True:
+        col = ["Type"]+[i for i in range(galaxies.shape[1])]
+        df = pd.DataFrame(all, columns=col)
+        return df
+
+    return all
+
+def read_data2(PATH, dim, n_maps, slice = None):
+    """
+    Not done
+    """
+
+    if n_maps_in_file < 2:
+        print("Not possible with n_maps_in_file < 2.")
+        sys.exit(1)
+
+    filename1 = "data_{:}_{:}_.csv".format(dim, n_maps)
+    data = np.loadtxt(PATH+filename1)
+
+    labels = data[:,0]
+    maps = data[:,1:]
+
+    new_shape = (n_maps, dim[0], dim[1], dim[2])
+    maps = maps.reshape(new_shape)
+
+    if slice is not None:
+        maps = maps[:,:,:, slice]
+
+    X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=train_size, test_size=test_size)
+
+    return all
+
+
+
 
 
 
 def main_gert():
-    
     E = 4
-    
     map1 = SkyMap(dim=(50,100,10), is_dm = True)
-    
-    
-    
+   
     sky = map1.matrix[:,:,E]
-    
-    
+   
     gal = map1.matrix_galaxy[:,:,E]
     
     dm = map1.matrix_dm[:,:,E]
     
-
     fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
     ax[0].imshow(gal)
     ax[1].imshow(dm)
@@ -430,37 +571,48 @@ def main_gert():
     plt.show()
 
 
-
-def main0():
+def main_alida():
     PATH="../data/"
-    generate_data(nMaps=5, dim=(50,100,10), PATH=PATH)
+    dim = (50,100,10)
+    nm = 2
 
-def main1():
-    PATH="../data/"
-    galaxy, dim = read_data(PATH, filename="galaxy_(50, 100, 10)_.csv")
-    dm, dim = read_data(PATH, filename="DM_(50, 100, 10)_.csv")
+    # Method 1
+    data = read_data(PATH, dim=dim, n_maps_in_file=nm, combine=False, shuf=False)
 
-    map1 = SkyMap(dim)
-    map1.display(dm[0], slice=0, save_as="../figures/test.png")
+    gal_data = data[0][1:]
+    dm_data = data[1][1:]
+    comb_data = gal_data + dm_data
+
+    map_data = SkyMap(dim=dim)
+    map_data.set_matrix(comb_data)
+    map_data.display(slice=5)
+    map_data.display_spectrum()
+
+    # method 2
+    data1 = read_data(PATH, dim=dim, n_maps_in_file=nm, combine=True, shuf=False)
+
+    gal_data1 = data1[0][1:]
+    comb_data1 = data1[1][1:]
+
+    map_data1 = SkyMap(dim=dim)
+    map_data1.set_matrix(comb_data1)
+    map_data1.display(slice=5)
+    map_data1.display_spectrum()
+
+    # method 3
+    map = SkyMap(dim=(50,100,10))
+    gal = map.generate_galaxy(noise=0.9)
+    dm = map.generate_DM(noise=0.9)
+    map.display(slice=5)
+    map.display_spectrum()
+
     plt.show()
 
 
-# if __name__ == '__main__':
-#     #main0()
-#     main_gert()
-
-
-E = 6
-map1 = SkyMap(dim=(50,100,100), is_dm = True)
-sky = map1.matrix[:,:,E]
-gal = map1.matrix_galaxy[:,:,E]
-dm = map1.matrix_dm[:,:,E]
-
-
-fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
-ax[0].imshow(gal)
-ax[1].imshow(dm)
-ax[2].imshow(sky)
-map1.display_spectrum()
-plt.show()
-
+if __name__ == '__main__':
+    PATH = "../data/"
+    #generate_data(nMaps=20, dim=(50,100,10), noise=0, PATH=PATH)
+    generate_data2(nMaps=20, dim=(50,100,10), noise = 0, combine=True, shuf=True, PATH=PATH)
+    #main_gert()
+    #main_gert_new()
+    #main_alida()
