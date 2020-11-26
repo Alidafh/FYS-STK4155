@@ -59,69 +59,68 @@ class gaussian_noise():
     def func(self):
         return self.noise_level*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
 
-      
 
 class SkyMap:
-    
-    
-    def __init__(self, dim, is_dm=False):
-        
-        
-        self.noise_level = 1
-        
+
+
+    def __init__(self, dim, is_dm=False, noise_level=1):
+        # Add DM normalization constant to input/self.
+
+        self.noise_level = noise_level
+
         self.galactic_plane_max_profile = 50
-        
+
         self.galactic_plane_max_spectrum = 100
-        
+
         self.galactic_center_max_profile = 10
-        
+
         self.galactic_center_max_spectrum = 100
-        
+
         self.dm_max_profile = 25
-        
+
         self.dm_max_spectrum = 10
-        
-       
+
+
         self.dim = dim
 
         self.matrix = np.zeros(self.dim)
-        
+
         self.matrix_galaxy = np.zeros(self.dim)
-        
+
         self.matrix_galactic_center = np.zeros(self.dim)
-        
+
         self.matrix_galactic_plane = np.zeros(self.dim)
-        
+
         self.matrix_dm = np.zeros(self.dim)
-        
+
         self.matrix_noise = np.zeros(self.dim)
-        
-        
+
+
         self.galactic_plane_profile = linear_planar_profile(max_val = self.galactic_plane_max_profile)
-        
+
         self.galactic_plane_spectrum = linear_spectrum(max_val = self.galactic_plane_max_spectrum)
-        
+
         self.galactic_center_profile = gaussian_spherical_profile(max_val=self.galactic_center_max_profile)
-        
+
         self.galactic_center_spectrum = linear_spectrum(max_val=self.galactic_center_max_spectrum)
-        
+
         self.dm_profile = linear_spherical_profile(max_val = self.dm_max_profile)
 
         self.dm_spectrum = gaussian_spectrum(max_val = self.dm_max_spectrum)
-        
+
         self.noise = gaussian_noise(dim=self.dim, noise_level=self.noise_level)
-        
-        
+
+
         self.is_dm=is_dm
-        
-        
+
+
         self.generate_galaxy()
-        
+
         self.generate_noise()
 
         if is_dm: self.generate_dm()
 
-          
+
     def set_matrix(self, matrix):
         """ set the self.matrix attribute """
         matrix = self.unravel_map(matrix)
@@ -136,7 +135,7 @@ class SkyMap:
         if equal_arrays:
             print("Error: no galaxies have been created!")
 
-            
+
     def add_noise(self, noise):
         """ add normal-distributed noise to the dataset with strength noise"""
         if len(self.dim) == 3:
@@ -147,52 +146,52 @@ class SkyMap:
 
         return noise*normal
 
- 
+
 
     def generate_galaxy(self):
-         """ Generate a galaxy map"""
+        """ Generate a galaxy map """
         galactic_plane = np.zeros(self.dim)
         galactic_center = np.zeros(self.dim)
 
         middle_row = int(self.dim[0]/2)
         middle_col = int(self.dim[1]/2)
-        
+
         for i in range(self.dim[0]):    # loop over rows
-            
+
             d = np.abs(i - middle_row)
-            
+
             for E in range(self.dim[2]):
-                
+
                 galactic_plane[i,:,E] = self.galactic_plane_profile.func(d)*np.ones(self.dim[1])*self.galactic_plane_spectrum.func(E)
-                
-                
+
+
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
-                
+
                 r = np.sqrt(   np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2     )
-                
+
                 for E in range(self.dim[2]):
-        
+
                     galactic_center[i,j,E] = self.galactic_center_profile.func(r)*self.galactic_center_spectrum.func(E)
-        
+
         galaxy = galactic_plane + galactic_center
-        
-        
+
+
         #pos_i = middle_row
         #pos_j = middle_col
-        
+
         self.walk = np.zeros(self.dim)
-        
+
         for E in range(self.dim[2]):
-            
+
             pos_i = middle_row
             pos_j = middle_col
-            
+
             up = 0
             down = 0
-            
+
             for step in range(int(self.dim[0]*self.dim[1]*0.5)):
-                
+
                 sig = 2
                 dis = middle_row-pos_i
                 # step_i = np.random.randint(min(-5,dis),max(5,dis))
@@ -201,46 +200,46 @@ class SkyMap:
                 step_j = int(np.round(np.random.randn(1)[0]*sig))
                 pos_i = (pos_i + step_i)%self.dim[0]
                 pos_j = (pos_j + step_j)%self.dim[1]
-                
+
                 # if pos_i >= self.dim[0]-3 or pos_i <= 3: pos_i -= 2*step_i
                 # if pos_j >= self.dim[1]-3 or pos_j <= 3: pos_j -= 2*step_j
-            
+
                 factor = 0.01*np.random.randn(1)[0] + 1
-                
+
                 take_i = pos_i + np.random.randint(-1,1)
                 take_j = pos_j + np.random.randint(-1,1)
-                
+
                 take_i = (take_i)%self.dim[0]
                 take_j = (take_j)%self.dim[1]
-                
+
                 before = galaxy[pos_i, pos_j, E]
-                
+
                 galaxy[pos_i, pos_j, E] = galaxy[take_i, take_j, E]*factor
-                
+
                 after = galaxy[pos_i, pos_j, E]
-                
-                
+
+
                 # if before < after and pos_i > middle_row: up += 1
                 # if before > after and pos_i > middle_row: down += 1
-        
+
                 # self.walk[pos_i,pos_j,E] += 1
-            
+
             # print(E, up, down)
-     
-                    
-        
+
+
+
         self.matrix_galactic_plane = galactic_plane
-        
+
         self.matrix_galactic_center = galactic_center
-        
+
         self.matrix_galaxy = galaxy
-        
+
         self.matrix = galaxy + self.matrix_dm + self.matrix_noise
 
         return galaxy
 
-      
-      
+
+
     def generate_dm(self):
         """ Generate a DM map """
         dark_matter = np.zeros(self.dim)
@@ -254,26 +253,26 @@ class SkyMap:
 
                 for E in range(self.dim[2]):
 
-                
+
                     dark_matter[i,j,E] = self.dm_profile.func(r)*self.dm_spectrum.func(E)
-                    
-       
+
+
         self.matrix_dm = dark_matter
-        
+
         self.matrix = self.matrix_galaxy + self.matrix_noise + dark_matter
-        
+
         self.is_dm = True
-        
+
         return dark_matter
-    
-    
-    
+
+
+
     def generate_noise(self):
-        
+
         self.matrix_noise = self.noise.func()
         self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
-   
-   
+
+
 
 
     def ravel_map(self, matrix):
@@ -343,34 +342,34 @@ class SkyMap:
 
     def display_spectrum(self):
         """ cumulative count vs energy spectrum """
-        # save figure or add to display() 
+        # save figure or add to display()
         spectrum = np.sum(self.matrix, axis = (0,1))
         spectrum_dm = np.sum(self.matrix_dm, axis = (0,1))
         spectrum_galactic_plane = np.sum(self.matrix_galactic_plane, axis = (0,1))
         spectrum_galactic_center = np.sum(self.matrix_galactic_center, axis = (0,1))
         spectrum_galaxy = np.sum(self.matrix_galaxy, axis = (0,1))
-        
+
         qp = qupl.QuickPlot()
         qp.reset()
-        
+
         qp.grid = False
         # qp.y_log = True
-        
-        
+
+
         qp.plot_title = "Cumulative spectrum of the skymap"
         qp.x_label = "Energy (given by slice index)"
         qp.y_label = "Cumulative counts"
-        
-        
+
+
         qp.add_plot(np.arange(len(spectrum)), spectrum, 'k', "Total spectrum")
         qp.add_plot(np.arange(len(spectrum)), spectrum_dm, 'b--', "DM spectrum")
         qp.add_plot(np.arange(len(spectrum)), spectrum_galactic_plane, 'y:', "Galactic plane spectrum")
         qp.add_plot(np.arange(len(spectrum)), spectrum_galactic_center, 'm:', "Galactic center spectrum")
         qp.add_plot(np.arange(len(spectrum)), spectrum_galaxy, 'r--', "Total galactic spectrum")
-        
+
         qp.create_plot("spectrum")
-        
- 
+
+
 
 
 #=============================================================================
@@ -417,22 +416,36 @@ def generate_data(nMaps, dim, noise = 0, PATH=None):
     return galaxies, dark_matter
 
 
-def generate_data2(nMaps, dim, noise = 0, combine = True, shuf=True, PATH=None):
+def generate_data2(nMaps, dim, dm_strength=None, noise_level = 0, random_walk = True, combine = True, shuf=True, PATH=None):
     """
+    create nMaps of galaxies and nMaps of g+dm maps
+    total 2*nMaps
+
+    input:
+        noise level
+        to do or not to do random walk
+        normalization for DM, dm_strength
+
+    Change the filenames to have more information
+
+    (nMaps, m, n, e)_{dm_strength}_{noise_level}_True/False_.csv
+
     """
+
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
     galaxies = np.zeros((nMaps, dim_ravel))
     dark_matters = np.zeros((nMaps, dim_ravel))
 
     for i in range(nMaps):
-        map = SkyMap(dim)
+        # random walk
+
+        map = SkyMap(dim, noise_level, random_walk)
 
         galaxy = map.generate_galaxy(noise)
         dm = map.generate_DM(noise)
 
         galaxies[i,:] = map.ravel_map(galaxy)
         dark_matters[i,:] = map.ravel_map(dm)
-
 
     # Create arrays with shape (n_maps_in_file, 1) with bool values
     trues = np.ones((dark_matters.shape[0], 1), dtype=bool)
@@ -554,15 +567,15 @@ def read_data2(PATH, dim, n_maps, slice = None):
 
 
 def main_gert():
-    E = 4
-    map1 = SkyMap(dim=(50,100,10), is_dm = True)
-   
+    E = 50
+    map1 = SkyMap(dim=(50,100,100), is_dm = True)
+
     sky = map1.matrix[:,:,E]
-   
+
     gal = map1.matrix_galaxy[:,:,E]
-    
+
     dm = map1.matrix_dm[:,:,E]
-    
+
     fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
     ax[0].imshow(gal)
     ax[1].imshow(dm)
@@ -601,8 +614,8 @@ def main_alida():
 
     # method 3
     map = SkyMap(dim=(50,100,10))
-    gal = map.generate_galaxy(noise=0.9)
-    dm = map.generate_DM(noise=0.9)
+    gal = map.generate_galaxy()
+    dm = map.generate_dm()
     map.display(slice=5)
     map.display_spectrum()
 
@@ -610,9 +623,9 @@ def main_alida():
 
 
 if __name__ == '__main__':
-    PATH = "../data/"
+    #PATH = "../data/"
     #generate_data(nMaps=20, dim=(50,100,10), noise=0, PATH=PATH)
-    generate_data2(nMaps=20, dim=(50,100,10), noise = 0, combine=True, shuf=True, PATH=PATH)
-    #main_gert()
+    #generate_data2(nMaps=20, dim=(50,100,10), noise = 0, combine=True, shuf=True, PATH=PATH)
+    main_gert()
     #main_gert_new()
     #main_alida()
