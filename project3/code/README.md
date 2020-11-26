@@ -3,6 +3,7 @@ Here you will find an overview of the methods used in the project. The data is g
 
 ## How to use
 ### 1. Generate the pseudodata
+
 ### 2. Run the analysis
 
 

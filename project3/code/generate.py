@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import quickplot as qupl
@@ -8,6 +7,7 @@ import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from sklearn.utils import shuffle
 import sys
+
 
 
 class linear_planar_profile():
@@ -58,7 +58,6 @@ class gaussian_noise():
         self.dim = dim
     def func(self):
         return self.noise_level*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
-
 
 class SkyMap:
 
@@ -147,7 +146,6 @@ class SkyMap:
         return noise*normal
 
 
-
     def generate_galaxy(self):
         """ Generate a galaxy map """
         galactic_plane = np.zeros(self.dim)
@@ -168,7 +166,7 @@ class SkyMap:
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
 
-                r = np.sqrt(   np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2     )
+                r = np.sqrt(np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2)
 
                 for E in range(self.dim[2]):
 
@@ -227,7 +225,6 @@ class SkyMap:
             # print(E, up, down)
 
 
-
         self.matrix_galactic_plane = galactic_plane
 
         self.matrix_galactic_center = galactic_center
@@ -271,8 +268,6 @@ class SkyMap:
 
         self.matrix_noise = self.noise.func()
         self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
-
-
 
 
     def ravel_map(self, matrix):
@@ -370,66 +365,29 @@ class SkyMap:
         qp.create_plot("spectrum")
 
 
-
-
 #=============================================================================
 
-def generate_data(nMaps, dim, noise = 0, PATH=None):
+def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True, shuf=True, PATH=None):
     """
-    Generates nMaps of galaxies and dark matter, both with dimentions
-    dim = (n,m,e) using the SkyMap class. The maps are raveled and stored as
-    a row in a numpy array of dimentions (nMaps, n*m*e). If a path is specified,
-    the arrays are stored in files with filenames: DM_dim_nMaps_.csv and
-    galaxy_dim_nMaps_.csv
+    Generates nMaps of galaxies with dark matter and nMaps of galaxies without
+    dark matter using the SkyMap class. The maps are raveled and stored as
+    a row in a numpy array. If a path is specified, the arrays are stored in
+    a file with filename:
+
+    data_(2*nMaps, m, n, e)_{dm_strength}_{noise_level}_{random_walk}_.csv
+
     ---------------
     Input:
-        nMaps: int,   the number of maps to generate
-        dim:   tuple, the chosen dimentions of the maps.
-                      must either be (m,n) or (m,n,e) for energy
-        noise: float, the strength of the noise
-        PATH:  str,   the path to where the data should be stored
+        nMaps:       int,   the number of maps to generate
+        dim:         tuple, the chosen dimentions of the maps.(m,n,e)
+        dm_strength: float, the DM normalization
+        noise_level: float, the strength of the noise
+        random_walk: bool,  if the data is generated with random walk
+        shuf:        bool,  shuffle the rows of the data
+        PATH:        str,   the path to where the data should be stored
     ---------------
     Returns:
-        galaxies:    ndarray, shape(nMaps, N), the galaxy maps
-        dark_matter: ndarray, shape(nMaps, N), the DM maps
-    """
-
-    dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
-    galaxies = np.zeros((nMaps, dim_ravel))
-    dark_matter = np.zeros((nMaps, dim_ravel))
-
-    for i in range(nMaps):
-        map = SkyMap(dim)
-
-        galaxy = map.generate_galaxy(noise)
-        dm = map.generate_DM(noise)
-
-        galaxies[i,:] = map.ravel_map(galaxy)
-        dark_matter[i,:] = map.ravel_map(dm)
-
-    if PATH is not None:
-        filename1 = "galaxy_{:}_{:}_".format(dim, 2*nMaps)
-        filename2 = "DM_{:}_{:}_".format(dim, 2*nMaps)
-        np.savetxt(PATH+filename1+".csv", galaxies, fmt="%.16f")
-        np.savetxt(PATH+filename2+".csv", dark_matter, fmt="%.16f")
-
-    return galaxies, dark_matter
-
-
-def generate_data2(nMaps, dim, dm_strength=None, noise_level = 0, random_walk = True, combine = True, shuf=True, PATH=None):
-    """
-    create nMaps of galaxies and nMaps of g+dm maps
-    total 2*nMaps
-
-    input:
-        noise level
-        to do or not to do random walk
-        normalization for DM, dm_strength
-
-    Change the filenames to have more information
-
-    (nMaps, m, n, e)_{dm_strength}_{noise_level}_True/False_.csv
-
+        data: ndarray, shape (2*nMaps, n, m, e)
     """
 
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
@@ -437,40 +395,36 @@ def generate_data2(nMaps, dim, dm_strength=None, noise_level = 0, random_walk = 
     dark_matters = np.zeros((nMaps, dim_ravel))
 
     for i in range(nMaps):
-        # random walk
+        print("Generating maps...{:.0f}/{:.0f}".format(2*(i+1), 2*nMaps))
+        map_g = SkyMap(dim=dim, noise_level=noise_level, is_dm=False)
+        galaxy = map_g.matrix
 
-        map = SkyMap(dim, noise_level, random_walk)
+        map_dm = SkyMap(dim=dim, noise_level=noise_level, is_dm=True)
+        dm = map_dm.matrix
 
-        galaxy = map.generate_galaxy(noise)
-        dm = map.generate_DM(noise)
+        galaxies[i,:] = map_g.ravel_map(galaxy)
+        dark_matters[i,:] = map_dm.ravel_map(dm)
 
-        galaxies[i,:] = map.ravel_map(galaxy)
-        dark_matters[i,:] = map.ravel_map(dm)
+    # Create arrays with shape (n_maps_in_file, 1) with bool values and
+    # add the bool value as the first array in the matrices containing the
+    # maps. True appears as 1 and false appears as 0 in the stacked array.
 
-    # Create arrays with shape (n_maps_in_file, 1) with bool values
     trues = np.ones((dark_matters.shape[0], 1), dtype=bool)
     falses = np.zeros((galaxies.shape[0], 1), dtype=bool)
 
-    # Add the bool value as the first array in the matrices containing the
-    # maps. True appears as 1 and false appears as 0 in the stacked array.
     galaxies_ = np.hstack((falses, galaxies))
     dark_matters_ = np.hstack((trues, dark_matters))
-
-    if combine==True:
-        # add the dark matter to the galaxies to create galaxies with DM
-        dark_matters_ = galaxies_+dark_matters_
-
 
     # Stack the full datasets on top of eachother
     all = np.vstack((galaxies_, dark_matters_))
 
     if shuf == True:
-        # Shuffle the rows
         all = shuffle(all, random_state=42)
 
     if PATH is not None:
-        filename1 = "data_{:}_{:}_".format(dim, 2*nMaps)
-        np.savetxt(PATH+filename1+".csv", all, fmt="%.16f")
+        tuple = (2*nMaps, dim[0], dim[1], dim[2])
+        fn = "data_{:}_{:}_{:}_{:}_".format(tuple, dm_strength, noise_level, random_walk)
+        np.savetxt(PATH+fn+".csv", all, fmt="%.16f")
 
     return all
 
@@ -536,34 +490,36 @@ def read_data(PATH, dim, n_maps_in_file, combine=True, ddf=False, shuf=True):
 
     return all
 
-def read_data2(PATH, dim, n_maps, slice = None):
+def load_data(PATH="../data/", file="data_(40, 100, 50, 10)_1_0_True_.csv", slice = None):
     """
     Not done
     """
+    # Create dictionary with information from filename
+    keys = ["ndim", "dm_strength", "noise", "walk"]
 
-    if n_maps_in_file < 2:
-        print("Not possible with n_maps_in_file < 2.")
-        sys.exit(1)
+    info = file.split("_")[1:-1]
+    info = [eval(elm) for elm in info]
 
-    filename1 = "data_{:}_{:}_.csv".format(dim, n_maps)
-    data = np.loadtxt(PATH+filename1)
+    stats = {keys[i]: info[i] for i in range(len(keys))}
+
+    # Load the array from file
+    data = np.loadtxt(PATH+file)
 
     labels = data[:,0]
     maps = data[:,1:]
 
-    new_shape = (n_maps, dim[0], dim[1], dim[2])
-    maps = maps.reshape(new_shape)
+    # reshape the maps
+    maps = maps.reshape(stats["ndim"])
 
     if slice is not None:
-        maps = maps[:,:,:, slice]
+        ndim = stats["ndim"]
+        ndim_new = ndim[:-1] + tuple([1])
+        maps = maps[:,:,:, slice].reshape(ndim_new)
 
-    X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=train_size, test_size=test_size)
-
-    return all
-
-
+        #stats["input_shape"] = ndim_new[1:]
 
 
+    return maps, labels, stats
 
 
 def main_gert():
@@ -623,9 +579,22 @@ def main_alida():
 
 
 if __name__ == '__main__':
-    #PATH = "../data/"
-    #generate_data(nMaps=20, dim=(50,100,10), noise=0, PATH=PATH)
-    #generate_data2(nMaps=20, dim=(50,100,10), noise = 0, combine=True, shuf=True, PATH=PATH)
-    main_gert()
-    #main_gert_new()
-    #main_alida()
+    from datetime import datetime
+    start_time = datetime.now()
+
+    PATH = "../data/"
+    dim = (50,100,10)
+    generate_data(nMaps=50, dim=dim, dm_strength=1, noise_level=0, random_walk=True, shuf=True, PATH=PATH)
+    #data = load_data()
+    time_elapsed = datetime.now() - start_time
+    print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
+
+
+
+"""
+    train_size = 0.8
+    test_size = 1 - train_size
+    X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=train_size, test_size=test_size)
+
+    return (X_train, y_train), (X_test, y_test)
+"""
