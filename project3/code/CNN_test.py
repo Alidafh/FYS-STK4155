@@ -39,7 +39,6 @@ PATH = "../data/"
 dim = (50,100,10)
 n = 40
 
-
 data = read_data(PATH, dim, n_maps_in_file = n, combine=True, ddf=False, shuf=True)
 
 labels = data[:,0]
