@@ -7,55 +7,69 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 
+from pathlib import Path
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
-from tensorflow.keras.utils import to_categorical   #This allows using categorical cross entropy as the cost function
 
 import numpy as np
-import time
+import configuration as conf
 
-def CNN(inputs):
-    input_shape = inputs["input_shape"]
-    n_categories = inputs["n_categories"]
-    kernel_size = inputs["kernel_size"]
-    n_filters = inputs["n_filters"]
-    n_nodes=inputs["n_nodes"]
-    n_layers=inputs["n_layers"]
-    optimizer=inputs["optimizer"]
-    learn_rate = inputs["learn_rate"]
-    loss=inputs["loss"]
-    metrics=inputs["metrics"]
-    input_activation=inputs["input_activation"]
-    layer_activation=inputs["layer_activation"]
-    output_activation=inputs["output_activation"]
-
+def create_model():
+    """
+    creates a model using the configurations in the configuration file
+    """
 
     model = tf.keras.Sequential()
 
-    model.add(layers.Conv2D(n_filters, kernel_size, activation=input_activation, input_shape=input_shape))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    for i in range(n_layers):
-        print(n_nodes)
-        model.add(layers.Conv2D(n_nodes, kernel_size, activation=layer_activation))
-        model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(tf.keras.layers.Conv2D(conf.n_filters,
+                                    conf.kernel_size,
+                                    activation=conf.input_activation,
+                                    input_shape=conf.input_shape))
 
-    model.add(layers.Flatten())
-    model.add(layers.Dense(n_nodes, activation=layer_activation))
-    model.add(layers.Dense(n_categories, activation=output_activation))
-    print(model.summary())
-    
-    sgd = tf.keras.optimizers.SGD(lr=learn_rate, momentum=0.95)
-    adam = tf.keras.optimizers.Adam(learning_rate=learn_rate)
+    for layer in conf.layer_config:
+        model.add(tf.keras.layers.Conv2D(layer,
+                                        kernel_size = conf.kernel_size,
+                                        activation = conf.hidden_activation))
 
-    if inputs["optimizer"] == "sgd": model.compile(optimizer=sgd,
-                                                   loss=loss,
-                                                   metrics=metrics)
-    if inputs["optimizer"] == "adam": model.compile(optimizer=adam,
-                                                    loss=loss,
-                                                    metrics=metrics)
+        model.add(tf.keras.layers.MaxPooling2D())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(conf.n_categories, activation=conf.output_activation))
 
     return model
 
+
+def fit_model(X_train, y_train, X_test, y_test, model, save_as=None, verbose=0):
+    """
+    train the model using the configurations in the configuration file
+    """
+
+    adam = tf.keras.optimizers.Adam(learning_rate=conf.learn_rate)
+    sgd = tf.keras.optimizers.SGD(learning_rate=conf.learn_rate)
+
+    if conf.optimizer == "adam":
+        model.compile(optimizer=adam, loss=conf.loss, metrics=conf.metrics)
+
+    if conf.optimizer == "sgd":
+        model.compile(optimizer=sgd, loss=conf.loss, metrics=conf.metrics)
+
+    if verbose == 1:
+        print(model.summary())
+        loss, acc = model.evaluate(X_test, y_test, verbose=0)
+        print("Untrained, accuracy: {:5.2f}%".format(100*acc),65*"_", sep="\n" )
+
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=conf.epochs)
+
+    if save_as is not None:
+        Path(conf.model_dir).mkdir(parents=True, exist_ok=True)
+        model.save("{:}/model".format(save_as))
+
+    return history
+
+
+
+if __name__ == '__main__':
+    import configuration as config
+    create_model()
 
 """
 tf.keras.layers.Conv2D(
@@ -98,30 +112,6 @@ tf.keras.layers.Dense(
     **kwargs
 )
 
-
-
-"""
-
-
-"""
-class NeuralNetwork:
-    def __init__(self, inputs):
-        self.inputs = inputs
-
-    def get_inputs(self):
-        # Should make it so number of activation functions is less difficult
-        inputs = self.inputs
-
-        kernel_size = inputs["kernel_s"]
-        input_shape = inputs["input_s"]
-        activ_1 = inputs["activ_1"]
-        activ_2 = inputs["activ_2"]
-        activ_3 = inputs["activ_3"]
-
-        return kernel_size, input_shape, activ_1, activ_2, activ_3
-
-    def create_model(self):
-        inputs = self.inputs
 
 
 """
