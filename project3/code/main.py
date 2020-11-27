@@ -21,10 +21,18 @@ from generate import load_data
 from CNN import CNN
 
 
-maps, labels, stats = load_data(PATH="../data/", file="data_(100, 50, 100, 10)_1_0_True_1.csv", slice = None)
+maps, labels, stats = load_data(PATH="../data/", file="data_(2000, 50, 50, 3)_1_0_True_.csv", slice = None)
 
-print("maps: ", maps.shape)
-print("labels", labels.shape)
+X_train, X_test, y_train, y_test = train_test_split(maps, labels, test_size=0.2, random_state=42)
+X_train = (X_train - np.mean(X_train))/np.std(X_train)
+X_test = (X_test-np.mean(X_train))/np.std(X_train)
+
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+print(X_train.shape, y_train.shape)
+print(X_test.shape, y_test.shape)
+print()
 
 label_names = ["Clean", "DM"]
 """
@@ -34,74 +42,64 @@ for i in range(25):
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
-    img = maps[i,:,:,0]
+    img = maps[i,:,:,5]
     plt.imshow(img, cmap="inferno")
     plt.xlabel(label_names[int(labels[i])])
 plt.show()
 """
-X_train, X_test, y_train, y_test = train_test_split(maps, labels, test_size=0.2, random_state=42)
-
-y_train = to_categorical(y_train)
-y_test = to_categorical(y_test)
-
-print(X_train.shape, y_train.shape)
-print(X_test.shape, y_test.shape)
+print()
+print(X_train.shape[1:])
+print(y_train.shape[1])
 
 #############################################################################
 
 inputs = {"input_shape": X_train.shape[1:],
-          "n_categories": y_train.shape[1],
+          "n_categories": len(label_names), #y_train.shape[1]
           "kernel_size": 3,
+          "n_filters": X_train.shape[1],
+          "n_nodes": 2*X_train.shape[1],
+          "n_layers": 3,
           "optimizer": "adam",
-          "loss": "categorical_crossentropy",
+          "learn_rate": 1e-4,
+          "loss": "mean_squared_error",
           "metrics": "accuracy",
           "input_activation": "relu",
           "layer_activation": "relu",
-          "output_activation": "softmax",
-          "n_filters": 64,
-          "n_nodes": 32,
-          "n_layers": 5,
-          "batch_size": 5}
+          "output_activation": "sigmoid"}
+
 
 model = CNN(inputs=inputs)
+print(model.summary())
 
-
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=20)
+history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=20)
 
 from pathlib import Path
 Path("tmp").mkdir(parents=True, exist_ok=True)
 model.save('tmp/saved_model')
 
-print()
-loss, acc = model.evaluate(X_test, y_test, verbose=2)
-print()
-print("accuracy: {:5.2f}%".format(100 * acc))
+plt.figure()
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+plt.show()
 
-print()
+
+test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
+
+print("accuracy: {:5.2f}%".format(100 * test_acc))
 
 y_pred = model.predict(X_test)
 
-#show actual results for the first 4 images in the test set
-print(y_test[:4])
-
-#show predictions for the first 4 images in the test set
-print(y_pred[:4])
-
-print("First image in test is:    ", y_test[0], label_names[int(y_test[0,1])])
-print("First image in predict is: ", y_pred[0], label_names[int(round(y_pred[0,1]))])
-
-
-
-"""
 plt.figure(figsize=(10,10))
-for i in range(20):
+for i in range(y_test.shape[0]):
     plt.subplot(5,5,i+1)
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
-    mappp = X_test[i]
-    plt.imshow(mappp[:,:,0], cmap="inferno")
+    plt.imshow(X_test[i,:,:,5], cmap="inferno")
     labelx = "{:} (true={:})".format(label_names[int(round(y_pred[i,1]))], label_names[int(y_test[i,1])])
     plt.xlabel(labelx)
 plt.show()
-"""

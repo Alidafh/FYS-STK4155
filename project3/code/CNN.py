@@ -15,49 +15,47 @@ import numpy as np
 import time
 
 def CNN(inputs):
-
     input_shape = inputs["input_shape"]
     n_categories = inputs["n_categories"]
     kernel_size = inputs["kernel_size"]
-    optimizer = inputs["optimizer"]
-    loss = inputs["loss"]
-    metrics = inputs["metrics"]
-    input_activation = inputs["input_activation"]
-    layer_activation = inputs["layer_activation"]
-    output_activation = inputs["output_activation"]
     n_filters = inputs["n_filters"]
-    n_nodes = inputs["n_nodes"]
-    n_layers = inputs["n_layers"]
-    batch_size = inputs["batch_size"]
+    n_nodes=inputs["n_nodes"]
+    n_layers=inputs["n_layers"]
+    optimizer=inputs["optimizer"]
+    learn_rate = inputs["learn_rate"]
+    loss=inputs["loss"]
+    metrics=inputs["metrics"]
+    input_activation=inputs["input_activation"]
+    layer_activation=inputs["layer_activation"]
+    output_activation=inputs["output_activation"]
+
 
     model = tf.keras.Sequential()
 
-    model.add(layers.Conv2D(n_filters, kernel_size=kernel_size, activation=input_activation, input_shape=input_shape))
-    print(model.output_shape)
+    model.add(layers.Conv2D(n_filters, kernel_size, activation=input_activation, input_shape=input_shape))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     for i in range(n_layers):
-        model.add(layers.Conv2D(n_nodes, kernel_size=kernel_size, activation=layer_activation))
-        model.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding='same'))
-        print(model.output_shape)
+        print(n_nodes)
+        model.add(layers.Conv2D(n_nodes, kernel_size, activation=layer_activation))
+        model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
     model.add(layers.Flatten())
-    print(model.output_shape)
     model.add(layers.Dense(n_nodes, activation=layer_activation))
-    print(model.output_shape)
     model.add(layers.Dense(n_categories, activation=output_activation))
-    print(model.output_shape)
-    print()
+    print(model.summary())
+    
+    sgd = tf.keras.optimizers.SGD(lr=learn_rate, momentum=0.95)
+    adam = tf.keras.optimizers.Adam(learning_rate=learn_rate)
 
-    earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=10, verbose=1)
-
-
-    sgd = tf.keras.optimizers.SGD(lr=0.01,momentum=0.95)
-
-    if optimizer is None:
-        model.compile(optimizer=sgd, loss=loss, metrics=metrics)
-    else:
-        model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    if inputs["optimizer"] == "sgd": model.compile(optimizer=sgd,
+                                                   loss=loss,
+                                                   metrics=metrics)
+    if inputs["optimizer"] == "adam": model.compile(optimizer=adam,
+                                                    loss=loss,
+                                                    metrics=metrics)
 
     return model
+
 
 """
 tf.keras.layers.Conv2D(
