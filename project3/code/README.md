@@ -28,12 +28,22 @@ optional arguments:
 
 ### 2. Run the analysis
 
+The analysis consists of the three scripts:
+
+- CNN.py
+- configuration.py
+- main.py
+
+run main.py. To change dataset or some parts of the configuration of the CNN such as number of epochs, layer configuration etc, edit the configuration.py script.
 
 ## Overview of files
 
 | Files | Description |
 | ------ | ------ |
-| generate.py | script to create GCE pseudo-data|
+| generate.py | script to create GCE pseudo-data |
+| CNN.py | contains the convolutional neural network |
+| configuration.py | contains the variables for the neural network |
+| main.py | main script |
 
 ```
 CODE
