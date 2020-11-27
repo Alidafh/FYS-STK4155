@@ -350,11 +350,9 @@ class SkyMap:
         qp.grid = False
         # qp.y_log = True
 
-
         qp.plot_title = "Cumulative spectrum of the skymap"
         qp.x_label = "Energy (given by slice index)"
         qp.y_label = "Cumulative counts"
-
 
         qp.add_plot(np.arange(len(spectrum)), spectrum, 'k', "Total spectrum")
         qp.add_plot(np.arange(len(spectrum)), spectrum_dm, 'b--', "DM spectrum")
@@ -429,70 +427,17 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     return all
 
 
-def read_data(PATH, dim, n_maps_in_file, combine=True, ddf=False, shuf=True):
+def load_data(PATH="../data/", file="data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = None):
     """
-    Reads the datafile created by the function generate_data and outputs
-    the full dataset that contains all the galaxies with DM and all galaxies
-    without DM. The first element of each row in the returned dataset is an
-    indicator of wether the map in that row is with dark matter (1) or without
-    dark matter(0). The dataset can either be returned as a Pandas dataframe or
-    as a numpy array.
+    Reads the datafile created by the function generate_data
     ---------------
     Input:
-        PATH:  str, path to where the data is stored
-        dim:   tuple, shape (m,n,e) or (m,n), the dimentions of the dataset
-        ddf:   bool, return the data as a pandas dataframe
-        shuf:  bool, if you want the rows to be shuffled
-        n_maps_in_file: int, the number of maps (last int in filename)
+        PATH:  str, path to datafiles
+        file:  str, filename
+        slice: int, if you only want to see one energu level
     ---------------
     returns:
-        all: ndarray, shape(n_maps_in_file, prod(dim))
-    """
-
-    if n_maps_in_file < 2:
-        print("Not possible with n_maps_in_file < 2.")
-        sys.exit(1)
-
-    filename1 = "galaxy_{:}_{:}_.csv".format(dim, n_maps_in_file)
-    filename2 = "DM_{:}_{:}_.csv".format(dim, n_maps_in_file)
-
-    galaxies = np.loadtxt(PATH+filename1)
-    dark_matters = np.loadtxt(PATH+filename2)
-
-    if n_maps_in_file == 2:
-        galaxies = galaxies.reshape(1,-1)
-        dark_matters = dark_matters.reshape(1,-1)
-
-    # Create arrays with shape (n_maps_in_file, 1) with bool values
-    trues = np.ones((dark_matters.shape[0],1), dtype=bool)
-    falses = np.zeros((galaxies.shape[0],1), dtype=bool)
-
-    if combine==True:
-        # add the dark matter to the galaxies to create galaxies with DM
-        dark_matters = galaxies+dark_matters
-
-    # Add the bool value as the first array in the matrices containing the
-    # maps. True appears as 1 and false appears as 0 in the stacked array.
-    galaxies_ = np.hstack((falses, galaxies))
-    dark_matters_ = np.hstack((trues, dark_matters))
-
-    # Stack the full datasets on top of eachother
-    all = np.vstack((galaxies_, dark_matters_))
-
-    if shuf == True:
-        # Shuffle the rows
-        all = shuffle(all, random_state=42)
-
-    if ddf ==True:
-        col = ["Type"]+[i for i in range(galaxies.shape[1])]
-        df = pd.DataFrame(all, columns=col)
-        return df
-
-    return all
-
-def load_data(PATH="../data/", file="data_(40, 100, 50, 10)_1_0_True_.csv", slice = None):
-    """
-    Not done
+        maps, labels, stats
     """
     # Create dictionary with information from filename
     keys = ["ndim", "dm_strength", "noise", "walk"]
@@ -505,7 +450,7 @@ def load_data(PATH="../data/", file="data_(40, 100, 50, 10)_1_0_True_.csv", slic
     # Load the array from file
     data = np.loadtxt(PATH+file)
 
-    labels = data[:,0]
+    labels = data[:,0].reshape(-1,1)
     maps = data[:,1:]
 
     # reshape the maps
@@ -516,85 +461,48 @@ def load_data(PATH="../data/", file="data_(40, 100, 50, 10)_1_0_True_.csv", slic
         ndim_new = ndim[:-1] + tuple([1])
         maps = maps[:,:,:, slice].reshape(ndim_new)
 
-        #stats["input_shape"] = ndim_new[1:]
-
-
     return maps, labels, stats
 
 
-def main_gert():
-    E = 50
-    map1 = SkyMap(dim=(50,100,100), is_dm = True)
 
-    sky = map1.matrix[:,:,E]
+def arguments():
+    """ Generate data from commandline """
 
-    gal = map1.matrix_galaxy[:,:,E]
+    import argparse
+    description =  """Generate Galactic Center Excess pseudodata TBA"""
 
-    dm = map1.matrix_dm[:,:,E]
+    parser = argparse.ArgumentParser(description=description)
 
-    fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
-    ax[0].imshow(gal)
-    ax[1].imshow(dm)
-    ax[2].imshow(sky)
-    map1.display_spectrum()
-    plt.show()
+    parser.add_argument('-n', type=int, metavar='--number_of_maps', action='store', default=1000,
+                    help='The number of maps to generate for each type, default=1000')
+    parser.add_argument('-d', type=tuple, metavar='--dimentions', action='store', default=(50,50,3),
+                    help='Dimentions of the maps, default=(50,50,3)')
+    parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
+                    help='Strength of the dark matter, default=1')
+    parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=0.1,
+                    help='Level of gaussian nose in data, default=0.1')
+    parser.add_argument('-r', type=str, metavar='--random_walk', action='store', default="True",
+                    help='Use random walk, default=True')
+    parser.add_argument('-s', type=str, metavar='--shuffle_maps', action='store', default="True",
+                    help='Shuffle the maps before storing, default=True')
+    parser.add_argument('-p', type=str, metavar='--PATH', action='store', default="../data/",
+                        help='Path to where the data should be stored, default="../data/"')
+    args = parser.parse_args()
 
+    n, d, dm, nl, r, s, p = args.n, args.d, args.dm, args.nl, args.r, args.s, args.p
+    r = False if r =="False" else True
+    s = False if s =="False" else True
 
-def main_alida():
-    PATH="../data/"
-    dim = (50,100,10)
-    nm = 2
-
-    # Method 1
-    data = read_data(PATH, dim=dim, n_maps_in_file=nm, combine=False, shuf=False)
-
-    gal_data = data[0][1:]
-    dm_data = data[1][1:]
-    comb_data = gal_data + dm_data
-
-    map_data = SkyMap(dim=dim)
-    map_data.set_matrix(comb_data)
-    map_data.display(slice=5)
-    map_data.display_spectrum()
-
-    # method 2
-    data1 = read_data(PATH, dim=dim, n_maps_in_file=nm, combine=True, shuf=False)
-
-    gal_data1 = data1[0][1:]
-    comb_data1 = data1[1][1:]
-
-    map_data1 = SkyMap(dim=dim)
-    map_data1.set_matrix(comb_data1)
-    map_data1.display(slice=5)
-    map_data1.display_spectrum()
-
-    # method 3
-    map = SkyMap(dim=(50,100,10))
-    gal = map.generate_galaxy()
-    dm = map.generate_dm()
-    map.display(slice=5)
-    map.display_spectrum()
-
-    plt.show()
+    return n, d, dm, nl, r, s, p
 
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from datetime import datetime
     start_time = datetime.now()
 
-    PATH = "../data/"
-    dim = (50,100,10)
-    generate_data(nMaps=50, dim=dim, dm_strength=1, noise_level=0, random_walk=True, shuf=True, PATH=PATH)
-    #data = load_data()
+    n, d, dm, nl, r, s, p = arguments()
+    generate_data(nMaps=n, dim=d, dm_strength=dm, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
-
-
-
-"""
-    train_size = 0.8
-    test_size = 1 - train_size
-    X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=train_size, test_size=test_size)
-
-    return (X_train, y_train), (X_test, y_test)
-"""
