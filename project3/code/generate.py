@@ -9,7 +9,6 @@ from sklearn.utils import shuffle
 import sys
 
 
-
 class linear_planar_profile():
     def __init__(self, gradient = 2, max_val=50):
         self.gradient = gradient
@@ -23,7 +22,6 @@ class linear_spherical_profile():
         self.max_val=max_val
     def func(self,x):
         return max(  self.max_val - x*self.gradient  , 0 )
-
 
 class gaussian_spherical_profile():
     def __init__(self, sigma = 10, max_val=1, mean=0):
@@ -62,7 +60,7 @@ class gaussian_noise():
 class SkyMap:
 
 
-    def __init__(self, dim, is_dm=False, noise_level=1):
+    def __init__(self, dim, is_dm=False, noise_level=1, random_walk=True):
         # Add DM normalization constant to input/self.
 
         self.noise_level = noise_level
@@ -111,6 +109,7 @@ class SkyMap:
 
 
         self.is_dm=is_dm
+        self.random_walk = random_walk
 
 
         self.generate_galaxy()
@@ -174,55 +173,41 @@ class SkyMap:
 
         galaxy = galactic_plane + galactic_center
 
+        if self.random_walk == True:
+            self.walk = np.zeros(self.dim)
+            #print("gen_gal(1)")
+            for E in range(self.dim[2]):
 
-        #pos_i = middle_row
-        #pos_j = middle_col
+                pos_i = middle_row
+                pos_j = middle_col
 
-        self.walk = np.zeros(self.dim)
+                up = 0
+                down = 0
 
-        for E in range(self.dim[2]):
+                for step in range(int(self.dim[0]*self.dim[1]*0.5)):
 
-            pos_i = middle_row
-            pos_j = middle_col
+                    sig = 2
+                    dis = middle_row-pos_i
+                    # step_i = np.random.randint(min(-5,dis),max(5,dis))
+                    # step_j = np.random.randint(-2,2)
+                    step_i = int(np.round(np.random.randn(1)[0]*(np.abs(dis) +1)))
+                    step_j = int(np.round(np.random.randn(1)[0]*sig))
+                    pos_i = (pos_i + step_i)%self.dim[0]
+                    pos_j = (pos_j + step_j)%self.dim[1]
 
-            up = 0
-            down = 0
+                    factor = 0.01*np.random.randn(1)[0] + 1
 
-            for step in range(int(self.dim[0]*self.dim[1]*0.5)):
+                    take_i = pos_i + np.random.randint(-1,1)
+                    take_j = pos_j + np.random.randint(-1,1)
 
-                sig = 2
-                dis = middle_row-pos_i
-                # step_i = np.random.randint(min(-5,dis),max(5,dis))
-                # step_j = np.random.randint(-2,2)
-                step_i = int(np.round(np.random.randn(1)[0]*(np.abs(dis) +1)))
-                step_j = int(np.round(np.random.randn(1)[0]*sig))
-                pos_i = (pos_i + step_i)%self.dim[0]
-                pos_j = (pos_j + step_j)%self.dim[1]
+                    take_i = (take_i)%self.dim[0]
+                    take_j = (take_j)%self.dim[1]
 
-                # if pos_i >= self.dim[0]-3 or pos_i <= 3: pos_i -= 2*step_i
-                # if pos_j >= self.dim[1]-3 or pos_j <= 3: pos_j -= 2*step_j
+                    before = galaxy[pos_i, pos_j, E]
 
-                factor = 0.01*np.random.randn(1)[0] + 1
+                    galaxy[pos_i, pos_j, E] = galaxy[take_i, take_j, E]*factor
 
-                take_i = pos_i + np.random.randint(-1,1)
-                take_j = pos_j + np.random.randint(-1,1)
-
-                take_i = (take_i)%self.dim[0]
-                take_j = (take_j)%self.dim[1]
-
-                before = galaxy[pos_i, pos_j, E]
-
-                galaxy[pos_i, pos_j, E] = galaxy[take_i, take_j, E]*factor
-
-                after = galaxy[pos_i, pos_j, E]
-
-
-                # if before < after and pos_i > middle_row: up += 1
-                # if before > after and pos_i > middle_row: down += 1
-
-                # self.walk[pos_i,pos_j,E] += 1
-
-            # print(E, up, down)
+                    after = galaxy[pos_i, pos_j, E]
 
 
         self.matrix_galactic_plane = galactic_plane
@@ -309,6 +294,7 @@ class SkyMap:
             #plt.title("Energy slice: {:}".format(slice))
             data_ = self.unravel_map(data)
             data_ = data_[:,:,slice]
+
         else:
             #plt.title("Energy summed")
             data_ = self.combine_slices(data)
@@ -393,11 +379,12 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     dark_matters = np.zeros((nMaps, dim_ravel))
 
     for i in range(nMaps):
-        print("Generating maps...{:.0f}/{:.0f}".format(2*(i+1), 2*nMaps))
-        map_g = SkyMap(dim=dim, noise_level=noise_level, is_dm=False)
+        if (2*i % 100==0):
+            print("Generating maps...{:.0f}/{:.0f}".format(2*(i+1), 2*nMaps))
+        map_g = SkyMap(dim=dim, noise_level=noise_level, is_dm=False, random_walk=random_walk)
         galaxy = map_g.matrix
 
-        map_dm = SkyMap(dim=dim, noise_level=noise_level, is_dm=True)
+        map_dm = SkyMap(dim=dim, noise_level=noise_level, is_dm=True, random_walk=random_walk)
         dm = map_dm.matrix
 
         galaxies[i,:] = map_g.ravel_map(galaxy)
@@ -427,12 +414,11 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     return all
 
 
-def load_data(PATH="../data/", file="data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = None):
+def load_data(file="../data/data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = None):
     """
     Reads the datafile created by the function generate_data
     ---------------
     Input:
-        PATH:  str, path to datafiles
         file:  str, filename
         slice: int, if you only want to see one energu level
     ---------------
@@ -448,7 +434,7 @@ def load_data(PATH="../data/", file="data_(2000, 50, 50, 10)_1_0.1_True_.csv", s
     stats = {keys[i]: info[i] for i in range(len(keys))}
 
     # Load the array from file
-    data = np.loadtxt(PATH+file)
+    data = np.loadtxt(file)
 
     labels = data[:,0].reshape(-1,1)
     maps = data[:,1:]
@@ -456,10 +442,15 @@ def load_data(PATH="../data/", file="data_(2000, 50, 50, 10)_1_0.1_True_.csv", s
     # reshape the maps
     maps = maps.reshape(stats["ndim"])
 
+    #if slice is None:
+        #Temporary thing
+         #maps = np.sum(maps, axis=3)
+
     if slice is not None:
         ndim = stats["ndim"]
         ndim_new = ndim[:-1] + tuple([1])
         maps = maps[:,:,:, slice].reshape(ndim_new)
+
 
     return maps, labels, stats
 
@@ -475,7 +466,7 @@ def arguments():
 
     parser.add_argument('-n', type=int, metavar='--number_of_maps', action='store', default=1000,
                     help='The number of maps to generate for each type, default=1000')
-    parser.add_argument('-d', type=tuple, metavar='--dimentions', action='store', default=(50,50,3),
+    parser.add_argument('-d', type=tuple, metavar='--dimentions', action='store', default=(50,50,10),
                     help='Dimentions of the maps, default=(50,50,3)')
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
                     help='Strength of the dark matter, default=1')
