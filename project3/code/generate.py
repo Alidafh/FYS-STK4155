@@ -523,8 +523,7 @@ def arguments():
     return n, d, dm, nl, r, s, p
 
 
-
-  def main_gert():
+def main_gert():
     E = 50
     map1 = SkyMap(dim=(50,100,100), is_dm = True)
 
