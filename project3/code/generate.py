@@ -9,6 +9,19 @@ from sklearn.utils import shuffle
 import sys
 
 
+def gaussian_dot(i, j, max_val, sigma, dim, max_rad):
+    
+    mat = np.zeros(dim)
+    
+    for it in np.arange(int(max(0,i-3*sigma)),int(min(dim[0],i+3*sigma+1))):
+        for jt in np.arange(int(max(0,j-3*sigma)),int(min(dim[1],j+3*sigma+1))):
+
+            r = np.sqrt( (it-i)**2 + (jt-j)**2)
+            
+            mat[it,jt] = max_val*np.exp( -(r**2)/(2*sigma)  )
+            
+    return mat
+
 class linear_planar_profile():
     def __init__(self, gradient = 2, max_val=50):
         self.gradient = gradient
@@ -34,7 +47,7 @@ class gaussian_spherical_profile():
 
 
 class gaussian_spectrum():
-    def __init__(self, sigma = 5, max_val=2, mean=50):
+    def __init__(self, sigma = 3, max_val=50, mean=10):
         self.sigma = sigma
         self.max_val=max_val
         self.mean = mean
@@ -59,11 +72,11 @@ class gaussian_noise():
 
 class SkyMap:
 
-
-    def __init__(self, dim, is_dm=False, noise_level=1, random_walk=True):
-        # Add DM normalization constant to input/self.
-
-        self.noise_level = noise_level
+    
+    
+    def __init__(self, dim, is_dm=False, are_irreg=True):
+        
+        self.noise_level = 1
 
         self.galactic_plane_max_profile = 50
 
@@ -74,10 +87,18 @@ class SkyMap:
         self.galactic_center_max_spectrum = 100
 
         self.dm_max_profile = 25
-
-        self.dm_max_spectrum = 10
-
-
+        
+        self.dm_max_spectrum = 40
+        
+        
+        self.n_steps_frac = 0.5
+        self.horizontal_step = 2
+        self.vertical_step = 1
+        self.takeover_step = 1
+        self.takeover_margin = 0.01
+        self.use_gaussian=False
+        self.sigma_dot=0.2
+        
         self.dim = dim
 
         self.matrix = np.zeros(self.dim)
@@ -92,7 +113,10 @@ class SkyMap:
 
         self.matrix_noise = np.zeros(self.dim)
 
-
+        
+        self.matrix_irregularities = np.zeros(self.dim)
+        
+        
         self.galactic_plane_profile = linear_planar_profile(max_val = self.galactic_plane_max_profile)
 
         self.galactic_plane_spectrum = linear_spectrum(max_val = self.galactic_plane_max_spectrum)
@@ -109,9 +133,9 @@ class SkyMap:
 
 
         self.is_dm=is_dm
-        self.random_walk = random_walk
 
-
+        self.are_irreg = are_irreg
+        
         self.generate_galaxy()
 
         self.generate_noise()
@@ -146,7 +170,8 @@ class SkyMap:
 
 
     def generate_galaxy(self):
-        """ Generate a galaxy map """
+        """ Generate a galaxy map"""
+
         galactic_plane = np.zeros(self.dim)
         galactic_center = np.zeros(self.dim)
 
@@ -172,56 +197,70 @@ class SkyMap:
                     galactic_center[i,j,E] = self.galactic_center_profile.func(r)*self.galactic_center_spectrum.func(E)
 
         galaxy = galactic_plane + galactic_center
-
-        if self.random_walk == True:
-            self.walk = np.zeros(self.dim)
-            #print("gen_gal(1)")
-            for E in range(self.dim[2]):
-
-                pos_i = middle_row
-                pos_j = middle_col
-
-                up = 0
-                down = 0
-
-                for step in range(int(self.dim[0]*self.dim[1]*0.5)):
-
-                    sig = 2
-                    dis = middle_row-pos_i
-                    # step_i = np.random.randint(min(-5,dis),max(5,dis))
-                    # step_j = np.random.randint(-2,2)
-                    step_i = int(np.round(np.random.randn(1)[0]*(np.abs(dis) +1)))
-                    step_j = int(np.round(np.random.randn(1)[0]*sig))
-                    pos_i = (pos_i + step_i)%self.dim[0]
-                    pos_j = (pos_j + step_j)%self.dim[1]
-
-                    factor = 0.01*np.random.randn(1)[0] + 1
-
-                    take_i = pos_i + np.random.randint(-1,1)
-                    take_j = pos_j + np.random.randint(-1,1)
-
-                    take_i = (take_i)%self.dim[0]
-                    take_j = (take_j)%self.dim[1]
-
-                    before = galaxy[pos_i, pos_j, E]
-
-                    galaxy[pos_i, pos_j, E] = galaxy[take_i, take_j, E]*factor
-
-                    after = galaxy[pos_i, pos_j, E]
-
-
-        self.matrix_galactic_plane = galactic_plane
-
-        self.matrix_galactic_center = galactic_center
-
+        
         self.matrix_galaxy = galaxy
-
-        self.matrix = galaxy + self.matrix_dm + self.matrix_noise
+        
+        if self.are_irreg: self.generate_irregularities(n_steps_frac=self.n_steps_frac, horizontal_step=self.horizontal_step, 
+                                                        vertical_step=self.vertical_step, takeover_step=self.takeover_step,
+                                                        takeover_margin=self.takeover_margin, sigma_dot=self.sigma_dot,
+                                                        use_gaussian=self.use_gaussian)
+                 
+        self.matrix_galactic_plane = galactic_plane
+        
+        self.matrix_galactic_center = galactic_center
+        
+        # self.matrix_galaxy = galaxy
+        
+        self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
 
         return galaxy
 
+    
+    def generate_irregularities(self,n_steps_frac=0.5, horizontal_step=2, vertical_step=1, 
+                                takeover_step=1, takeover_margin=0.01, sigma_dot=0.2, use_gaussian=False):
+        
+        galaxy = self.matrix_galaxy
+        
+        sig = max(horizontal_step*self.dim[1]/100,1)
+        takeover_step = max(takeover_step*self.dim[1]/100,1)
+        
+        for E in range(self.dim[2]):
+            
+            pos_i = int(self.dim[0]/2)
+            pos_j = int(self.dim[1]/2)
+            
+            
+            for step in range(int(self.dim[0]*self.dim[1]*n_steps_frac)):
+                
+                
+                dis = int(self.dim[0]/2)-pos_i
+
+                step_i = int(np.round(np.random.randn(1)[0]*(np.abs(dis)*vertical_step +1)))
+                step_j = int(np.round(np.random.randn(1)[0]*sig))
+                pos_i = (pos_i + step_i)%self.dim[0]
+                pos_j = (pos_j + step_j)%self.dim[1]
+                
+            
+                factor = takeover_margin*np.random.randn(1)[0] + 1
+                
+                take_i = pos_i + np.random.randint(-takeover_step,takeover_step+1)
+                take_j = pos_j + np.random.randint(-takeover_step,takeover_step+1)
+                
+                take_i = (take_i)%self.dim[0]
+                take_j = (take_j)%self.dim[1]
+                
+                extra = galaxy[take_i, take_j, E]*factor - galaxy[pos_i, pos_j, E]
+                
+                if use_gaussian: galaxy[:,:,E] += gaussian_dot(pos_i, pos_j, extra, sigma_dot, (self.dim[0],self.dim[1]), 0)
+                else: galaxy[pos_i, pos_j, E] += extra
+                            
+    
+
+        self.matrix_irregularities = galaxy-self.matrix_galaxy
+        self.matrix_galaxy = galaxy
 
 
+        
     def generate_dm(self):
         """ Generate a DM map """
         dark_matter = np.zeros(self.dim)
@@ -454,10 +493,8 @@ def load_data(file="../data/data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = No
 
     return maps, labels, stats
 
-
-
 def arguments():
-    """ Generate data from commandline """
+    """ Generate data from command-line """
 
     import argparse
     description =  """Generate Galactic Center Excess pseudodata TBA"""
@@ -486,7 +523,46 @@ def arguments():
 
     return n, d, dm, nl, r, s, p
 
+  
+  
+  def main_gert():
+    E = 50
+    map1 = SkyMap(dim=(50,100,100), is_dm = True)
+   
+    sky = map1.matrix[:,:,E]
+   
+    gal = map1.matrix_galaxy[:,:,E]
+    
+    dm = map1.matrix_dm[:,:,E]
+    
+    fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
+    ax[0].imshow(gal)
+    ax[1].imshow(dm)
+    ax[2].imshow(sky)
+    map1.display_spectrum()
+    plt.show()
 
+    
+    
+def main_gert2():
+      # plt.imshow( gaussian_dot( 25,25, 1, 0.5, (50,100), 15 )  )
+    E = 10
+    map1 = SkyMap(dim=(40,80,40), is_dm = True)
+    print(time.time()-start)
+    sky = map1.matrix[:,:,E]
+    
+    gal = map1.matrix_galaxy[:,:,E]
+    
+    dm = map1.matrix_dm[:,:,E]
+    
+    fig, ax = plt.subplots(nrows=3, ncols=1,  figsize=(10, 3))
+    ax[0].imshow(gal)
+    ax[1].imshow(dm)
+    ax[2].imshow(sky)
+    map1.display_spectrum()
+    plt.show()
+  
+  
 
 if __name__ == "__main__":
     from datetime import datetime
@@ -494,6 +570,8 @@ if __name__ == "__main__":
 
     n, d, dm, nl, r, s, p = arguments()
     generate_data(nMaps=n, dim=d, dm_strength=dm, noise_level=nl, random_walk=r, shuf=s, PATH=p)
-
+    
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
+    
+
