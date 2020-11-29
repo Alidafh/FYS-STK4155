@@ -505,8 +505,8 @@ def arguments():
                     help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=50,50,10")
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
                     help='Strength of the dark matter, default=1')
-    parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=0.1,
-                    help='Level of gaussian nose in data, default=0.1')
+    parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=1,
+                    help='Level of gaussian nose in data, default=1')
     parser.add_argument('-r', type=str, metavar='--random_walk', action='store', default="True",
                     help='Use random walk, default=True')
     parser.add_argument('-s', type=str, metavar='--shuffle_maps', action='store', default="True",
