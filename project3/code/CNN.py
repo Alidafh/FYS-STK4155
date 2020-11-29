@@ -42,7 +42,7 @@ def create_model():
 
 def train_model(X_train, y_train, X_test, y_test, model, save_as=None, verbose=0):
     """
-    train the model using the configurations in the configuration file
+    Train the model using the configurations in the configuration file
     """
 
     adam = tf.keras.optimizers.Adam(learning_rate=conf.learn_rate)
