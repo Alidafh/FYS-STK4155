@@ -44,8 +44,6 @@ class gaussian_spherical_profile():
     def func(self,x):
         return self.max_val*np.exp(- ( (x - self.mean)**2 )/(2*self.sigma**2) )
 
-
-
 class gaussian_spectrum():
     def __init__(self, sigma = 3, max_val=50, mean=10):
         self.sigma = sigma
@@ -54,14 +52,12 @@ class gaussian_spectrum():
     def func(self,E):
         return self.max_val*np.exp(- ( (E - self.mean)**2 )/(2*self.sigma**2) )
 
-
 class linear_spectrum():
     def __init__(self, max_val=1, grad=0.1):
         self.max_val=max_val
         self.grad = grad
     def func(self,E):
         return self.max_val - self.grad*E
-
 
 class gaussian_noise():
     def __init__(self, noise_level=1, dim=(50,100,10)):
@@ -70,13 +66,92 @@ class gaussian_noise():
     def func(self):
         return self.noise_level*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
 
+
 class SkyMap:
+    """
+    Class that generates a galactic center (GC) object either with or without a
+    dark matter component.
+
+    Parameters:
+    -----------
+    dim:  tuple, shape (h,w,e)
+        The dimentions of the GC where h is the height, w is the width and e
+        is the number of different energy levels.
+
+    is_dm: bool, default=False
+        Boolean to indicate if the GC object should or should not contain a
+        dark matter component. By default the GC object is created without
+        dark-matter.
+
+    are_irreg: bool, default=False
+        Boolean to indicate if you want to add static to the galaxy. The static
+        is generated using random walk (TODO: elaborate?)
+
+    noise_level: float, default=1
+        The level of the Gaussian noise added to the GC object.
+
+    Attributes:
+    -----------
+    matrix: ndarray, shape (h,w,e)
+        Description of what this is
+
+    matrix_galaxy: ndarray, shape (h,w,e)
+        Description of what this is
+
+    matrix_dm: ndarray, shape (h,w,e)
+        Description of what this is
 
 
+    Methods:
+    --------
+    display(): display an illustration of the galaxy. Optional arguments are,
 
+        data:    You can also choose to only display any one of the
+                 attributes whose name starts with matrix_, see example.
+
+        slice:   Choose one energy level to look at, by default all
+                 energy levels are summed when not specifying a slice.
+
+        save_as: If you want to save the figure simply specify a filename
+                 you want to save the figure as.
+
+        lim:     Set a maximum limit on the colourbar (useful for comparing)
+
+
+    spectrum(): display the cumulative counts
+
+
+    Examples
+    --------
+    Generate a GC object with a DM component and display it
+
+    >>> from generate import SkyMap
+    >>> map = SkyMap(dim=(50,100,10), is_dm=True)
+    >>> map.display()
+
+    To see the counts per energy do
+
+    >>> map.spectrum()
+
+    You can also choose to display only the galaxy or DM by doing
+
+    >>> map.display(map.matrix_galaxy)
+    >>> map.display(map.matrix_dm)
+
+    or any of the other attributes
+
+    >>> map.display(map.matrix_galactic_center)
+    >>> map.display(map.matrix_galactic_plane)
+    >>> map.display(map.matrix_noise)
+    >>> map.display(map.matrix_irregularities)
+
+    """
     def __init__(self, dim, is_dm=False, are_irreg=True, noise_level=1):
 
         self.noise_level = noise_level
+        self.dim = dim
+        self.is_dm=is_dm
+        self.are_irreg = are_irreg
 
         self.galactic_plane_max_profile = 50
 
@@ -99,7 +174,6 @@ class SkyMap:
         self.use_gaussian=False
         self.sigma_dot=0.2
 
-        self.dim = dim
 
         self.matrix = np.zeros(self.dim)
 
@@ -132,10 +206,6 @@ class SkyMap:
         self.noise = gaussian_noise(dim=self.dim, noise_level=self.noise_level)
 
 
-        self.is_dm=is_dm
-
-        self.are_irreg = are_irreg
-
         self.generate_galaxy()
 
         self.generate_noise()
@@ -156,17 +226,6 @@ class SkyMap:
 
         if equal_arrays:
             print("Error: no galaxies have been created!")
-
-
-    def add_noise(self, noise):
-        """ add normal-distributed noise to the dataset with strength noise"""
-        if len(self.dim) == 3:
-            normal = np.random.randn(self.dim[0],self.dim[1], self.dim[2])
-
-        if len(self.dim) == 2:
-            normal = np.random.randn(self.dim[0],self.dim[1])
-
-        return noise*normal
 
 
     def generate_galaxy(self):
@@ -273,7 +332,6 @@ class SkyMap:
 
                 for E in range(self.dim[2]):
 
-
                     dark_matter[i,j,E] = self.dm_profile.func(r)*self.dm_spectrum.func(E)
 
 
@@ -288,21 +346,25 @@ class SkyMap:
 
 
     def generate_noise(self):
-
+        """ Generate noise """
         self.matrix_noise = self.noise.func()
         self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
 
 
     def ravel_map(self, matrix):
-        b = matrix.ravel()
+        """ ravel the matrix """
+        a = matrix.copy()
+        b = a.ravel()
         self.dim_ravel= b.shape
         return b
 
     def unravel_map(self, data):
-        if len(data.shape)==1:
-            d = data.reshape(self.dim)
+        """ restore original dimentions """
+        a = data.copy()
+        if len(a.shape)==1:
+            d = a.reshape(self.dim)
         else:
-            d = data
+            d = a
 
         return d
 
@@ -321,21 +383,19 @@ class SkyMap:
         other map displays. To save set save_as=filename. """
 
         if data is not None:
-            data = data
+            data_ = data
         else:
             self.check_matrix()
-            data = self.matrix
+            data_ = self.matrix
 
         fig = plt.figure()
 
         if slice is not None:
-            #plt.title("Energy slice: {:}".format(slice))
-            data_ = self.unravel_map(data)
+            data_ = self.unravel_map(data_)
             data_ = data_[:,:,slice]
 
         else:
-            #plt.title("Energy summed")
-            data_ = self.combine_slices(data)
+            data_ = self.combine_slices(data_)
 
         #https://imagine.gsfc.nasa.gov/science/toolbox/gamma_generation.html
         y_axis = data_.shape[0]/2
@@ -358,8 +418,13 @@ class SkyMap:
 
         if save_as: fig.savefig(save_as)
 
+        #if data is None and self.is_dm==True:
+        #    self.spectrum()
 
-    def display_spectrum(self):
+        plt.show()
+
+
+    def spectrum(self):
         """ cumulative count vs energy spectrum """
         # save figure or add to display()
         spectrum = np.sum(self.matrix, axis = (0,1))
@@ -501,8 +566,8 @@ def arguments():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-n', type=int, metavar='--number_of_maps', action='store', default=1000,
                     help='The number of maps to generate for each type, default=1000')
-    parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="50,50,10",
-                    help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=50,50,10")
+    parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="28,28,10",
+                    help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=28,28,10")
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
                     help='Strength of the dark matter, default=1')
     parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=1,
@@ -513,11 +578,10 @@ def arguments():
                     help='Shuffle the maps before storing, default=True')
     parser.add_argument('-p', type=str, metavar='--PATH', action='store', default="../data/",
                         help='Path to where the data should be stored, default="../data/"')
+
     args = parser.parse_args()
 
-    n, d, dm, nl, r, s, p = args.n, eval(args.d), args.dm, args.nl, args.r, args.s, args.p
-    r = False if r =="False" else True
-    s = False if s =="False" else True
+    n, d, dm, nl, r, s, p = args.n, eval(args.d), args.dm, args.nl, eval(args.r), eval(args.s), args.p
 
     return n, d, dm, nl, r, s, p
 
