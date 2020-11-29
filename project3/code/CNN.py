@@ -32,6 +32,7 @@ def create_model():
                                         activation = conf.hidden_activation))
 
         model.add(tf.keras.layers.MaxPooling2D())
+        model.add(tf.keras.layers.Dropout(0.15))
 
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(conf.n_categories, activation=conf.output_activation))

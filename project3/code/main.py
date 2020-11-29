@@ -68,11 +68,18 @@ X_train, X_test = X_train / 255.0, X_test / 255.0
 plot_training_data()
 
 """
+
 # GCE data
 maps, labels, stats = load_data(file=conf.data_file, slice=conf.slice)
 label_names = ["Clean", "DM"]
 
 X_train, X_test, y_train, y_test = train_test_split(maps, labels, test_size=0.2, random_state=42)
+
+mean = np.mean(X_train)
+std = np.std(X_train)
+
+X_train = (X_train - mean)/std
+X_test = (X_test - mean)/std
 
 plot_training_data(label_names=label_names, slice=5)
 
@@ -80,11 +87,6 @@ y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
 
 model = create_model()
-
-#model.compile(optimizer="adam", loss=conf.loss, metrics=conf.metrics)
-#print(model.summary())
-#loss, acc = model.evaluate(X_test, y_test, verbose=0)
-#print("Untrained, accuracy: {:5.2f}%".format(100*acc),65*"_", sep="\n" )
 
 history = train_model(X_train, y_train, X_test, y_test, model, verbose=1)
 
@@ -94,5 +96,4 @@ print(65*"_", "accuracy: {:5.2f}%".format(100 * acc), 65*"_", sep="\n")
 y_pred = model.predict(X_test)
 
 plot_test_results(label_names=label_names, slice=5)
-#plot_test_results()
 plot_history(history)
