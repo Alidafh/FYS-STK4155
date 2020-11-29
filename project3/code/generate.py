@@ -609,7 +609,6 @@ def main_gert2():
       # plt.imshow( gaussian_dot( 25,25, 1, 0.5, (50,100), 15 )  )
     E = 10
     map1 = SkyMap(dim=(40,80,40), is_dm = True)
-    print(time.time()-start)
     sky = map1.matrix[:,:,E]
 
     gal = map1.matrix_galaxy[:,:,E]
