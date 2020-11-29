@@ -466,8 +466,8 @@ def arguments():
 
     parser.add_argument('-n', type=int, metavar='--number_of_maps', action='store', default=1000,
                     help='The number of maps to generate for each type, default=1000')
-    parser.add_argument('-d', type=tuple, metavar='--dimentions', action='store', default=(50,50,10),
-                    help='Dimentions of the maps, default=(50,50,3)')
+    parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="50,50,10",
+                    help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=50,50,10")
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
                     help='Strength of the dark matter, default=1')
     parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=0.1,
@@ -480,7 +480,7 @@ def arguments():
                         help='Path to where the data should be stored, default="../data/"')
     args = parser.parse_args()
 
-    n, d, dm, nl, r, s, p = args.n, args.d, args.dm, args.nl, args.r, args.s, args.p
+    n, d, dm, nl, r, s, p = args.n, eval(args.d), args.dm, args.nl, args.r, args.s, args.p
     r = False if r =="False" else True
     s = False if s =="False" else True
 

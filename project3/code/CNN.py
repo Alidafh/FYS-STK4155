@@ -25,6 +25,7 @@ def create_model():
                                     activation=conf.input_activation,
                                     input_shape=conf.input_shape))
 
+    model.add(tf.keras.layers.MaxPooling2D())
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv2D(layer,
                                         kernel_size = conf.kernel_size,
@@ -38,7 +39,7 @@ def create_model():
     return model
 
 
-def fit_model(X_train, y_train, X_test, y_test, model, save_as=None, verbose=0):
+def train_model(X_train, y_train, X_test, y_test, model, save_as=None, verbose=0):
     """
     train the model using the configurations in the configuration file
     """
