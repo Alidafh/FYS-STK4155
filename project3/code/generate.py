@@ -74,9 +74,9 @@ class SkyMap:
 
 
 
-    def __init__(self, dim, is_dm=False, are_irreg=True):
+    def __init__(self, dim, is_dm=False, are_irreg=True, noise_level=1):
 
-        self.noise_level = 1
+        self.noise_level = noise_level
 
         self.galactic_plane_max_profile = 50
 
@@ -499,7 +499,6 @@ def arguments():
     description =  """Generate Galactic Center Excess pseudodata TBA"""
 
     parser = argparse.ArgumentParser(description=description)
-
     parser.add_argument('-n', type=int, metavar='--number_of_maps', action='store', default=1000,
                     help='The number of maps to generate for each type, default=1000')
     parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="50,50,10",
