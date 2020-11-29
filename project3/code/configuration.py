@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 path = "../data/"
-filename = "data_(4000, 28, 28, 10)_1_1_True_.csv"
+filename = "data_(8000, 28, 28, 10)_1_1_True_.csv"
 data_file = path+filename
 slice=None
 
