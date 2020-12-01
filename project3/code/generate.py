@@ -461,7 +461,7 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     a row in a numpy array. If a path is specified, the arrays are stored in
     a file with filename:
 
-    data_(2*nMaps, m, n, e)_{dm_strength}_{noise_level}_{random_walk}_.csv
+    data_(2*nMaps, m, n, e)_{dm_strength}_{noise_level}_{random_walk}_.npy
 
     ---------------
     Input:
@@ -512,18 +512,19 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     if PATH is not None:
         tuple = (2*nMaps, dim[0], dim[1], dim[2])
         fn = "data_{:}_{:}_{:}_{:}_".format(tuple, dm_strength, noise_level, random_walk)
-        np.savetxt(PATH+fn+".csv", all, fmt="%.16f")
+        #np.savetxt(PATH+fn+".csv", all, fmt="%.16f")
+        np.save(PATH+fn, all)
 
     return all
 
 
-def load_data(file="../data/data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = None):
+def load_data(file="", slice = None):
     """
     Reads the datafile created by the function generate_data
     ---------------
     Input:
         file:  str, filename
-        slice: int, if you only want to see one energu level
+        slice: int, if you only want to see one energy bin
     ---------------
     returns:
         maps, labels, stats
@@ -537,7 +538,7 @@ def load_data(file="../data/data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = No
     stats = {keys[i]: info[i] for i in range(len(keys))}
 
     # Load the array from file
-    data = np.loadtxt(file)
+    data = np.load(file)
 
     labels = data[:,0].reshape(-1,1)
     maps = data[:,1:]
@@ -553,7 +554,6 @@ def load_data(file="../data/data_(2000, 50, 50, 10)_1_0.1_True_.csv", slice = No
         ndim = stats["ndim"]
         ndim_new = ndim[:-1] + tuple([1])
         maps = maps[:,:,:, slice].reshape(ndim_new)
-
 
     return maps, labels, stats
 
