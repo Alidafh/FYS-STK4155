@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
-
 from pathlib import Path
 import tensorflow as tf
-
 import numpy as np
 import configuration as conf
 
@@ -22,50 +18,74 @@ def create_model():
 
     model.add(tf.keras.layers.Conv2D(conf.n_filters,
                                     conf.kernel_size,
+                                    padding = "same",
                                     activation=conf.input_activation,
-                                    input_shape=conf.input_shape))
+                                    input_shape=conf.input_shape,
+                                    kernel_regularizer=conf.reg))
+
+    model.add(tf.keras.layers.Conv2D(conf.n_filters, conf.kernel_size,
+                                    activation=conf.input_activation,
+                                    kernel_regularizer=conf.reg))
 
     model.add(tf.keras.layers.MaxPooling2D())
+    #model.add(tf.keras.layers.Dropout(0.5))
+
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv2D(layer,
                                         kernel_size = conf.kernel_size,
-                                        activation = conf.hidden_activation))
+                                        activation = conf.hidden_activation,
+                                        kernel_regularizer=conf.reg,
+                                        padding = "same"))
+
+        model.add(tf.keras.layers.Conv2D(layer,
+                                        kernel_size = conf.kernel_size,
+                                        activation = conf.hidden_activation,
+                                        kernel_regularizer=conf.reg))
 
         model.add(tf.keras.layers.MaxPooling2D())
-        #model.add(tf.keras.layers.Dropout(0.15))
+        #model.add(tf.keras.layers.Dropout(0.25))
 
     model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(conf.connected_neurons, activation=conf.hidden_activation))
     model.add(tf.keras.layers.Dense(conf.n_categories, activation=conf.output_activation))
 
     return model
 
 
-def train_model(X_train, y_train, X_test, y_test, model, save_as=None, verbose=0):
+def train_model(X_train, y_train, X_val, y_val, model, save_as=None, verbose=0):
     """
     Train the model using the configurations in the configuration file
     """
 
-    adam = tf.keras.optimizers.Adam(learning_rate=conf.learn_rate)
-    sgd = tf.keras.optimizers.SGD(learning_rate=conf.learn_rate)
-
-    if conf.optimizer == "adam":
-        model.compile(optimizer=adam, loss=conf.loss, metrics=conf.metrics)
-
-    if conf.optimizer == "sgd":
-        model.compile(optimizer=sgd, loss=conf.loss, metrics=conf.metrics)
+    # Compile the model
+    model.compile(optimizer=conf.opt, loss=conf.loss, metrics=conf.metrics)
 
     if verbose == 1:
         print(model.summary())
-        loss, acc = model.evaluate(X_test, y_test, verbose=0)
+        loss, acc = model.evaluate(X_val, y_val, verbose=0)
         print("Untrained, accuracy: {:5.2f}%".format(100*acc),65*"_", sep="\n" )
 
-    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=conf.epochs)
+
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+
+    # fit the model
+    history = model.fit(X_train, y_train, batch_size = conf.batch_size,
+                                          validation_data=(X_val, y_val),
+                                          epochs=conf.epochs,
+                                          callbacks = conf.early_stop)
 
     if save_as is not None:
+        # Save the model for later use
         Path(conf.model_dir).mkdir(parents=True, exist_ok=True)
-        model.save("{:}/model".format(save_as))
+        model.save(conf.model_dir+"{:}".format(save_as))
 
     return history
+
+
+def get_model(model_name):
+    """ retrieve model from file """
+    model = tf.keras.models.load_model(conf.model_dir+"{:}".format(model_name))
+    return model
 
 
 

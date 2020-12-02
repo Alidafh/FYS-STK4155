@@ -25,6 +25,7 @@ optional arguments:
   -p --PATH            Path to where the data should be stored,
                        default="../data/"
 ```
+The data is stored in a file called `data_(n,d1,d2,d3)_dm_nl_r_.npy`
 
 ### 2. Run the analysis
 
@@ -48,3 +49,6 @@ run main.py. To change dataset or some parts of the configuration of the CNN suc
 ```
 CODE
 ```
+# TO DO
+
+- Maps too similar causes overtraining?
