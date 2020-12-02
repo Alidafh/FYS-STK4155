@@ -328,7 +328,7 @@ class SkyMap:
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
 
-                r = np.sqrt(   np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2)
+                r = np.sqrt(np.abs(middle_row-i)**2 + np.abs(middle_col-j)**2)
 
                 for E in range(self.dim[2]):
 
