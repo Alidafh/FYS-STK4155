@@ -25,7 +25,7 @@ optional arguments:
   -p --PATH            Path to where the data should be stored,
                        default="../data/"
 ```
-The data is stored in a file called `data_(n,d1,d2,d3)_dm_nl_r_.npy`
+The data is stored in a file called `data_(n,d1,d2,d3)_dm_nl_r_.npy`.
 
 ### 2. Run the analysis
 
@@ -52,3 +52,4 @@ CODE
 # TO DO
 
 - Maps too similar causes overtraining?
+- python generate.py -n 5000 -d 28,28,10
