@@ -28,7 +28,7 @@ def create_model():
                                     kernel_regularizer=conf.reg))
 
     model.add(tf.keras.layers.MaxPooling2D())
-    #model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dropout(0.15))
 
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv2D(layer,

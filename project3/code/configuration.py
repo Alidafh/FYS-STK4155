@@ -39,7 +39,7 @@ batch_size = 50
 
 
 lr_schedule = tf.keras.optimizers.schedules.InverseTimeDecay(0.01, decay_steps=1, decay_rate=1, staircase=False)
-opt = tf.keras.optimizers.Adam(learning_rate=0.01)
+opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
