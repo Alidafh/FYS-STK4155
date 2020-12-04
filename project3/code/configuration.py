@@ -15,6 +15,41 @@ slice=None
 Configuration for the Convolutional neural network located in CNN.py
 """
 
+###############################################################################
+# For create_model_3D
+###############################################################################
+input_shape = (28, 28, 10, 1)
+
+n_filters = 32              # For the two first Conv2D layers
+kernel_size = (3, 3, 3)
+#layer_config = (128, 128)   # (layer1, layer2, layer3, ....)
+connected_neurons = 128     # For the first Dense layer
+n_categories = 2            # For the last Dense layer (2 for GCE, 10 for mnist)
+
+input_activation  = "relu"
+hidden_activation = "relu"
+output_activation = "softmax"
+
+reg=None
+
+
+
+model_dir = "tmp/"           # Where to save the model
+
+epochs = 10
+batch_size = 50
+
+opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+
+loss = "categorical_crossentropy"  #loss = "mean_squared_error"
+metrics = ["accuracy"]          #metrics = ["accuracy", tf.keras.metrics.AUC()]
+
+
+"""
+###############################################################################
+# for create_model()
+###############################################################################
 input_shape = (28, 28, 10)  # Shape of the images, holds the raw pixel values
 
 n_filters = 32              # For the two first Conv2D layers
@@ -31,7 +66,6 @@ output_activation = "softmax"
 
 reg = None
 
-
 model_dir = "tmp/"           # Where to save the model
 
 epochs = 10
@@ -45,6 +79,23 @@ early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
 loss = "categorical_crossentropy"  #loss = "mean_squared_error"
 metrics = ["accuracy"]          #metrics = ["accuracy", tf.keras.metrics.AUC()]
+
+
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

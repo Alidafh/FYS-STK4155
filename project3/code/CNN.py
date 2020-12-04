@@ -28,7 +28,7 @@ def create_model():
                                     kernel_regularizer=conf.reg))
 
     model.add(tf.keras.layers.MaxPooling2D())
-    model.add(tf.keras.layers.Dropout(0.15))
+    #model.add(tf.keras.layers.Dropout(0.15))
 
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv2D(layer,
@@ -50,6 +50,46 @@ def create_model():
     model.add(tf.keras.layers.Dense(conf.n_categories, activation=conf.output_activation))
 
     return model
+
+def create_model_3D():
+    model = tf.keras.Sequential()
+
+    model.add(tf.keras.layers.Conv3D(conf.n_filters,
+                                    conf.kernel_size,
+                                    padding = "same",
+                                    activation=conf.input_activation,
+                                    input_shape=conf.input_shape,
+                                    kernel_regularizer=conf.reg))
+
+    model.add(tf.keras.layers.Conv3D(conf.n_filters, conf.kernel_size,
+                                    activation=conf.hidden_activation,
+                                    kernel_regularizer=conf.reg))
+
+    model.add(tf.keras.layers.MaxPooling3D())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(conf.connected_neurons, activation=conf.hidden_activation))
+    model.add(tf.keras.layers.Dense(conf.n_categories, activation=conf.output_activation))
+
+    return model
+
+def train_model_3D(X_train, y_train, X_val, y_val, model, save_as=None, verbose=0):
+
+    model.compile(optimizer=conf.opt, loss=conf.loss, metrics=conf.metrics)
+
+    if verbose == 1:
+        print(model.summary())
+        loss, acc = model.evaluate(X_val, y_val, verbose=0)
+        print("Untrained, accuracy: {:5.2f}%".format(100*acc),65*"_", sep="\n" )
+
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+
+    # fit the model
+    history = model.fit(X_train, y_train, batch_size = conf.batch_size,
+                                          validation_data=(X_val, y_val),
+                                          epochs=conf.epochs,
+                                          callbacks = conf.early_stop)
+    return history
 
 
 def train_model(X_train, y_train, X_val, y_val, model, save_as=None, verbose=0):
