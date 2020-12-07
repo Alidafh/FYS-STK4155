@@ -24,11 +24,10 @@ def create_model():
                                     kernel_regularizer=conf.reg))
 
     model.add(tf.keras.layers.Conv2D(conf.n_filters, conf.kernel_size,
-                                    activation=conf.input_activation,
+                                    activation=conf.hidden_activation,
                                     kernel_regularizer=conf.reg))
 
     model.add(tf.keras.layers.MaxPooling2D())
-    #model.add(tf.keras.layers.Dropout(0.15))
 
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv2D(layer,
@@ -43,7 +42,6 @@ def create_model():
                                         kernel_regularizer=conf.reg))
 
         model.add(tf.keras.layers.MaxPooling2D())
-        #model.add(tf.keras.layers.Dropout(0.25))
 
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(conf.connected_neurons, activation=conf.hidden_activation))
@@ -67,8 +65,23 @@ def create_model_3D():
 
     model.add(tf.keras.layers.MaxPooling3D())
 
+    for layer in conf.layer_config:
+        model.add(tf.keras.layers.Conv3D(layer,
+                                        kernel_size = conf.kernel_size,
+                                        activation = conf.hidden_activation,
+                                        kernel_regularizer=conf.reg,
+                                        padding = "same"))
+
+        model.add(tf.keras.layers.Conv3D(layer,
+                                        kernel_size = conf.kernel_size,
+                                        padding = "same",
+                                        activation = conf.hidden_activation,
+                                        kernel_regularizer=conf.reg))
+
+        model.add(tf.keras.layers.MaxPooling3D())
+
     model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(conf.connected_neurons, activation=conf.hidden_activation))
+    #model.add(tf.keras.layers.Dense(conf.connected_neurons, activation=conf.hidden_activation))
     model.add(tf.keras.layers.Dense(conf.n_categories, activation=conf.output_activation))
 
     return model
@@ -89,6 +102,12 @@ def train_model_3D(X_train, y_train, X_val, y_val, model, save_as=None, verbose=
                                           validation_data=(X_val, y_val),
                                           epochs=conf.epochs,
                                           callbacks = conf.early_stop)
+
+    if save_as is not None:
+        # Save the model for later use
+        Path(conf.model_dir).mkdir(parents=True, exist_ok=True)
+        model.save(conf.model_dir+"{:}".format(save_as))
+
     return history
 
 

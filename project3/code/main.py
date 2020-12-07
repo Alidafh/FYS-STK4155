@@ -15,9 +15,7 @@ import matplotlib.pyplot as plt
 import configuration as conf
 from CNN import create_model, train_model
 from generate import load_data
-
-
-
+from tools import gce
 def plot_training_data(label_names=None, slice=0):
     plt.figure(figsize=(10,10))
     for i in range(25):
@@ -77,25 +75,15 @@ def mnist():
     return (X_train, y_train), (X_test, y_test)
 
 
-# GCE data
-maps, labels, stats = load_data(file=conf.data_file, slice=conf.slice)
-
 label_names = ["Clean", "DM"]
-labels = to_categorical(labels)
 
-maps = maps/maps.max()
-
-X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=0.8)
-
-#plot_training_data(label_names=label_names, slice=9)
+(X_train, y_train), (X_test, y_test) = gce(seed=42, scale=True)
 
 model = create_model()
 history = train_model(X_train, y_train, X_test, y_test, model, verbose=1, save_as="GCE")
 
 loss, acc = model.evaluate(X_test, y_test, verbose=2)
 print(65*"_", "accuracy: {:5.2f}%".format(100 * acc), 65*"_", sep="\n")
-
-y_pred = model.predict(X_test)
 
 #plot_test_results(label_names=label_names)
 #plot_test_results()

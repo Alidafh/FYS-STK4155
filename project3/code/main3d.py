@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import configuration as conf
 from CNN import create_model, train_model, create_model_3D, train_model_3D
 from generate import load_data
+from tools import gce, mnist
 
 def plot_training_data(label_names=None, slice=0):
     plt.figure(figsize=(10,10))
@@ -31,22 +32,19 @@ def plot_training_data(label_names=None, slice=0):
     plt.show()
 
 # GCE data
-maps, labels, stats = load_data(file=conf.data_file, slice=conf.slice)
-
+(X_train, y_train), (X_test, y_test) = gce(d3=True, seed=42, scale=True)
 label_names = ["Clean", "DM"]
-labels = to_categorical(labels)
 
-maps = maps/maps.max()
+plt.figure(figsize=(10,10))
+for i in range(25):
+    plt.subplot(5, 5,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(X_train[i][:,:,9,0], cmap="gray")
+    n = y_train[i].argmax()
+    plt.xlabel("{:}".format(label_names[n]))
+plt.show()
 
-X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=0.8)
 
-print(X_train.shape)
-
-X_train = X_train[:,:,:,:, np.newaxis]
-X_test = X_test[:,:,:,:, np.newaxis]
-
-print(X_train.shape)
-
-#plot_training_data(label_names=label_names, slice=9)
 model = create_model_3D()
-history = train_model_3D(X_train, y_train, X_test, y_test, model, verbose=1)
+history = train_model_3D(X_train, y_train, X_test, y_test, model, verbose=1, save_as="GCE_3D")
