@@ -640,7 +640,7 @@ def arguments():
     parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="28,28,10",
                     help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=28,28,10")
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
-                    help='Strength of the dark matter, default=1')
+                    help='strength of dark matter, default=1')
     parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=1,
                     help='Level of gaussian nose in data, default=1')
     parser.add_argument('-r', type=str, metavar='--random_walk', action='store', default="True",
@@ -649,20 +649,26 @@ def arguments():
                     help='Shuffle the maps before storing, default=True')
     parser.add_argument('-p', type=str, metavar='--PATH', action='store', default="../data/",
                         help='Path to where the data should be stored, default="../data/"')
+    parser.add_argument('-t', type=int, metavar='--type_generator', action='store', default=1,
+                    help='type of generator, 1 for v1 and 2 for v2, default=1')
 
     args = parser.parse_args()
 
-    n, d, dm, nl, r, s, p = args.n, eval(args.d), args.dm, args.nl, eval(args.r), eval(args.s), args.p
+    n, d, dm, nl, r, s, p, t = args.n, eval(args.d), args.dm, args.nl, eval(args.r), eval(args.s), args.p, args.t
 
-    return n, d, dm, nl, r, s, p
+    return n, d, dm, nl, r, s, p, t
 
 
 if __name__ == "__main__":
     from datetime import datetime
     start_time = datetime.now()
 
-    n, d, dm, nl, r, s, p = arguments()
-    generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+    n, d, dm, nl, r, s, p, t = arguments()
+
+    if t == 1:
+        generate_data(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+    else:
+        generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
 
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
