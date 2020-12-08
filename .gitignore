@@ -4,7 +4,7 @@ hw*/
 test*
 **/__pycache__/
 **/backup/
-/home/alida/Documents/uio/Master/FYS-STK4155/project3/data/*
+project3/data/**
 
 
 # Prerequisites
