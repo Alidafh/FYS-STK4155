@@ -18,7 +18,7 @@ Configuration for the Convolutional neural network located in CNN.py
 ###############################################################################
 # for create_model()
 ###############################################################################
-input_shape = (100, 100, 10)  # Shape of the images, holds the raw pixel values
+input_shape = (28, 28, 20)  # Shape of the images, holds the raw pixel values
 
 
 n_filters = 16              # For the two first Conv2D layers

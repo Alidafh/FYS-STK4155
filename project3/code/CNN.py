@@ -31,21 +31,21 @@ def create_model():
     model.add(tf.keras.layers.MaxPooling2D())
 
 
-    for layer in conf.layer_config:
-        model.add(tf.keras.layers.Conv2D(layer,
-                                        kernel_size = conf.kernel_size,
-                                        activation = conf.hidden_activation,
-                                        kernel_regularizer=conf.reg,
-                                        padding = "same"))
+    # for layer in conf.layer_config:
+    #     model.add(tf.keras.layers.Conv2D(layer,
+    #                                     kernel_size = conf.kernel_size,
+    #                                     activation = conf.hidden_activation,
+    #                                     kernel_regularizer=conf.reg,
+    #                                     padding = "same"))
 
-        model.add(tf.keras.layers.Conv2D(layer,
-                                        kernel_size = conf.kernel_size,
-                                        activation = conf.hidden_activation,
-                                        kernel_regularizer=conf.reg,
-                                        padding = "same"))
+    #     model.add(tf.keras.layers.Conv2D(layer,
+    #                                     kernel_size = conf.kernel_size,
+    #                                     activation = conf.hidden_activation,
+    #                                     kernel_regularizer=conf.reg,
+    #                                     padding = "same"))
 
 
-        model.add(tf.keras.layers.MaxPooling2D())
+    #     model.add(tf.keras.layers.MaxPooling2D())
         
 
     model.add(tf.keras.layers.Flatten())
