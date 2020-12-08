@@ -7,7 +7,7 @@ Generate the GCE pseudo-data by running the generate.py module. The following pa
 
 ```
 $ python generate.py -h
-usage: generate.py [-h] [-n --number_of_maps] [-d --dimentions]
+usage: generate.py [-h] [-n --number_of_maps] [-d --dimensions]
                    [-dm --dm_strength] [-nl --noise_level] [-r --random_walk]
                    [-s --shuffle_maps] [-p --PATH]
 
@@ -15,11 +15,12 @@ Generate Galactic Center Excess pseudodata TBA
 
 optional arguments:
   -h, --help           show this help message and exit
-  -n --number_of_maps  The number of maps to generate for each type,
+  -n --number_of_maps  The number of maps to generated for each type 
+  			(so total number of maps is 2n),
                        default=1000
-  -d --dimentions      Dimentions of the maps, default=(50,50,3)
+  -d --dimensions      Dimensions of the maps, default=(28,28,10)
   -dm --dm_strength    Strength of the dark matter, default=1
-  -nl --noise_level    Level of gaussian nose in data, default=0.1
+  -nl --noise_level    Level of gaussian noise in data, default=0.1
   -r --random_walk     Use random walk, default=True
   -s --shuffle_maps    Shuffle the maps before storing, default=True
   -p --PATH            Path to where the data should be stored,

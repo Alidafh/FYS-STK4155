@@ -7,7 +7,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 
 path = "../data/"
-filename = "data1_(200, 100, 100, 10)_1_0.1_True_.npy"
+filename = "data_(1000, 28, 28, 20)_1.0_0.0_False_.npy"
 data_file = path+filename
 slice=None
 
@@ -24,6 +24,7 @@ n_filters = 64              # For the two first Conv2D layers
 kernel_size = (3, 3)
 layer_config = (128, 256)    # (layer1, layer2, layer3, ....)
 connected_neurons = 512     # For the first Dense layer
+
 n_categories = 2            # For the last Dense layer (2 for GCE, 10 for mnist)
 
 input_activation  = "relu"
@@ -134,3 +135,4 @@ loss = "mean_squared_error"     #loss = "categorical_crossentropy"
 metrics = ["accuracy"]          #metrics = ["accuracy", tf.keras.metrics.AUC()]
 
 """
+
