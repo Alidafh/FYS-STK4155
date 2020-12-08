@@ -7,7 +7,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 
 path = "../data/"
-filename = "data_(2000, 28, 28, 10)_1_1_True_.npy"
+filename = "data1_(200, 100, 100, 10)_1_0.1_True_.npy"
 data_file = path+filename
 slice=None
 
@@ -18,7 +18,7 @@ Configuration for the Convolutional neural network located in CNN.py
 ###############################################################################
 # for create_model()
 ###############################################################################
-input_shape = (28, 28, 10)  # Shape of the images, holds the raw pixel values
+input_shape = (100, 100, 10)  # Shape of the images, holds the raw pixel values
 
 n_filters = 64              # For the two first Conv2D layers
 kernel_size = (3, 3)
