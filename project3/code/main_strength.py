@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 21:03:42 2020
+
+@author: gert
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -12,17 +19,17 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 
-import configuration as conf
+import configuration_strength as conf
 
-from CNN import create_model_3D, create_model, train_model
+from CNN_strength import create_model_3D, create_model, train_model
 
 from generate import load_data
-from tools import gce, mnist, plot_training_data, plot_test_results, plot_history
+from tools_strength import gce_strength, mnist, plot_training_data, plot_test_results, plot_history
 
 
 label_names = ["Clean", "DM"]
 
-(X_train, y_train), (X_test, y_test) = gce(seed=42, scale=True)
+(X_train, y_train), (X_test, y_test) = gce_strength(seed=42, scale=True)
 
 model = create_model()
 

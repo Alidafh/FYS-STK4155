@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 21:03:05 2020
+
+@author: gert
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
@@ -8,7 +16,7 @@ import tensorflow as tf
 
 path = "../data/"
 
-filename = "data_(10000, 28, 28, 20)_0.25_100.0_True_.npy"
+filename = "maps_(1500, 28, 28, 20)_100.0_True_.npy"
 
 data_file = path+filename
 slice = None
@@ -25,7 +33,7 @@ kernel_size = (5,5)
 layer_config = (8, 4)    # (layer1, layer2, layer3, ....)
 connected_neurons = 32     # For the first Dense layer
 
-n_categories = 2            # For the last Dense layer (2 for GCE, 10 for mnist)
+n_categories = 1            # For the last Dense layer (2 for GCE, 10 for mnist)
 
 input_activation  = "relu"
 hidden_activation = "relu"
@@ -49,8 +57,8 @@ opt = tf.keras.optimizers.Adam(learning_rate=0.00001)
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 
 
-loss = "categorical_crossentropy"  #loss = "mean_squared_error"
-metrics = ["accuracy"]          #metrics = ["accuracy", tf.keras.metrics.AUC()]
+loss = "mean_squared_error"  #loss = "mean_squared_error"
+metrics = ["mean_squared_error"]          #metrics = ["accuracy", tf.keras.metrics.AUC()]
 
 
 

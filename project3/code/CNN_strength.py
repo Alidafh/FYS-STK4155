@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 21:16:08 2020
+
+@author: gert
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
@@ -8,7 +15,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 from pathlib import Path
 import tensorflow as tf
 import numpy as np
-import configuration as conf
+import configuration_strength as conf
 
 def create_model():
     """

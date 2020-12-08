@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 21:52:19 2020
+
+@author: gert
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
@@ -10,7 +17,7 @@ from tensorflow.keras.utils import to_categorical
 import numpy as np
 import matplotlib.pyplot as plt
 from generate import load_data
-import configuration as conf
+import configuration_strength as conf
 from sklearn.model_selection import train_test_split
 
 

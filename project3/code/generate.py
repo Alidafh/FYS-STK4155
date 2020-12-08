@@ -6,6 +6,7 @@ import quickplot as qupl
 import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from sklearn.utils import shuffle
+import random
 import sys
 
 
@@ -165,8 +166,8 @@ class SkyMap:
         # self.dm_max_profile = 10
 
         # self.dm_max_spectrum = 100
-        
-        
+
+
         self.galactic_plane_profile = linear_planar_profile(max_val  = 100,
                                                             gradient = 100/self.dim[0] )
 
@@ -177,7 +178,7 @@ class SkyMap:
 
         self.galactic_center_spectrum = linear_spectrum(max_val=0)
 
-        self.dm_profile = linear_spherical_profile(max_val  = 100, 
+        self.dm_profile = linear_spherical_profile(max_val  = 100,
                                                    gradient = 100/self.dim[0])
 
         self.dm_spectrum = gaussian_spectrum(max_val = 10,
@@ -187,9 +188,9 @@ class SkyMap:
 
 
         self.noise = gaussian_noise(dim=self.dim, noise_level = noise_level)
-        
-        
-        
+
+
+
 
         self.n_steps_frac = 0.5
         self.horizontal_step = 5
@@ -344,7 +345,7 @@ class SkyMap:
                 for E in range(self.dim[2]):
 
                     dark_matter[i,j,E] = self.dm_profile.func(r)*self.dm_spectrum.func(E)
-        
+
         dark_matter = dark_matter*self.dm_strength
 
         self.matrix_dm = dark_matter
@@ -496,10 +497,12 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     for i in range(nMaps):
         if (2*i % 100==0):
             print("Generating maps...{:.0f}/{:.0f}".format(2*(i+1), 2*nMaps))
+
         map_g = SkyMap(dim=dim, is_dm=False, are_irreg=random_walk, noise_level=noise_level)
         galaxy = map_g.matrix
 
-        map_dm = SkyMap(dim=dim, is_dm=True, dm_strength=dm_strength, are_irreg=random_walk, noise_level=noise_level)
+        map_dm = SkyMap(dim=dim, is_dm=True, dm_strength=dm_strength,
+                        are_irreg=random_walk, noise_level=noise_level)
         dm = map_dm.matrix
 
         galaxies[i,:] = map_g.ravel_map(galaxy)
@@ -512,6 +515,8 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     trues = np.ones((dark_matters.shape[0], 1), dtype=bool)
     falses = np.zeros((galaxies.shape[0], 1), dtype=bool)
 
+    print(trues.shape)
+    print(galaxies.shape)
     galaxies_ = np.hstack((falses, galaxies))
     dark_matters_ = np.hstack((trues, dark_matters))
 
@@ -529,6 +534,60 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
 
     return all
 
+def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True, PATH=None):
+    """
+    Generates nMaps of galaxies with random levels of dark matter strength
+    using the SkyMap class. The maps are raveled and stored as a row in a
+    numpy array where the first number in each row corresponds to the strength
+    of the dark matter (to be used as labels). If a path is specified, the
+    arrays are stored in a file with filename:
+
+    maps_(nMaps, m, n, e)_{dm_strength}_{noise_level}_{random_walk}_.npy
+
+    ---------------
+    Input:
+        nMaps:       int,   the number of maps to generate
+        dim:         tuple, the chosen dimentions of the maps.(m,n,e)
+        noise_level: float, the strength of the noise
+        random_walk: bool,  if the data is generated with random walk
+        shuf:        bool,  shuffle the rows of the data
+        PATH:        str,   the path to where the data should be stored
+    ---------------
+    Returns:
+        data: ndarray, shape (nMaps, n, m, e)
+    """
+    import random
+
+    dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
+    dark_matters = np.zeros((nMaps, dim_ravel))
+    dm_str = np.zeros(nMaps)
+
+    for i in range(nMaps):
+        if (i % 100==0):
+            print("Generating maps...{:.0f}/{:.0f}".format((i+1), nMaps))
+
+        dm_strength = random.random()
+
+        map = SkyMap(dim=dim, is_dm=True, dm_strength=dm_strength,
+                        are_irreg=random_walk, noise_level=noise_level)
+
+        dm = map.matrix
+        dark_matters[i,:] = map.ravel_map(dm)
+        dm_str[i] = dm_strength
+
+    labels = dm_str.reshape(-1,1)
+    all = np.hstack((labels, dark_matters))
+
+    if shuf == True:
+        all = shuffle(all, random_state=42)
+
+    if PATH is not None:
+        tuple = (nMaps, dim[0], dim[1], dim[2])
+        fn = "maps_{:}_{:}_{:}_".format(tuple, noise_level, random_walk)
+        np.save(PATH+fn, all)
+
+    return all
+
 
 def load_data(file="", slice = None):
     """
@@ -542,7 +601,7 @@ def load_data(file="", slice = None):
         maps, labels, stats
     """
     # Create dictionary with information from filename
-    keys = ["ndim", "dm_strength", "noise", "walk"]
+    keys = ["ndim", "noise", "walk"]
 
     info = file.split("_")[1:-1]
     info = [eval(elm) for elm in info]
@@ -581,7 +640,7 @@ def arguments():
     parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="28,28,10",
                     help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=28,28,10")
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
-                    help='Strength of the dark matter, default=1')
+                    help='strength of dark matter, default=1')
     parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=1,
                     help='Level of gaussian nose in data, default=1')
     parser.add_argument('-r', type=str, metavar='--random_walk', action='store', default="True",
@@ -590,77 +649,26 @@ def arguments():
                     help='Shuffle the maps before storing, default=True')
     parser.add_argument('-p', type=str, metavar='--PATH', action='store', default="../data/",
                         help='Path to where the data should be stored, default="../data/"')
+    parser.add_argument('-t', type=int, metavar='--type_generator', action='store', default=1,
+                    help='type of generator, 1 for v1 and 2 for v2, default=1')
 
     args = parser.parse_args()
 
-    n, d, dm, nl, r, s, p = args.n, eval(args.d), args.dm, args.nl, eval(args.r), eval(args.s), args.p
+    n, d, dm, nl, r, s, p, t = args.n, eval(args.d), args.dm, args.nl, eval(args.r), eval(args.s), args.p, args.t
 
-    return n, d, dm, nl, r, s, p
-
-
-def main_gert():
-    E = 50
-    map1 = SkyMap(dim=(50,100,100), is_dm = True)
-
-    sky = map1.matrix[:,:,E]
-
-    gal = map1.matrix_galaxy[:,:,E]
-
-    dm = map1.matrix_dm[:,:,E]
-
-    fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
-    ax[0].imshow(gal)
-    ax[1].imshow(dm)
-    ax[2].imshow(sky)
-    map1.display_spectrum()
-    plt.show()
-
-
-
-def main_gert2():
-      # plt.imshow( gaussian_dot( 25,25, 1, 0.5, (50,100), 15 )  )
-    E = 10
-    map1 = SkyMap(dim=(40,80,40), is_dm = True)
-    sky = map1.matrix[:,:,E]
-
-    gal = map1.matrix_galaxy[:,:,E]
-
-    dm = map1.matrix_dm[:,:,E]
-
-    fig, ax = plt.subplots(nrows=3, ncols=1,  figsize=(10, 3))
-    ax[0].imshow(gal)
-    ax[1].imshow(dm)
-    ax[2].imshow(sky)
-    map1.display_spectrum()
-    plt.show()
-
+    return n, d, dm, nl, r, s, p, t
 
 
 if __name__ == "__main__":
     from datetime import datetime
     start_time = datetime.now()
 
-    n, d, dm, nl, r, s, p = arguments()
-    generate_data(nMaps=n, dim=d, dm_strength=dm, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+    n, d, dm, nl, r, s, p, t = arguments()
+
+    if t == 1:
+        generate_data(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+    else:
+        generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
 
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
-
-
-
-
-# E = 10
-# map1 = SkyMap(dim=(28,28,20), is_dm = True, are_irreg=True, noise_level=100, dm_strength=1.0)
-
-# sky = map1.matrix[:,:,E]
-
-# gal = map1.matrix_galaxy[:,:,E]
-
-# dm = map1.matrix_dm[:,:,E]
-
-# fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
-# ax[0].imshow(gal)
-# ax[1].imshow(dm)
-# ax[2].imshow(sky)
-# map1.spectrum()
-# plt.show()

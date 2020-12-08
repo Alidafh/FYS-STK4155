@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from generate import SkyMap
+from generate import SkyMap, generate_data_v2, generate_data
 
 
 def plots(slice = None, lim = None):
@@ -54,7 +54,12 @@ def plot2(slice = None, lim = None):
     lim1 = np.sum(comb2, axis=2).max()
     map.display()
 
-plots(lim=60000)
+#plots(lim=60000)
+
+
+generate_data_v2(nMaps=10, dim=(50,50,2), noise_level = 100.0, random_walk = True, shuf=True, PATH="../data/")
+#generate_data(nMaps=10, dim=(50,50,2), noise_level = 100.0, random_walk = True, shuf=True, PATH="../data/")
+
 
 
 
