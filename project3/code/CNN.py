@@ -29,7 +29,7 @@ def create_model_3D():
                                     padding = "valid"))
 
     model.add(tf.keras.layers.MaxPooling3D(padding="same"))
-    model.add(tf.keras.layers.Dropout(0.15))
+    # model.add(tf.keras.layers.Dropout(0.15))
 
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv3D(layer,
@@ -73,22 +73,22 @@ def create_model_2D():
                                     kernel_regularizer=conf.reg))
 
     model.add(tf.keras.layers.MaxPooling2D())
-    model.add(tf.keras.layers.Dropout(0.15))
+    # model.add(tf.keras.layers.Dropout(0.15))
 
-    for layer in conf.layer_config:
-        model.add(tf.keras.layers.Conv2D(layer,
-                                        kernel_size = conf.kernel_size,
-                                        activation = conf.hidden_activation,
-                                        kernel_regularizer=conf.reg,
-                                        padding = "same"))
+    # for layer in conf.layer_config:
+    #     model.add(tf.keras.layers.Conv2D(layer,
+    #                                     kernel_size = conf.kernel_size,
+    #                                     activation = conf.hidden_activation,
+    #                                     kernel_regularizer=conf.reg,
+    #                                     padding = "same"))
 
-        model.add(tf.keras.layers.Conv2D(layer,
-                                        kernel_size = conf.kernel_size,
-                                        activation = conf.hidden_activation,
-                                        kernel_regularizer=conf.reg,
-                                        padding = "same"))
+    #     model.add(tf.keras.layers.Conv2D(layer,
+    #                                     kernel_size = conf.kernel_size,
+    #                                     activation = conf.hidden_activation,
+    #                                     kernel_regularizer=conf.reg,
+    #                                     padding = "same"))
 
-        model.add(tf.keras.layers.MaxPooling2D(padding="same"))
+    #     model.add(tf.keras.layers.MaxPooling2D(padding="same"))
         #model.add(tf.keras.layers.Dropout(0.25))
 
     model.add(tf.keras.layers.Flatten())
