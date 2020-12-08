@@ -4,6 +4,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
+
 from pathlib import Path
 import tensorflow as tf
 import numpy as np
@@ -25,7 +26,8 @@ def create_model():
 
     model.add(tf.keras.layers.Conv2D(conf.n_filters, conf.kernel_size,
                                     activation=conf.hidden_activation,
-                                    kernel_regularizer=conf.reg))
+                                    kernel_regularizer=conf.reg,
+                                    padding="valid"))
 
     model.add(tf.keras.layers.MaxPooling2D())
 
@@ -40,11 +42,10 @@ def create_model():
                                         kernel_size = conf.kernel_size,
                                         activation = conf.hidden_activation,
                                         kernel_regularizer=conf.reg,
-                                        padding = "same"))
+                                        padding = "valid"))
 
 
         model.add(tf.keras.layers.MaxPooling2D())
-        
 
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(conf.connected_neurons, activation=conf.hidden_activation))
@@ -52,7 +53,7 @@ def create_model():
 
     return model
 
-  
+
 def create_model_3D():
     """
     creates a model using the configurations in the configuration file
@@ -73,7 +74,6 @@ def create_model_3D():
                                     padding = "valid"))
 
     model.add(tf.keras.layers.MaxPooling3D(padding="same"))
-    model.add(tf.keras.layers.Dropout(0.15))
 
     for layer in conf.layer_config:
         model.add(tf.keras.layers.Conv3D(layer,
@@ -97,8 +97,8 @@ def create_model_3D():
 
     return model
 
-  
-  
+
+
 
 def train_model_3D(X_train, y_train, X_val, y_val, model, save_as=None, verbose=0):
 
@@ -163,8 +163,7 @@ def get_model(model_name):
 
 
 if __name__ == '__main__':
-    import configuration as config
-    create_model_3D()
+    create_model()
 
 """
 tf.keras.layers.Conv2D(

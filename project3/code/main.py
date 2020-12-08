@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import configuration as conf
-from CNN import create_model_3D, create_model_2D, train_model
+from CNN import create_model, train_model
 from generate import load_data
 from tools import gce, mnist, plot_training_data, plot_test_results, plot_history
 
@@ -22,8 +22,8 @@ label_names = ["Clean", "DM"]
 
 (X_train, y_train), (X_test, y_test) = gce(seed=42, scale=True)
 
+model = create_model()
 
-model = create_model_2D()
 history = train_model(X_train, y_train, X_test, y_test, model, verbose=1, save_as="GCE")
 
 loss, acc = model.evaluate(X_test, y_test, verbose=2)
@@ -32,5 +32,3 @@ print(65*"_", "accuracy: {:5.2f}%".format(100 * acc), 65*"_", sep="\n")
 #plot_test_results(label_names=label_names)
 #plot_test_results()
 plot_history(history)
-
-
