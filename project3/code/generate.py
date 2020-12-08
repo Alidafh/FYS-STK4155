@@ -668,7 +668,7 @@ if __name__ == "__main__":
     if t == 1:
         generate_data(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
     else:
-        generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+        generate_data_v2(nMaps=n, dim=d, dm_strength=dm, noise_level=nl, random_walk=r, shuf=s, PATH=p)
 
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
