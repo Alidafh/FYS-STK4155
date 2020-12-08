@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 import configuration as conf
 
+
 def create_model():
     """
     creates a model using the configurations in the configuration file
