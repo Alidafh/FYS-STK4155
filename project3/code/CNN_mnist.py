@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 11:52:07 2020
+
+@author: gert
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
@@ -7,7 +14,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 from pathlib import Path
 import tensorflow as tf
 import numpy as np
-import configuration as conf
+import configuration_mnist as conf
 
 def create_model_3D():
     """
@@ -26,7 +33,7 @@ def create_model_3D():
     model.add(tf.keras.layers.Conv3D(conf.n_filters, conf.kernel_size,
                                     activation=conf.input_activation,
                                     kernel_regularizer=conf.reg,
-                                    padding = "valid"))
+                                    padding = "same"))
 
     model.add(tf.keras.layers.MaxPooling3D(padding="same"))
     model.add(tf.keras.layers.Dropout(0.15))
@@ -42,7 +49,7 @@ def create_model_3D():
                                         kernel_size = conf.kernel_size,
                                         activation = conf.hidden_activation,
                                         kernel_regularizer=conf.reg,
-                                        padding = "valid"))
+                                        padding = "same"))
 
         model.add(tf.keras.layers.MaxPooling3D(padding="same"))
         #model.add(tf.keras.layers.Dropout(0.25))

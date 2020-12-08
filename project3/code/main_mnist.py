@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 11:31:19 2020
+
+@author: gert
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -12,9 +20,11 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 
-import configuration as conf
-from CNN import create_model_3D, create_model_2D, train_model
+import configuration_mnist as conf
+from CNN_mnist import create_model_3D, create_model_2D, train_model
 from generate import load_data
+
+import mnist_loader
 
 
 
@@ -77,17 +87,41 @@ def mnist():
     return (X_train, y_train), (X_test, y_test)
 
 
-# GCE data
+# # GCE data
 
 
-maps, labels, stats = load_data(file=conf.data_file, slice=conf.slice)
+# maps, labels, stats = load_data(file=conf.data_file, slice=conf.slice)
 
-label_names = ["Clean", "DM"]
-labels = to_categorical(labels)
+# label_names = ["Clean", "DM"]
+# labels = to_categorical(labels)
 
-maps = maps/maps.max()
+# maps = maps/maps.max()
 
-X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=0.8)
+# X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=0.8)
+
+
+training_data, validation_data, test_data =  mnist_loader.load_data_wrapper()
+
+training_data = list(training_data)
+test_data = list(test_data)
+
+X_train = []
+y_train = []
+X_test = []
+y_test = []
+
+for i in training_data:
+    X_train.append(i[0])
+    y_train.append(i[1])
+    
+for j in test_data:
+    X_test.append(j[0])
+    y_test.append(j[1])
+
+X_train = np.array(X_train).reshape(len(training_data),28,28,1)
+y_train = np.array(y_train).reshape(len(training_data),10)
+X_test = np.array(X_test).reshape(len(test_data), 28,28, 1)
+y_test = to_categorical(np.array(y_test)).reshape(len(test_data), 10)
 
 
 # X_train = X_train[:,:,:,:, np.newaxis]
@@ -107,5 +141,4 @@ y_pred = model.predict(X_test)
 #plot_test_results(label_names=label_names)
 #plot_test_results()
 plot_history(history)
-
 

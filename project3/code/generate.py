@@ -23,14 +23,14 @@ def gaussian_dot(i, j, max_val, sigma, dim, max_rad):
     return mat
 
 class linear_planar_profile():
-    def __init__(self, gradient = 2, max_val=50):
+    def __init__(self, gradient = 5, max_val=50):
         self.gradient = gradient
         self.max_val = max_val
     def func(self,x):
         return self.max_val - self.gradient*x
 
 class linear_spherical_profile():
-    def __init__(self, gradient = 1/2.5, max_val=10):
+    def __init__(self, gradient = 5, max_val=10):
         self.gradient = gradient
         self.max_val=max_val
     def func(self,x):
@@ -45,7 +45,7 @@ class gaussian_spherical_profile():
         return self.max_val*np.exp(- ( (x - self.mean)**2 )/(2*self.sigma**2) )
 
 class gaussian_spectrum():
-    def __init__(self, sigma = 3, max_val=50, mean=10):
+    def __init__(self, sigma = 2, max_val=0.0, mean=10):
         self.sigma = sigma
         self.max_val=max_val
         self.mean = mean
@@ -53,7 +53,7 @@ class gaussian_spectrum():
         return self.max_val*np.exp(- ( (E - self.mean)**2 )/(2*self.sigma**2) )
 
 class linear_spectrum():
-    def __init__(self, max_val=1, grad=0.1):
+    def __init__(self, max_val=1, grad=5):
         self.max_val=max_val
         self.grad = grad
     def func(self,E):
@@ -146,28 +146,53 @@ class SkyMap:
     >>> map.display(map.matrix_irregularities)
 
     """
-    def __init__(self, dim, is_dm=False, are_irreg=True, noise_level=1):
+    def __init__(self, dim, is_dm=False, dm_strength=1, are_irreg=True, noise_level=1):
 
         self.noise_level = noise_level
         self.dim = dim
         self.is_dm=is_dm
         self.are_irreg = are_irreg
+        self.dm_strength = dm_strength
 
-        self.galactic_plane_max_profile = 50
+        # self.galactic_plane_max_profile = 100
 
-        self.galactic_plane_max_spectrum = 100
+        # self.galactic_plane_max_spectrum = 100
 
-        self.galactic_center_max_profile = 10
+        # self.galactic_center_max_profile = 0
 
-        self.galactic_center_max_spectrum = 100
+        # self.galactic_center_max_spectrum = 0
 
-        self.dm_max_profile = 25
+        # self.dm_max_profile = 10
 
-        self.dm_max_spectrum = 40
+        # self.dm_max_spectrum = 100
+        
+        
+        self.galactic_plane_profile = linear_planar_profile(max_val  = 100,
+                                                            gradient = 100/self.dim[0] )
 
+        self.galactic_plane_spectrum = linear_spectrum(max_val  = 100,
+                                                       grad = 100/self.dim[2] )
+
+        self.galactic_center_profile = gaussian_spherical_profile(max_val=0)
+
+        self.galactic_center_spectrum = linear_spectrum(max_val=0)
+
+        self.dm_profile = linear_spherical_profile(max_val  = 100, 
+                                                   gradient = 100/self.dim[0])
+
+        self.dm_spectrum = gaussian_spectrum(max_val = 10,
+                                             sigma   = self.dim[2]/15,
+                                             mean    = self.dim[2]/2 )
+
+
+
+        self.noise = gaussian_noise(dim=self.dim, noise_level = noise_level)
+        
+        
+        
 
         self.n_steps_frac = 0.5
-        self.horizontal_step = 2
+        self.horizontal_step = 5
         self.vertical_step = 1
         self.takeover_step = 1
         self.takeover_margin = 0.01
@@ -190,20 +215,6 @@ class SkyMap:
 
         self.matrix_irregularities = np.zeros(self.dim)
 
-
-        self.galactic_plane_profile = linear_planar_profile(max_val = self.galactic_plane_max_profile)
-
-        self.galactic_plane_spectrum = linear_spectrum(max_val = self.galactic_plane_max_spectrum)
-
-        self.galactic_center_profile = gaussian_spherical_profile(max_val=self.galactic_center_max_profile)
-
-        self.galactic_center_spectrum = linear_spectrum(max_val=self.galactic_center_max_spectrum)
-
-        self.dm_profile = linear_spherical_profile(max_val = self.dm_max_profile)
-
-        self.dm_spectrum = gaussian_spectrum(max_val = self.dm_max_spectrum)
-
-        self.noise = gaussian_noise(dim=self.dim, noise_level=self.noise_level)
 
 
         self.generate_galaxy()
@@ -333,7 +344,8 @@ class SkyMap:
                 for E in range(self.dim[2]):
 
                     dark_matter[i,j,E] = self.dm_profile.func(r)*self.dm_spectrum.func(E)
-
+        
+        dark_matter = dark_matter*self.dm_strength
 
         self.matrix_dm = dark_matter
 
@@ -484,10 +496,10 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     for i in range(nMaps):
         if (2*i % 100==0):
             print("Generating maps...{:.0f}/{:.0f}".format(2*(i+1), 2*nMaps))
-        map_g = SkyMap(dim=dim, is_dm=False, are_irreg=random_walk)
+        map_g = SkyMap(dim=dim, is_dm=False, are_irreg=random_walk, noise_level=noise_level)
         galaxy = map_g.matrix
 
-        map_dm = SkyMap(dim=dim, is_dm=True, are_irreg=random_walk)
+        map_dm = SkyMap(dim=dim, is_dm=True, dm_strength=dm_strength, are_irreg=random_walk, noise_level=noise_level)
         dm = map_dm.matrix
 
         galaxies[i,:] = map_g.ravel_map(galaxy)
@@ -633,3 +645,22 @@ if __name__ == "__main__":
 
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
+
+
+
+
+# E = 10
+# map1 = SkyMap(dim=(28,28,20), is_dm = True, are_irreg=True, noise_level=100, dm_strength=1.0)
+
+# sky = map1.matrix[:,:,E]
+
+# gal = map1.matrix_galaxy[:,:,E]
+
+# dm = map1.matrix_dm[:,:,E]
+
+# fig, ax = plt.subplots(nrows=1, ncols=3,  figsize=(10, 3))
+# ax[0].imshow(gal)
+# ax[1].imshow(dm)
+# ax[2].imshow(sky)
+# map1.spectrum()
+# plt.show()

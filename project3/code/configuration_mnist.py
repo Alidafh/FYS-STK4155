@@ -1,27 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  8 11:51:02 2020
+
+@author: gert
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 
-path = "../data/"
-filename = "data_(1000, 28, 28, 20)_1.0_0.0_False_.npy"
-data_file = path+filename
+# path = "../data/"
+# filename = "data_(1000, 28, 28, 20)_1.0_100.0_False_.npy"
+# data_file = path+filename
 slice=None
 
 """
 Configuration for the Convolutional neural network located in CNN.py
 """
 
-input_shape = (28, 28, 20)  # Shape of the images, holds the raw pixel values
+input_shape = (28, 28, 1)  # Shape of the images, holds the raw pixel values
 
 n_filters = 32              # For the two first Conv2D layers
 kernel_size = (5,5)
-layer_config = (16, 8)    # (layer1, layer2, layer3, ....)
-connected_neurons = 32     # For the first Dense layer
-n_categories = 2            # For the last Dense layer (2 for GCE, 10 for mnist)
+layer_config = (128, 128)    # (layer1, layer2, layer3, ....)
+connected_neurons = 256     # For the first Dense layer
+n_categories = 10            # For the last Dense layer (2 for GCE, 10 for mnist)
 
 #[32, 64, 128]
 #[256, 512, 1024]
