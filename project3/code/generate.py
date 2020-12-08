@@ -589,10 +589,6 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
     return all
 
 
-
-
-
-
 def load_data(file="", slice = None):
     """
     Reads the datafile created by the function generate_data
@@ -605,7 +601,7 @@ def load_data(file="", slice = None):
         maps, labels, stats
     """
     # Create dictionary with information from filename
-    keys = ["ndim", "dm_strength", "noise", "walk"]
+    keys = ["ndim", "noise", "walk"]
 
     info = file.split("_")[1:-1]
     info = [eval(elm) for elm in info]
