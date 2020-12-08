@@ -4,6 +4,8 @@ hw*/
 test*
 **/__pycache__/
 **/backup/
+project3/data/**
+
 
 # Prerequisites
 *.d

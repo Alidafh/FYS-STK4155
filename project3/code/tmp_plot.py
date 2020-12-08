@@ -44,24 +44,15 @@ def set_colorbar(fig, ax, im):
     fig.colorbar(im, cax=cax)
 
 
-def plot2(slice = 5):
-
-    dim = (50,50,10)
+def plot2(slice = None, lim = None):
     map = SkyMap(dim=dim, is_dm=True, are_irreg=False)
 
-    gal = map.matrix_galaxy
-    dm = map.matrix_dm
-    comb = map.matrix
+    gal = map2.matrix_galaxy
+    dm = map2.matrix_dm
+    comb = map2.matrix
 
-
-    fig, (ax1,ax2,ax3) = plt.subplots(nrows=1, ncols=3,  figsize=(20, 3))
-    im1 = ax1.imshow(gal[:,:,slice], cmap="inferno")
-    set_colorbar(fig, ax1, im1)
-    im2 = ax2.imshow(dm[:,:,slice], cmap="inferno")
-    set_colorbar(fig, ax2, im2)
-    im3 = ax3.imshow(comb[:,:,slice], cmap="inferno")
-    set_colorbar(fig, ax3, im3)
-    plt.show()
+    lim1 = np.sum(comb2, axis=2).max()
+    map.display()
 
 plots(lim=60000)
 
