@@ -7,36 +7,53 @@ Generate the GCE pseudo-data by running the generate.py module. The following pa
 
 ```
 $ python generate.py -h
-usage: generate.py [-h] [-n --number_of_maps] [-d --dimensions]
-                   [-dm --dm_strength] [-nl --noise_level] [-r --random_walk]
-                   [-s --shuffle_maps] [-p --PATH]
+
+usage: generate.py [-h] [-n number_of_maps] [-d dimentions] [-dm dm_strength]
+                   [-nl noise_level] [-r random_walk] [-s shuffle_maps]
+                   [-p PATH] [-v version]
 
 Generate Galactic Center Excess pseudodata TBA
 
 optional arguments:
-  -h, --help           show this help message and exit
-  -n --number_of_maps  The number of maps to generated for each type 
-  			(so total number of maps is 2n),
-                       default=1000
-  -d --dimensions      Dimensions of the maps, default=(28,28,10)
-  -dm --dm_strength    Strength of the dark matter, default=1
-  -nl --noise_level    Level of gaussian noise in data, default=0.1
-  -r --random_walk     Use random walk, default=True
-  -s --shuffle_maps    Shuffle the maps before storing, default=True
-  -p --PATH            Path to where the data should be stored,
-                       default="../data/"
+  -h, --help          show this help message and exit
+  -n  number_of_maps  The number of maps to generate (default: 1000)
+  -d  dimentions      Dimentions of the maps use as: -d dim1,dim2,dim3 (default: 28,28,10)
+  -dm dm_strength     Strength of dark matter (only relevant when using v1) (default: 1)
+  -nl noise_level     Level of gaussian nose in data (default: 1)
+  -r  random_walk     Use random walk (default: True)
+  -s  shuffle_maps    Shuffle the maps before saving (default: True)
+  -p  PATH            Path to where the data should be stored (default: ../data/)
+  -v  version         Choose the version of generator, v1:1 or v2:2 (default: 1)
 ```
-The data is stored in a file called `data_(n,d1,d2,d3)_dm_nl_r_.npy`.
+if using `-v 1` the data is stored in a file called `data_(n,d1,d2,d3)_dm_nl_r_.npy` and when using `-v 2` the data is stored in `maps_(n,d1,d2,d3)_nl_r_.npy`.
 
-### 2. Run the analysis
+### 2. Set up the configuration files and train
+The two configuration files:
+- Regression: config_regression.py
+- Classification: config_classification.py
 
-The analysis consists of the three scripts:
+Holds the configurations for the regression and classification analysis that will be used for the CNN. To change dataset or some parts of the configuration such as number of epochs, layer configuration etc, edit these config scripts. Train the network by running the script CNN.py with flag c for classification and r for regression. If you want to save the model, use the n flag followed by the filename.
 
-- CNN.py
-- configuration.py
-- main.py
+```
+$ python CNN.py -h
 
-run main.py. To change dataset or some parts of the configuration of the CNN such as number of epochs, layer configuration etc, edit the configuration.py script.
+usage: CNN.py [-h] [-r] [-c] [-n name]
+
+Train the CNN
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -n name     What name to store the model as (default: None)
+
+required arguments:
+  -r          Regression (default: False)
+  -c          Classification (default: False)
+```
+
+Example: to use classification do,
+```
+python CNN.py -cn filename
+```
 
 ## Overview of files
 
@@ -44,7 +61,8 @@ run main.py. To change dataset or some parts of the configuration of the CNN suc
 | ------ | ------ |
 | generate.py | script to create GCE pseudo-data |
 | CNN.py | contains the convolutional neural network |
-| configuration.py | contains the variables for the neural network |
+| config_regression.py |variables for the regression problem |
+| config_classification.py |variables for the classification problem |
 | main.py | main script |
 
 ```
