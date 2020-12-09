@@ -3,7 +3,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import quickplot as qupl
-import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from sklearn.utils import shuffle
 import random
@@ -556,8 +555,6 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
     Returns:
         data: ndarray, shape (nMaps, n, m, e)
     """
-    import random
-
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
     dark_matters = np.zeros((nMaps, dim_ravel))
     dm_str = np.zeros(nMaps)
@@ -600,12 +597,16 @@ def load_data(file="", slice = None):
     returns:
         maps, labels, stats
     """
-    # Create dictionary with information from filename
-    keys = ["ndim", "noise", "walk"]
-
     info = file.split("_")[1:-1]
     info = [eval(elm) for elm in info]
 
+    if len(info) == 3:
+        keys = ["ndim", "noise", "walk"]
+
+    if len(info) == 4:
+        keys = ["ndim", "dm_strength", "noise", "walk"]
+
+    # Create dictionary with information from filename
     stats = {keys[i]: info[i] for i in range(len(keys))}
 
     # Load the array from file
@@ -616,10 +617,6 @@ def load_data(file="", slice = None):
 
     # reshape the maps
     maps = maps.reshape(stats["ndim"])
-
-    #if slice is None:
-        #Temporary thing
-         #maps = np.sum(maps, axis=3)
 
     if slice is not None:
         ndim = stats["ndim"]
@@ -640,7 +637,7 @@ def arguments():
     parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="28,28,10",
                     help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=28,28,10")
     parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
-                    help='strength of dark matter, default=1')
+                    help='Only relevant when using -v 1: Strength of dark matter, default=1')
     parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=1,
                     help='Level of gaussian nose in data, default=1')
     parser.add_argument('-r', type=str, metavar='--random_walk', action='store', default="True",
@@ -649,26 +646,34 @@ def arguments():
                     help='Shuffle the maps before storing, default=True')
     parser.add_argument('-p', type=str, metavar='--PATH', action='store', default="../data/",
                         help='Path to where the data should be stored, default="../data/"')
-    parser.add_argument('-t', type=int, metavar='--type_generator', action='store', default=1,
-                    help='type of generator, 1 for v1 and 2 for v2, default=1')
+    parser.add_argument('-v', type=int, metavar='--version', action='store', default=1,
+                    help='Choose the version of generator: 1 for v1 or 2 for v2, default=1')
 
     args = parser.parse_args()
 
-    n, d, dm, nl, r, s, p, t = args.n, eval(args.d), args.dm, args.nl, eval(args.r), eval(args.s), args.p, args.t
+    if args.v != 1 or args.v != 2:
+        error = "You need to choose a valid version number:\nversion 1: -v 1\nversion 2: -v 2"
+        parser.error(error)
 
-    return n, d, dm, nl, r, s, p, t
+
+    n, d, dm, nl = args.n, eval(args.d), args.dm, args.nl,
+    r, s, p, v = eval(args.r), eval(args.s), args.p, args.v
+
+    return n, d, dm, nl, r, s, p, v
 
 
 if __name__ == "__main__":
     from datetime import datetime
     start_time = datetime.now()
 
-    n, d, dm, nl, r, s, p, t = arguments()
+    n, d, dm, nl, r, s, p, v = arguments()
 
-    if t == 1:
+    if v == 1:
         generate_data(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
-    else:
+
+    if v == 2:
         generate_data_v2(nMaps=n, dim=d, dm_strength=dm, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+
 
     time_elapsed = datetime.now() - start_time
     print('\nTime elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
