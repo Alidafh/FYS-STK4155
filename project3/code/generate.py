@@ -631,23 +631,25 @@ def arguments():
     import argparse
     description =  """Generate Galactic Center Excess pseudodata TBA"""
 
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-n', type=int, metavar='--number_of_maps', action='store', default=1000,
-                    help='The number of maps to generate for each type, default=1000')
-    parser.add_argument('-d', type=str, metavar='--dimentions', action='store', default="28,28,10",
-                    help="Dimentions of the maps use as: -d dim1,dim2,dim3, default=28,28,10")
-    parser.add_argument('-dm', type=float, metavar='--dm_strength', action='store', default=1,
-                    help='Only relevant when using -v 1: Strength of dark matter, default=1')
-    parser.add_argument('-nl', type=float, metavar='--noise_level', action='store', default=1,
-                    help='Level of gaussian nose in data, default=1')
-    parser.add_argument('-r', type=str, metavar='--random_walk', action='store', default="True",
-                    help='Use random walk, default=True')
-    parser.add_argument('-s', type=str, metavar='--shuffle_maps', action='store', default="True",
-                    help='Shuffle the maps before storing, default=True')
-    parser.add_argument('-p', type=str, metavar='--PATH', action='store', default="../data/",
-                        help='Path to where the data should be stored, default="../data/"')
-    parser.add_argument('-v', type=int, metavar='--version', action='store', default=1,
-                    help='Choose the version of generator: 1 for v1 or 2 for v2, default=1')
+    frm =argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser(description=description, formatter_class=frm)
+
+    parser.add_argument('-n', type=int, metavar=' number_of_maps', action='store', default=1000,
+                    help='The number of maps to generate')
+    parser.add_argument('-d', type=str, metavar=' dimentions', action='store', default="28,28,10",
+                    help="Dimentions of the maps use as: -d dim1,dim2,dim3")
+    parser.add_argument('-dm', type=float, metavar='dm_strength', action='store', default=1,
+                    help='Strength of dark matter (only relevant when using v1)')
+    parser.add_argument('-nl', type=float, metavar='noise_level', action='store', default=1,
+                    help='Level of gaussian nose in data')
+    parser.add_argument('-r', type=str, metavar=' random_walk', action='store', default="True",
+                    help='Use random walk')
+    parser.add_argument('-s', type=str, metavar=' shuffle_maps', action='store', default="True",
+                    help='Shuffle the maps before saving')
+    parser.add_argument('-p', type=str, metavar=' PATH', action='store', default="../data/",
+                        help='Path to where the data should be stored')
+    parser.add_argument('-v', type=int, metavar=' version', action='store', default=1,
+                    help='Choose the version of generator, v1:1 or v2:2')
     args = parser.parse_args()
 
 
