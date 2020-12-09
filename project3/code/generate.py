@@ -648,8 +648,8 @@ def arguments():
                         help='Path to where the data should be stored, default="../data/"')
     parser.add_argument('-v', type=int, metavar='--version', action='store', default=1,
                     help='Choose the version of generator: 1 for v1 or 2 for v2, default=1')
+    args = parser.parse_args(["-h"])
 
-    args = parser.parse_args()
 
     if args.v != 1 or args.v != 2:
         error = "You need to choose a valid version number:\nversion 1: -v 1\nversion 2: -v 2"
