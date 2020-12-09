@@ -7,24 +7,46 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras import backend as K
+
 import numpy as np
 import matplotlib.pyplot as plt
 from generate import load_data
-import configuration as conf
 from sklearn.model_selection import train_test_split
 
 
-def gce(d3 = False, scale=False, seed=None):
-    maps, labels, stats = load_data(file=conf.data_file, slice=conf.slice)
-    labels = to_categorical(labels)
+def preprocess(maps, labels, train_size, strength=False, scale=True, seed=None):
+    """
+    Scale data and plit into training and test sets
+    """
+    if strength == False: labels = to_categorical(labels)
+    if scale == True: maps = maps/maps.max()
 
-    if scale: maps = maps/maps.max()
-
-    X_train, X_test, y_train, y_test = train_test_split(maps, labels, train_size=0.8, random_state=seed)
-
-    if d3: X_train, X_test = np.expand_dims(X_train, axis=-1), np.expand_dims(X_test, axis=-1)
+    X_train, X_test, y_train, y_test = train_test_split(maps, labels,
+                                                        train_size=train_size,
+                                                        random_state=seed)
+    y_train = y_train.ravel()
+    y_test = y_test.ravel()
 
     return (X_train, y_train), (X_test, y_test)
+
+
+
+def coeff_determination(y_true, y_pred):
+    """
+    Use R2 score as a measure of how good the model works
+    https://jmlb.github.io/ml/2017/03/20/CoeffDetermination_CustomMetric4Keras/
+    """
+    SS_res =  K.sum(K.square(y_true-y_pred))
+    SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+    return (1 - SS_res/(SS_tot + K.epsilon()))
+
+
+
+
+
+
+
 
 
 def mnist():
@@ -33,11 +55,12 @@ def mnist():
     X_train = X_train.reshape(60000,28,28,1)
     X_test = X_test.reshape(10000,28,28,1)
 
-    X_train = X_train/255
-    X_test = X_test/255
+    X_train = X_train/255.
+    X_test = X_test/255.
 
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
+
     return (X_train, y_train), (X_test, y_test)
 
 
@@ -47,12 +70,14 @@ def plot_training_data(X_train, y_train, label_names=None, slice=0):
         plt.subplot(5, 5,i+1)
         plt.xticks([])
         plt.yticks([])
-        plt.imshow(X_train[i][:,:,slice], cmap="gray")
-        n = y_train[i].argmax()
+        plt.imshow(X_train[i][:,:,slice], cmap="inferno")
         if label_names:
+            n = y_train[i].argmax()
             plt.xlabel("{:}".format(label_names[n]))
         else:
-            plt.xlabel("{:}".format(n))
+            y_train = y_train.ravel()
+            n = y_train[i]
+            plt.xlabel("{:.4f}".format(n))
     plt.show()
 
 def plot_test_results(y_test, y_pred, label_names=None, slice=0):
