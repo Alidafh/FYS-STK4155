@@ -16,11 +16,12 @@ from tools import preprocess
 ###############################################################################
 type = "classification"
 path = "../data/"
-filename = "data_(2000, 28, 28, 20)_0.5_100.0_True_.npy"
+filename = "data_(10000, 28, 28, 20)_0.25_100.0_True_.npy"
 data_file = path+filename
 slice = None
 
 maps, labels, stats = load_data(file=data_file, slice=slice)
+
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
                                                 strength=False,
@@ -52,12 +53,12 @@ reg = None #tf.keras.regularizers.l2(l=0.001)
 model_dir = "tmp/"           # Where to save the model
 
 epochs = 20
-batch_size = 10
+batch_size = 50
 
-#lr3 = tf.keras.optimizers.schedules.InverseTimeDecay(1e-2, decay_steps=2, decay_rate=10, staircase=True)
+lr = tf.keras.optimizers.schedules.InverseTimeDecay(1e-2, decay_steps=5, decay_rate=10, staircase=False)
 opt = tf.keras.optimizers.Adam(learning_rate=1e-5)
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 
-loss = "categorical_crossentropy"  #loss = "mean_squared_error"
-metrics = ["accuracy"]          #metrics = ["accuracy", tf.keras.metrics.AUC()]
+loss = "categorical_crossentropy"   #loss = "mean_squared_error"
+metrics = ["accuracy"]              #metrics = ["accuracy", tf.keras.metrics.AUC()]
