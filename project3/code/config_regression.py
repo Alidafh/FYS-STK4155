@@ -9,8 +9,7 @@ import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 from generate import load_data
-from tools import preprocess, coeff_determination
-
+from tools import preprocess, r2_score
 ###############################################################################
 # Set up the data
 ###############################################################################
@@ -62,5 +61,4 @@ early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 
 loss = "mean_squared_error"
 
-#metrics = [coeff_determination]
-metrics = ["mean_squared_error"]
+metrics = [r2_score]
