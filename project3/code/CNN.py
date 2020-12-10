@@ -6,8 +6,12 @@ import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 from pathlib import Path
 import tensorflow as tf
+from tensorflow.keras.callbacks import CSVLogger
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from tools import r2_score
+
 
 def create_model():
     """
@@ -54,74 +58,116 @@ def create_model():
     return model
 
 
-def train_model(X_train, y_train, X_val, y_val, model, save_as=None, verbose=0):
+def train_model(X_train, y_train, X_val, y_val, model, save_as=None):
     """
     Train the model using the configurations in the configuration file
     """
-    from tensorflow.keras.callbacks import CSVLogger
-    model.compile(optimizer=conf.opt, loss=conf.loss, metrics=conf.metrics)
-
-    if verbose != 0:
-        print(model.summary())
-
-        if conf.type == "classification":
-            loss, acc = model.evaluate(X_val, y_val, verbose=0)
-            print("Untrained, accuracy: {:5.2f}%".format(100*acc),65*"_", sep="\n" )
-
-        if conf.type == "regression":
-            loss, r2 = model.evaluate(X_val, y_val, verbose=0)
-            print(65*"_", "Untrained, r2: {:5.2f}%".format(100*r2), 65*"_", sep="\n")
-
-
-    csv_logger = None
-
+    # Create path if it does not exist
     if save_as is not None:
         Path(conf.model_dir).mkdir(parents=True, exist_ok=True)
+
+
+    # Compile the model and print summary
+    model.compile(optimizer=conf.opt, loss=conf.loss, metrics=conf.metrics)
+    print(model.summary())
+
+    loss, metric = model.evaluate(X_val, y_val, verbose=0)
+    if conf.type == "classification":
+        print("Untrained, accuracy: {:5.2f}%".format(100*metric), 65*"_", sep="\n" )
+
+    if conf.type == "regression":
+        print("Untrained, r2_score: {:5.2f}%".format(100*metric), 65*"_", sep="\n")
+
+
+    # set up history log
+    csv_logger = None
+    if save_as is not None:
         csv_logger = CSVLogger(conf.model_dir+save_as+'_training.log', separator=',', append=False)
 
-    history = model.fit(X_train, y_train, batch_size = conf.batch_size,
-                                          validation_data=(X_val, y_val),
-                                          epochs=conf.epochs,
-                                          callbacks = [csv_logger, conf.early_stop])
+
+    # Train the model
+    model.fit(X_train, y_train, batch_size = conf.batch_size,
+                                validation_data=(X_val, y_val),
+                                epochs=conf.epochs,
+                                callbacks = [csv_logger, conf.early_stop])
+
 
     if save_as is not None:
-        model.save(conf.model_dir+"{:}".format(save_as))
+        name = conf.model_dir+save_as
+        model.save(name)
 
-    return history
+    return model
 
 
-def continue_training(X_train, y_train, X_val, y_val, model_name, save_as=None, verbose=0):
-    """ continue training on existing model NOT DONE """
 
-    model = tf.keras.models.load_model(conf.model_dir+"{:}".format(model_name))
+def continue_training(X_train, y_train, X_val, y_val, model_name, save_as=None):
+    """ continue training on existing model """
+
+    m_name = conf.model_dir+"{:}".format(model_name)
+
+    custom_objects = {"r2_score": r2_score} if conf.type=="regression" else None
+    print(custom_objects)
+
+    restored_model = tf.keras.models.load_model(m_name, custom_objects=custom_objects)
 
     np.testing.assert_allclose(
-        model.predict(test_input), reconstructed_model.predict(test_input)
+        restored_model.predict(X_val), restored_model.predict(X_val)
         )
 
-    history = model.fit(X_train, y_train, batch_size = conf.batch_size,
-                                          validation_data=(X_val, y_val),
-                                          epochs=conf.epochs,
-                                          callbacks = conf.early_stop)
+    log = pd.read_csv(m_name+'_training.log', sep=',', engine='python')
 
+    plt.figure(figsize=(10,4))
+    plt.subplot(1,2,1)
+    plt.plot(log['r2_score'], label='r2_score')
+    plt.plot(log['val_r2_score'], label = 'val_r2_score')
+    plt.xlabel('Epoch')
+    plt.ylabel('R2')
+    plt.legend(loc='lower right')
+
+    plt.subplot(1,2,2)
+    plt.plot(log['loss'], label='loss')
+    plt.plot(log['val_loss'], label = 'val_loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(loc='lower right')
+    plt.show()
+
+    csv_logger = CSVLogger(m_name+'_training.log', separator=',', append=True)
+
+    restored_model.fit(X_train, y_train, batch_size = conf.batch_size,
+                                validation_data=(X_val, y_val),
+                                epochs=conf.epochs,
+                                callbacks = [csv_logger, conf.early_stop])
 
     if save_as is not None:
-        Path(conf.model_dir).mkdir(parents=True, exist_ok=True)
-        model.save(conf.model_dir+"{:}".format(save_as))
+        restored_model.save(m_name)
 
-    return history
+    return restored_model
 
 def arguments():
-    """
-    Choose which type of network you want to run using command line flags.
-
-    """
     import argparse
+    import textwrap
     import sys
 
-    description =  """Train the CNN"""
-    frm =argparse.ArgumentDefaultsHelpFormatter
-    parser = argparse.ArgumentParser(description=description, formatter_class=frm)
+    class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                          argparse.RawDescriptionHelpFormatter):
+        pass
+
+    description =textwrap.dedent("""\
+    This is the Convolutional neural network used in FYS-STK 4155
+    ---------------------------------------------------------------------------
+    The configuration files that is used in this method are:\n
+        - config_regression.py
+        - config_classification.py.\n
+    In these files you can change datafile, epochs, loss function etc. Indicate
+    if you want to use the regression or classification option using the
+    corresponding flags. We recommend that you supply a filename such that the
+    CNN model is saved. This allows you to continue training at a later time,
+    and simplifies further analysis. \n
+    For more info: https://github.com/Alidafh/FYS-STK4155/tree/master/project3/code """)
+
+    parser = argparse.ArgumentParser(description=description,
+                                    formatter_class=CustomFormatter)
 
     required = parser.add_argument_group('required arguments')
     required.add_argument('-r', action='store_true', help="Regression")
@@ -162,6 +208,9 @@ def arguments():
 
     return conf, name, e
 
+
+
+
 def main(conf, name, e):
     """
     main script that trains the CNN etc.
@@ -170,26 +219,23 @@ def main(conf, name, e):
     X_train, X_test, y_train, y_test = conf.X_train, conf.X_test, conf.y_train, conf.y_test
 
     if e:
-        history = continue_training(X_train, y_train, X_test, y_test, name, save_as=name, verbose=1)
+        model = continue_training(X_train, y_train, X_test, y_test, model_name=name, save_as=name)
     else:
         model = create_model()
-        history = train_model(X_train, y_train, X_test, y_test,
-                        model=model, verbose=1, save_as=name)
+        model = train_model(X_train, y_train, X_test, y_test, model=model, save_as=name)
 
+
+    loss, metric = model.evaluate(X_test, y_test, verbose=0)
 
     if conf.type == "classification":
-        loss, acc = model.evaluate(X_test, y_test, verbose=0)
-        print(65*"_", "accuracy: {:5.2f}%".format(100 * acc), 65*"_", sep="\n")
+        print(65*"_", "accuracy: {:5.2f}%".format(100*metric), 65*"_", sep="\n")
 
 
     if conf.type == "regression":
-        loss, r2 = model.evaluate(X_test, y_test, verbose=0)
-        print(65*"_", "R2: {:5.2f}%".format(100*r2), 65*"_", sep="\n")
-
-
+        print(65*"_", "r2_score: {:5.2f}%".format(100*metric), 65*"_", sep="\n")
 
 
 
 if __name__ == '__main__':
     conf, name, e = arguments()
-    main(conf, name, e)
+    #main(conf, name, e)
