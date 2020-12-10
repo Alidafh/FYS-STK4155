@@ -25,15 +25,16 @@ def preprocess(maps, labels, train_size, strength=False, scale=True, seed=None):
     X_train, X_test, y_train, y_test = train_test_split(maps, labels,
                                                         train_size=train_size,
                                                         random_state=seed)
-    y_train = y_train.ravel()
-    y_test = y_test.ravel()
+    #y_train = y_train.ravel()
+    #y_test = y_test.ravel()
 
     return (X_train, y_train), (X_test, y_test)
 
 
 
-def coeff_determination(y_true, y_pred):
+def r2_score(y_true, y_pred):
     """
+    coeff_determination
     Use R2 score as a measure of how good the model works
     https://jmlb.github.io/ml/2017/03/20/CoeffDetermination_CustomMetric4Keras/
     """
@@ -42,9 +43,50 @@ def coeff_determination(y_true, y_pred):
     return (1 - SS_res/(SS_tot + K.epsilon()))
 
 
+def history_regression(log_data, title=None):
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
+    c = ["tab:blue", "tab:green"]
+
+    ax[0].set_ylabel("Loss MSE")
+    ax[0].plot(log_data['loss'], color=c[0], label='training')
+    ax[0].plot(log_data['val_loss'], color=c[1], label = 'validation')
+    ax[0].legend(loc = 'upper right')
+
+    ax[1].set_ylabel("R2-score")
+    ax[1].plot(log_data["r2_score"], color=c[0], label="training")
+    ax[1].plot(log_data['val_r2_score'], color=c[1], label = 'validation')
+
+    plt.xlabel('Epoch')
+
+    if title: fig.savefig("../figures/"+title+".png")
+
+def history_classification(log_data, title=None):
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
+    c = ["tab:blue", "tab:green"]
+
+    ax[0].set_ylabel("Loss")
+    ax[0].plot(log_data['loss'], color=c[0], label='training')
+    ax[0].plot(log_data['val_loss'], color=c[1], label = 'validation')
+    ax[0].legend(loc = 'upper right')
+
+    ax[1].set_ylabel("Accuracy")
+    ax[1].plot(log_data["accuracy"], color=c[0], label="training")
+    ax[1].plot(log_data['val_accuracy'], color=c[1], label = 'validation')
+    ax[1].set_ylim([0,1.3])
+
+    plt.xlabel('Epoch')
+    if title: fig.savefig("../figures/"+title+".png")
 
 
+def test_predict(y_pred, y_test, title=None):
+    fig = plt.figure()
+    plt.plot(y_test, y_pred, marker="o",linestyle="None", color="tab:gray", label="data")
+    plt.plot(y_test, y_test, linestyle="-", color="tab:red", label="Perfect prediction")
+    plt.xlabel("$f_{dms}$ true")
+    plt.ylabel("$f_{dm}$ predicted")
+    plt.legend()
 
+    if title: fig.savefig("../figures/"+title+".png")
 
 
 
