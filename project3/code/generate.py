@@ -636,12 +636,12 @@ def arguments():
 
     parser.add_argument('-n', type=int, metavar=' number_of_maps', action='store', default=1000,
                     help='The number of maps to generate')
-    parser.add_argument('-d', type=str, metavar=' dimentions', action='store', default="28,28,10",
-                    help="Dimentions of the maps use as: -d dim1,dim2,dim3")
+    parser.add_argument('-d', type=str, metavar=' dimensions', action='store', default="28,28,10",
+                    help="Dimensions of the maps use as: -d dim1,dim2,dim3")
     parser.add_argument('-dm', type=float, metavar='dm_strength', action='store', default=1,
                     help='Strength of dark matter (only relevant when using v1)')
     parser.add_argument('-nl', type=float, metavar='noise_level', action='store', default=1,
-                    help='Level of gaussian nose in data')
+                    help='Level of Gaussian nose in data')
     parser.add_argument('-r', type=str, metavar=' random_walk', action='store', default="True",
                     help='Use random walk')
     parser.add_argument('-s', type=str, metavar=' shuffle_maps', action='store', default="True",
