@@ -488,10 +488,11 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     Returns:
         data: ndarray, shape (2*nMaps, n, m, e)
     """
+    arr_type = np.float32
 
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
-    galaxies = np.zeros((nMaps, dim_ravel))
-    dark_matters = np.zeros((nMaps, dim_ravel))
+    galaxies = np.zeros((nMaps, dim_ravel), dtype=arr_type)
+    dark_matters = np.zeros((nMaps, dim_ravel), dtype=arr_type)
 
     for i in range(nMaps):
         if (2*i % 100==0):
@@ -514,13 +515,12 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
     trues = np.ones((dark_matters.shape[0], 1), dtype=bool)
     falses = np.zeros((galaxies.shape[0], 1), dtype=bool)
 
-    print(trues.shape)
-    print(galaxies.shape)
     galaxies_ = np.hstack((falses, galaxies))
     dark_matters_ = np.hstack((trues, dark_matters))
 
     # Stack the full datasets on top of eachother
     all = np.vstack((galaxies_, dark_matters_))
+    print(all.dtype)
 
     if shuf == True:
         all = shuffle(all, random_state=42)
@@ -555,9 +555,10 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
     Returns:
         data: ndarray, shape (nMaps, n, m, e)
     """
+    arr_type = np.float32
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
-    dark_matters = np.zeros((nMaps, dim_ravel))
-    dm_str = np.zeros(nMaps)
+    dark_matters = np.zeros((nMaps, dim_ravel), dtype=arr_type)
+    dm_str = np.zeros(nMaps, dtype=arr_type)
 
     for i in range(nMaps):
         if (i % 100==0):
@@ -574,6 +575,7 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
 
     labels = dm_str.reshape(-1,1)
     all = np.hstack((labels, dark_matters))
+    print(all.dtype)
 
     if shuf == True:
         all = shuffle(all, random_state=42)
@@ -581,7 +583,7 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
     if PATH is not None:
         tuple = (nMaps, dim[0], dim[1], dim[2])
         fn = "maps_{:}_{:}_{:}_".format(tuple, noise_level, random_walk)
-        np.save(PATH+fn, all)
+        np.savez_compressed(PATH+fn, all)
 
     return all
 
@@ -653,9 +655,10 @@ def arguments():
     args = parser.parse_args()
 
 
-    if args.v != 1 or args.v != 2:
-        error = "You need to choose a valid version number:\nversion 1: -v 1\nversion 2: -v 2"
-        parser.error(error)
+    if args.v != 1:
+        if args.v != 2:
+            error = "You need to choose a valid version number:\nversion 1: -v 1\nversion 2: -v 2"
+            parser.error(error)
 
 
     n, d, dm, nl = args.n, eval(args.d), args.dm, args.nl,
@@ -671,10 +674,10 @@ if __name__ == "__main__":
     n, d, dm, nl, r, s, p, v = arguments()
 
     if v == 1:
-        generate_data(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+        generate_data(nMaps=n, dim=d, noise_level=nl, dm_strength=dm, random_walk=r, shuf=s, PATH=p)
 
     if v == 2:
-        generate_data_v2(nMaps=n, dim=d, dm_strength=dm, noise_level=nl, random_walk=r, shuf=s, PATH=p)
+        generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r, shuf=s, PATH=p)
 
 
     time_elapsed = datetime.now() - start_time
