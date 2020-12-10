@@ -8,22 +8,26 @@ Generate the GCE pseudo-data by running the generate.py module. The following pa
 ```
 $ python generate.py -h
 
-usage: generate.py [-h] [-n number_of_maps] [-d dimentions] [-dm dm_strength]
-                   [-nl noise_level] [-r random_walk] [-s shuffle_maps]
-                   [-p PATH] [-v version]
+usage: generate.py [-h] [-n  number_of_maps] [-d  dimensions]
+                   [-dm dm_strength] [-nl noise_level] [-r  random_walk]
+                   [-s  shuffle_maps] [-p  PATH] [-v  version]
 
 Generate Galactic Center Excess pseudodata TBA
 
 optional arguments:
   -h, --help          show this help message and exit
   -n  number_of_maps  The number of maps to generate (default: 1000)
-  -d  dimentions      Dimentions of the maps use as: -d dim1,dim2,dim3 (default: 28,28,10)
-  -dm dm_strength     Strength of dark matter (only relevant when using v1) (default: 1)
-  -nl noise_level     Level of gaussian nose in data (default: 1)
+  -d  dimensions      Dimensions of the maps use as: -d dim1,dim2,dim3
+                      (default: 28,28,10)
+  -dm dm_strength     Strength of dark matter (only relevant when using v1)
+                      (default: 1)
+  -nl noise_level     Level of Gaussian nose in data (default: 1)
   -r  random_walk     Use random walk (default: True)
   -s  shuffle_maps    Shuffle the maps before saving (default: True)
-  -p  PATH            Path to where the data should be stored (default: ../data/)
-  -v  version         Choose the version of generator, v1:1 or v2:2 (default: 1)
+  -p  PATH            Path to where the data should be stored (default:
+                      ../data/)
+  -v  version         Choose the version of generator, v1:1 or v2:2 (default:
+                      1)
 ```
 if using `-v 1` the data is stored in a file called `data_(n,d1,d2,d3)_dm_nl_r_.npy` and when using `-v 2` the data is stored in `maps_(n,d1,d2,d3)_nl_r_.npy`.
 
@@ -37,17 +41,32 @@ Holds the configurations for the regression and classification analysis that wil
 ```
 $ python CNN.py -h
 
-usage: CNN.py [-h] [-r] [-c] [-n name]
+usage: CNN.py [-h] [-r] [-c] [-n name] [-e]
 
-Train the CNN
+This is the Convolutional neural network used in FYS-STK 4155
+---------------------------------------------------------------------------
+The configuration files that is used in this method are:
+
+    - config_regression.py
+    - config_classification.py.
+
+In these files you can change datafile, epochs, loss function etc. Indicate
+if you want to use the regression or classification option using the
+corresponding flags. We recommend that you supply a filename such that the
+CNN model is saved. This allows you to continue training at a later time,
+and simplifies further analysis.
+
+For more info: https://github.com/Alidafh/FYS-STK4155/tree/master/project3/code
 
 optional arguments:
   -h, --help  show this help message and exit
   -n name     What name to store the model as (default: None)
+  -e          continue training on existing model, NOT DONE (default: False)
 
 required arguments:
   -r          Regression (default: False)
   -c          Classification (default: False)
+
 ```
 
 Example: to use classification do,
