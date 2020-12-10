@@ -10,56 +10,30 @@ from generate import SkyMap, generate_data_v2, generate_data
 def plots(slice = None, lim = None):
     PATH="../data/"
     FIG ="../figures/"
-    dim = (28, 28, 10)
+    dim = (28, 28, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0)
+    map = SkyMap(dim=dim, is_dm=True, dm_strength=0.7, are_irreg=False, noise_level=0)
 
     gal = map.matrix_galaxy
     dm = map.matrix_dm
     comb = map.matrix
 
-    lim0 = (np.sum(comb, axis=2)).max()
-
     map.display(gal, slice = slice, lim=lim, save_as=FIG+"galaxy.png")
     map.display(dm, slice = slice, save_as=FIG+"dm.png")
     map.display(comb,slice = slice, lim=lim, save_as=FIG+"combined.png")
-    plt.show()
 
-    map2 = SkyMap(dim=dim, is_dm=True, are_irreg=True)
+    map2 = SkyMap(dim=dim, is_dm=True, dm_strength=0.7, are_irreg=True, noise_level=100.0)
 
     gal2 = map2.matrix_galaxy
     dm2 = map2.matrix_dm
     comb2 = map2.matrix
 
-    lim1 = np.sum(comb2, axis=2).max()
-
     map2.display(gal2, slice = slice, lim=lim, save_as=FIG+"galaxy_walk.png")
     map2.display(dm2, slice = slice, save_as=FIG+"dm_walk.png")
     map2.display(comb2, slice = slice, lim=lim, save_as=FIG+"combined_walk.png")
-    plt.show()
-
-def set_colorbar(fig, ax, im):
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    fig.colorbar(im, cax=cax)
 
 
-def plot2(slice = None, lim = None):
-    map = SkyMap(dim=dim, is_dm=True, are_irreg=False)
-
-    gal = map2.matrix_galaxy
-    dm = map2.matrix_dm
-    comb = map2.matrix
-
-    lim1 = np.sum(comb2, axis=2).max()
-    map.display()
-
-#plots(lim=60000)
-
-
-generate_data_v2(nMaps=10, dim=(50,50,2), noise_level = 100.0, random_walk = True, shuf=True, PATH="../data/")
-#generate_data(nMaps=10, dim=(50,50,2), noise_level = 100.0, random_walk = True, shuf=True, PATH="../data/")
-
+plots(slice=10, lim=5700)
 
 
 
