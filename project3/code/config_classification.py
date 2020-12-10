@@ -27,6 +27,7 @@ maps, labels, stats = load_data(file=data_file, slice=slice)
                                                 scale=True,
                                                 seed=42)
 
+label_names = ["clean", "dm"]
 ###############################################################################
 # for create_model()
 ###############################################################################
@@ -34,27 +35,27 @@ input_shape = (28, 28, 20)  # Shape of the images, holds the raw pixel values
 
 n_filters = 16              # For the two first Conv2D layers
 kernel_size = (5, 5)
-layer_config = [32]         # [layer1, layer2, layer3, ....] or None for no hidden layers
-connected_neurons = 64      # For the first Dense layer
+layer_config = [32, 64]     # [layer1, layer2, layer3, ....] or None for no hidden layers
+connected_neurons = 128     # For the first Dense layer
 
 n_categories = 2            # For the last Dense layer (2 for GCE, 10 for mnist)
 
-input_activation  = None    #"relu"
+input_activation  = "relu"
 hidden_activation = "relu"
 output_activation = "softmax"
 
-reg = None                  #tf.keras.regularizers.l2(l=0.1)
+reg = None #tf.keras.regularizers.l2(l=0.001)
 
 ###############################################################################
 # for train_model()
 ###############################################################################
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 10
-batch_size = 50
+epochs = 20
+batch_size = 10
 
-lr_schedule = tf.keras.optimizers.schedules.InverseTimeDecay(0.01, decay_steps=1, decay_rate=1, staircase=False)
-opt = tf.keras.optimizers.Adam(learning_rate=0.00001)
+#lr3 = tf.keras.optimizers.schedules.InverseTimeDecay(1e-2, decay_steps=2, decay_rate=10, staircase=True)
+opt = tf.keras.optimizers.Adam(learning_rate=1e-5)
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 

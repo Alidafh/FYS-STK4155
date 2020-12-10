@@ -10,9 +10,11 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 from generate import load_data
 from tools import preprocess, r2_score
+
 ###############################################################################
 # Set up the data
 ###############################################################################
+
 type = "regression"
 path = "../data/"
 filename = "maps_(1500, 28, 28, 20)_100.0_True_.npy"
@@ -34,9 +36,9 @@ input_shape = (28, 28, 20)  # Shape of the images, holds the raw pixel values
 
 n_filters = 16              # For the two first Conv2D layers
 kernel_size = (5,5)
-layer_config = None#[32]         # (layer1, layer2, layer3, ....)
+layer_config = [32, 64]         # (layer1, layer2, layer3, ....)
 
-connected_neurons = 64      # For the first Dense layer
+connected_neurons = 128      # For the first Dense layer
 n_categories = 1            # For the last Dense layer
 
 input_activation  = "relu"
@@ -51,14 +53,12 @@ reg = None  #tf.keras.regularizers.l2(l=0.1)
 
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 10
-batch_size = 50
+epochs = 100
+batch_size = 10
 
-#lr_schedule = tf.keras.optimizers.schedules.InverseTimeDecay(0.01, decay_steps=1, decay_rate=1, staircase=False)
 opt = tf.keras.optimizers.Adam(learning_rate=1e-5)
 
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
 
 loss = "mean_squared_error"
-
 metrics = [r2_score]
