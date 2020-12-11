@@ -556,6 +556,7 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
         data: ndarray, shape (nMaps, n, m, e)
     """
     arr_type = np.float32
+
     dim_ravel = np.prod(dim)    # dimentions of the raveled matrices
     dark_matters = np.zeros((nMaps, dim_ravel), dtype=arr_type)
     dm_str = np.zeros(nMaps, dtype=arr_type)
@@ -575,7 +576,7 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, shuf=True,
 
     labels = dm_str.reshape(-1,1)
     all = np.hstack((labels, dark_matters))
-    print(all.dtype)
+    #print(all.dtype)
 
     if shuf == True:
         all = shuffle(all, random_state=42)
@@ -626,6 +627,7 @@ def load_data(file="", slice = None):
         maps = maps[:,:,:, slice].reshape(ndim_new)
 
     return maps, labels, stats
+
 
 def arguments():
     """ Generate data from command-line """
