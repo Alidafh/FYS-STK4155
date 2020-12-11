@@ -134,12 +134,8 @@ def continue_training(X_train, y_train, model_name, val_split=0.2, save_as=None)
 
 def cross_validate(X, y, num_folds=2, verbosity=0):
     """K-fold Cross Validation model evaluation"""
+
     from sklearn.model_selection import KFold
-
-    # Merge inputs and targets
-    X = np.concatenate((conf.X_train, conf.X_test), axis=0)
-    y = np.concatenate((conf.y_train, conf.y_test), axis=0)
-
 
     metric_per_fold = []
     loss_per_fold = []
@@ -172,27 +168,61 @@ def cross_validate(X, y, num_folds=2, verbosity=0):
         fold_no = fold_no + 1   # Increase fold number
 
 
-    # == Provide average scores ==
-    #print(65*"_", "\n")
-    #print('Score per fold:')
-    #for i in range(len(metric_per_fold)):
-    #    print(f"    Fold {i+1} - {model.metrics_names[0]}: {loss_per_fold[i]:.4f} - {model.metrics_names[1]}: {metric_per_fold[i]:.4f}")
-
     avg_loss = np.mean(loss_per_fold)
     std_loss = np.std(loss_per_fold)
 
     avg_metric = np.mean(metric_per_fold)
     std_metric = np.std(metric_per_fold)
 
-
     print(65*"_", "\n")
     print(f"avg. loss:     {avg_loss:.4f} (+- {std_loss:.4f})")
     print(f"avg. {model.metrics_names[1]}: {avg_metric:.4f} (+- {std_metric:.4f})")
 
-    #print('Average scores for all folds:')
-    #print(f"    {model.metrics_names[1]}: {np.mean(metric_per_fold):.4f} (+- {np.std(metric_per_fold):.4f})")
 
 
+
+def main(conf, name, resume, validate):
+    """main script that trains the CNN etc."""
+
+    # easier to not have to write conf. on these
+    X_train, X_test = conf.X_train, conf.X_test
+    y_train, y_test = conf.y_train, conf.y_test
+
+
+    if validate:
+        print(f"\nPerforming {validate}-Fold cross validation\n"+ 64*"_"+"\n")
+        print(f"Analysis: {conf.type}\n"+64*"_"+"\n")
+
+        # Merge inputs and targets
+        X = np.concatenate((X_train, X_test), axis=0)
+        y = np.concatenate((y_train, y_test), axis=0)
+
+        cross_validate(X, y, num_folds=validate, verbosity=0)
+
+
+
+    elif resume:
+        print(f"\nResuming training on: {name}\n"+64*"_"+"\n")
+        print(f"Analysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
+        print("resume")
+        model = continue_training(X_train, y_train, val_split=0.2,
+                                                    model_name=name,
+                                                    save_as=name)
+
+        loss, metric = model.evaluate(X_test, y_test, verbose=0)
+        print(65*"_", f"\n{model.metrics_names[1]}: {100*metric:.2f}%", 65*"_", sep="\n")
+
+
+    else:
+        print(64*"_"+"\n"+f"\nAnalysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
+        print("normal")
+        model = create_model()
+        model = train_model(X_train, y_train, val_split=0.2,
+                                               model=model,
+                                               save_as=name)
+
+        loss, metric = model.evaluate(X_test, y_test, verbose=0)
+        print(65*"_", f"\n{model.metrics_names[1]}: {100*metric:.2f}%", 65*"_", sep="\n")
 
 
 
@@ -272,55 +302,6 @@ def arguments():
     if c: import config_classification as conf
 
     return conf, n, e, v
-
-
-
-def main(conf, name, resume, validate):
-    """main script that trains the CNN etc."""
-
-    # easier to not have to write conf. on these
-    X_train, X_test = conf.X_train, conf.X_test
-    y_train, y_test = conf.y_train, conf.y_test
-
-
-    if validate:
-        print(f"\nPerforming {validate}-Fold cross validation\n"+ 64*"_"+"\n")
-        print(f"Analysis: {conf.type}\n"+64*"_"+"\n")
-
-        # Merge inputs and targets
-        X = np.concatenate((conf.X_train, conf.X_test), axis=0)
-        y = np.concatenate((conf.y_train, conf.y_test), axis=0)
-
-        cross_validate(X, y, num_folds=validate, verbosity=0)
-
-
-
-    elif resume:
-        print(f"\nResuming training on: {name}\n"+64*"_"+"\n")
-        print(f"Analysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
-        print("resume")
-        model = continue_training(X_train, y_train, val_split=0.2,
-                                                    model_name=name,
-                                                    save_as=name)
-
-        loss, metric = model.evaluate(X_test, y_test, verbose=0)
-        print(65*"_", f"\n{model.metrics_names[1]}: {100*metric:.2f}%", 65*"_", sep="\n")
-
-
-    else:
-        print(64*"_"+"\n"+f"\nAnalysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
-        print("normal")
-        model = create_model()
-        model = train_model(X_train, y_train, val_split=0.2,
-                                               model=model,
-                                               save_as=name)
-
-        loss, metric = model.evaluate(X_test, y_test, verbose=0)
-        print(65*"_", f"\n{model.metrics_names[1]}: {100*metric:.2f}%", 65*"_", sep="\n")
-
-
-
-
 
 
 if __name__ == '__main__':
