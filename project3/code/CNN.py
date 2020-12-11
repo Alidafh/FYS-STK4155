@@ -47,7 +47,7 @@ def create_model():
     return model
 
 
-def train_model(X_train, y_train, model, val_split = 0.2, save_as=None):
+def train_model(X_train, y_train, model, val_split = 0.2, verbosity=1, save_as=None):
     """
     Train the model using the configurations in the configuration file
     A fraction val_split of the training data is used for validation
@@ -62,27 +62,23 @@ def train_model(X_train, y_train, model, val_split = 0.2, save_as=None):
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=val_split)
 
 
-    # Compile the model and print summary
+    # Compile the model
     model.compile(optimizer=conf.opt, loss=conf.loss, metrics=conf.metrics)
-    print(model.summary())
 
+    if verbosity != 0:
+        model.summary()
+        loss, metric = model.evaluate(X_val, y_val, verbose=0)
+        print(f"\ntraining: {X_train.shape[0]} - validation: {X_val.shape[0]} - Untrained, {model.metrics_names[1]}: {100*metric:.2f}%")
+        print(65*"_", "\n")
 
-    loss, metric = model.evaluate(X_val, y_val, verbose=0)
-    if conf.type == "classification":
-        print("Untrained, accuracy: {:5.2f}%".format(100*metric), 65*"_", sep="\n" )
-
-    if conf.type == "regression":
-        print("Untrained, r2_score: {:5.2f}%".format(100*metric), 65*"_", sep="\n")
-
-    print("\ntraining:  ", X_train.shape[0])
-    print("validation:", X_val.shape[0])
-    print(65*"_")
 
     # set up history log
-    csv_logger = None
-
     if save_as is not None:
         csv_logger = CSVLogger(conf.model_dir+save_as+'_training.log', separator=',', append=False)
+        callbacks = [csv_logger, conf.early_stop]
+
+    else:
+        callbacks = [conf.early_stop]
 
 
     # Train the model
@@ -90,7 +86,8 @@ def train_model(X_train, y_train, model, val_split = 0.2, save_as=None):
                                 validation_split=0.2,
                                 validation_data=(X_val, y_val),
                                 epochs=conf.epochs,
-                                callbacks = [csv_logger, conf.early_stop])
+                                callbacks = callbacks,
+                                verbose=verbosity)
 
 
     if save_as is not None:
@@ -107,23 +104,20 @@ def continue_training(X_train, y_train, model_name, val_split=0.2, save_as=None)
     # create validation data
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=val_split)
 
-    print("\ntraining:  ", X_train.shape[0])
-    print("validation:", X_val.shape[0])
-    print(65*"_")
-
+    # name of the model
     m_name = conf.model_dir+"{:}".format(model_name)
 
+    # If the type is regression we need to specify to retrieve the r2_score
     custom_objects = {"r2_score": r2_score} if conf.type=="regression" else None
-    print(custom_objects)
 
     restored_model = tf.keras.models.load_model(m_name, custom_objects=custom_objects)
 
-    np.testing.assert_allclose(
-        restored_model.predict(X_val), restored_model.predict(X_val)
-        )
+    # Check if it worked
+    np.testing.assert_allclose(restored_model.predict(X_val),
+                               restored_model.predict(X_val) )
 
-    log = pd.read_csv(m_name+'_training.log', sep=',', engine='python')
 
+    # Continues in the same log as before
     csv_logger = CSVLogger(m_name+'_training.log', separator=',', append=True)
 
     restored_model.fit(X_train, y_train, batch_size = conf.batch_size,
@@ -131,10 +125,78 @@ def continue_training(X_train, y_train, model_name, val_split=0.2, save_as=None)
                                 epochs=conf.epochs,
                                 callbacks = [csv_logger, conf.early_stop])
 
+    # Save the model again
     if save_as is not None:
         restored_model.save(m_name)
 
     return restored_model
+
+
+def cross_validate(X, y, num_folds=2, verbosity=0):
+    """K-fold Cross Validation model evaluation"""
+    from sklearn.model_selection import KFold
+
+    # Merge inputs and targets
+    X = np.concatenate((conf.X_train, conf.X_test), axis=0)
+    y = np.concatenate((conf.y_train, conf.y_test), axis=0)
+
+
+    metric_per_fold = []
+    loss_per_fold = []
+
+    fold_no = 1
+    no_classes = 1
+    kf = KFold(n_splits=num_folds, shuffle=True)
+
+    for train_index, test_index in kf.split(X,y):
+        model = create_model()
+
+        print(f"Training for fold {fold_no}...", end='\r', flush=True)
+
+        model = train_model(X[train_index], y[train_index], val_split=0.2,
+                                                            model=model,
+                                                            verbosity=verbosity,
+                                                            save_as=None)
+
+        # Generate generalization metrics
+        scores = model.evaluate(X[test_index], y[test_index], verbose=0)
+
+        result1 = f" - {model.metrics_names[0]}: {scores[0]:.4f}"
+        result2 = f" - {model.metrics_names[1]}: {scores[1]:.4f}"
+
+        print(f"Training for fold {fold_no}"+result1+result2)
+
+        loss_per_fold.append(scores[0])
+        metric_per_fold.append(scores[1])
+
+        fold_no = fold_no + 1   # Increase fold number
+
+
+    # == Provide average scores ==
+    #print(65*"_", "\n")
+    #print('Score per fold:')
+    #for i in range(len(metric_per_fold)):
+    #    print(f"    Fold {i+1} - {model.metrics_names[0]}: {loss_per_fold[i]:.4f} - {model.metrics_names[1]}: {metric_per_fold[i]:.4f}")
+
+    avg_loss = np.mean(loss_per_fold)
+    std_loss = np.std(loss_per_fold)
+
+    avg_metric = np.mean(metric_per_fold)
+    std_metric = np.std(metric_per_fold)
+
+
+    print(65*"_", "\n")
+    print(f"avg. loss:     {avg_loss:.4f} (+- {std_loss:.4f})")
+    print(f"avg. {model.metrics_names[1]}: {avg_metric:.4f} (+- {std_metric:.4f})")
+
+    #print('Average scores for all folds:')
+    #print(f"    {model.metrics_names[1]}: {np.mean(metric_per_fold):.4f} (+- {np.std(metric_per_fold):.4f})")
+
+
+
+
+
+
 
 def arguments():
     import argparse
@@ -162,79 +224,105 @@ def arguments():
                                     formatter_class=CustomFormatter)
 
     required = parser.add_argument_group('required arguments')
+
     required.add_argument('-r', action='store_true', help="Regression")
     required.add_argument('-c', action='store_true', help="Classification")
 
-    parser.add_argument('-n', type=str, metavar='name', action='store', default=None,
-                    help='What name to store the model as')
+    parser.add_argument('-n', type=str, metavar='name', default=None,
+        help='What name to store the model as')
 
-    parser.add_argument('-e', action='store_true',
-                    help='continue training on existing model, NOT DONE')
+    parser.add_argument('-e', type=str, metavar="name", nargs='?', default=None,
+        const=True, help='Continue training on given model')
+
+    parser.add_argument('-v', type=int, nargs='?', default=None, const=5,
+        help='kFold validation, cannot be used with n or e')
 
     args = parser.parse_args()
 
-    r, c, name, e = args.r, args.c, args.n, args.e
+    r, c, n, e, v = args.r, args.c, args.n, args.e, args.v
+
 
     if not r and not c or r and c:
         parser.print_help()
-        print("\nUsage error: you need to choose ONE of the required arguments.")
-        sys.exit(1)
+        sys.exit("\nUsage error: You need to choose ONE of the required arguments.")
 
-    print(64*"_", "\n")
+
+    if v and e or v and n:
+        parser.print_help()
+        sys.exit("\nUsage error: You cannot use -v with -e or -n")
+
+
     if e:
-        print("resuming training..")
+        if isinstance(e, str) and not n:
+            n = e
 
-    if r:
-        import config_regression as conf
-        #print(64*"_", "\n")
-        print("Analysis:   Regression")
-        print("Model name: {:}".format(name))
-        print(64*"_")
+        if (not isinstance(e, str) and not n):
+            parser.print_help()
+            sys.exit("\nUsage error: You need to specify the name of the model\
+                        you want to resume training on")
 
-
-    if c:
-        import config_classification as conf
-        #print(64*"_", "\n")
-        print("Analysis:   Classification")
-        print("Model name: {:}".format(name))
-        print(64*"_")
-
-
-    return conf, name, e
+        if isinstance(e, str) and n and e != n:
+            parser.print_help()
+            sys.exit("\nUsage error: Two different model names were given, can\
+                        only train on one")
 
 
 
+    if r: import config_regression as conf
+    if c: import config_classification as conf
 
-def main(conf, name, e):
+    return conf, n, e, v
+
+
+
+def main(conf, name, resume, validate):
     """main script that trains the CNN etc."""
 
+    # easier to not have to write conf. on these
     X_train, X_test = conf.X_train, conf.X_test
     y_train, y_test = conf.y_train, conf.y_test
 
 
-    if e:
+    if validate:
+        print(f"\nPerforming {validate}-Fold cross validation\n"+ 64*"_"+"\n")
+        print(f"Analysis: {conf.type}\n"+64*"_"+"\n")
+
+        # Merge inputs and targets
+        X = np.concatenate((conf.X_train, conf.X_test), axis=0)
+        y = np.concatenate((conf.y_train, conf.y_test), axis=0)
+
+        cross_validate(X, y, num_folds=validate, verbosity=0)
+
+
+
+    elif resume:
+        print(f"\nResuming training on: {name}\n"+64*"_"+"\n")
+        print(f"Analysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
+        print("resume")
         model = continue_training(X_train, y_train, val_split=0.2,
                                                     model_name=name,
                                                     save_as=name)
 
+        loss, metric = model.evaluate(X_test, y_test, verbose=0)
+        print(65*"_", f"\n{model.metrics_names[1]}: {100*metric:.2f}%", 65*"_", sep="\n")
+
+
     else:
+        print(64*"_"+"\n"+f"\nAnalysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
+        print("normal")
         model = create_model()
         model = train_model(X_train, y_train, val_split=0.2,
                                                model=model,
                                                save_as=name)
 
+        loss, metric = model.evaluate(X_test, y_test, verbose=0)
+        print(65*"_", f"\n{model.metrics_names[1]}: {100*metric:.2f}%", 65*"_", sep="\n")
 
-    loss, metric = model.evaluate(X_test, y_test, verbose=0)
 
-    # print end result
-    if conf.type == "classification":
-        print(65*"_","\naccuracy: {:5.2f}%".format(100*metric),65*"_", sep="\n")
 
-    if conf.type == "regression":
-        print(65*"_","\nr2_score: {:5.2f}%".format(100*metric),65*"_", sep="\n")
 
 
 
 if __name__ == '__main__':
-    conf, name, e = arguments()
-    main(conf, name, e)
+    conf, name, resume, validate = arguments()
+    main(conf, name, resume, validate)
