@@ -16,6 +16,7 @@ from tools import preprocess, r2_score
 ###############################################################################
 
 type = "regression"
+
 path = "../data/"
 filename = "maps_(1500, 28, 28, 20)_100.0_True_.npy"
 data_file = path+filename
@@ -24,9 +25,10 @@ slice = None
 maps, labels, stats = load_data(file=data_file, slice=slice)
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
-                                                strength=True,
+                                                regress=True,
                                                 scale=True,
-                                                seed=42)
+                                                seed=42,
+                                                shuffle=True)
 
 ###############################################################################
 # for create_model()

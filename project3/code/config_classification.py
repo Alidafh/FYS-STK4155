@@ -15,8 +15,9 @@ from tools import preprocess
 # Set up the data
 ###############################################################################
 type = "classification"
+
 path = "../data/"
-filename = "data_(10000, 28, 28, 20)_0.25_100.0_True_.npy"
+filename = "data_(2000, 28, 28, 20)_0.5_100.0_True_.npy"
 data_file = path+filename
 slice = None
 
@@ -24,9 +25,10 @@ maps, labels, stats = load_data(file=data_file, slice=slice)
 
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
-                                                strength=False,
+                                                regress=False,
                                                 scale=True,
-                                                seed=42)
+                                                seed=42,
+                                                shuffle=True)
 
 label_names = ["clean", "dm"]
 ###############################################################################
@@ -52,7 +54,7 @@ reg = None #tf.keras.regularizers.l2(l=0.001)
 ###############################################################################
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 20
+epochs = 1
 batch_size = 50
 
 lr = tf.keras.optimizers.schedules.InverseTimeDecay(1e-2, decay_steps=5, decay_rate=10, staircase=False)
