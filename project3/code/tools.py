@@ -15,19 +15,18 @@ from generate import load_data
 from sklearn.model_selection import train_test_split
 
 
-def preprocess(maps, labels, train_size, strength=False, scale=True, seed=None):
+def preprocess(maps, labels, train_size, regress=False, scale=True, seed=None, shuffle=True):
     """
     Scale data and plit into training and test sets
     """
-    if strength == False: labels = to_categorical(labels)
+
+    if regress == False: labels = to_categorical(labels)
     if scale == True: maps = maps/maps.max()
 
     X_train, X_test, y_train, y_test = train_test_split(maps, labels,
                                                         train_size=train_size,
-                                                        random_state=seed)
-    #y_train = y_train.ravel()
-    #y_test = y_test.ravel()
-
+                                                        random_state=seed,
+                                                        shuffle=shuffle)
     return (X_train, y_train), (X_test, y_test)
 
 
