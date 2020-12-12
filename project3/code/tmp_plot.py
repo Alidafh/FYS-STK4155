@@ -10,19 +10,21 @@ from generate import SkyMap, generate_data_v2, generate_data
 def plots(slice = None, lim = None):
     PATH="../data/"
     FIG ="../figures/"
-    dim = (28, 28, 20)
+    dim = (100, 100, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, dm_strength=0.7, are_irreg=False, noise_level=0)
+    map = SkyMap(dim=dim, is_dm=True, dm_strength=50, are_irreg=False, noise_level=0, variation_plane=0, variation_gc=0)
 
     gal = map.matrix_galaxy
     dm = map.matrix_dm
     comb = map.matrix
 
+    comb_max =
+
     map.display(gal, slice = slice, lim=lim, save_as=FIG+"galaxy.png")
     map.display(dm, slice = slice, save_as=FIG+"dm.png")
     map.display(comb,slice = slice, lim=lim, save_as=FIG+"combined.png")
 
-    map2 = SkyMap(dim=dim, is_dm=True, dm_strength=0.7, are_irreg=True, noise_level=100.0)
+    map2 = SkyMap(dim=dim, is_dm=True, dm_strength=50, are_irreg=True, noise_level=1e-5, variation_plane=0, variation_gc=0)
 
     gal2 = map2.matrix_galaxy
     dm2 = map2.matrix_dm
@@ -33,9 +35,43 @@ def plots(slice = None, lim = None):
     map2.display(comb2, slice = slice, lim=lim, save_as=FIG+"combined_walk.png")
 
 
-plots(slice=10, lim=5700)
+plots(slice=10, lim=0.010)
 
 
+
+
+
+def plot_illustrations(E, lim=None):
+
+    dim = (100, 100, 20)
+    map = SkyMap(dim=dim, is_dm=True, dm_strength=50, are_irreg=False, noise_level=1e-5, variation_plane=0, variation_gc=0)
+
+    g = map.matrix_galaxy
+    d = map.matrix_dm
+    c = map.matrix
+
+    fig, (ax0, ax1, ax2) = plt.subplots(nrows=1, ncols=3,  figsize=(20, 3), sharex=True)
+    y_axis = dim[0]/2
+    x_axis = dim[1]/2
+    axis_range = [-x_axis,x_axis,-y_axis, y_axis]
+
+    im0 = ax0.imshow(g[:,:,E], cmap="inferno", vmax=lim, extent = axis_range)
+    divider0 = make_axes_locatable(ax0)
+    cax0 = divider0.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im0, cax=cax0)
+
+    im1 = ax1.imshow(d[:,:,E], cmap="inferno",vmax=None, extent = axis_range)
+    divider1 = make_axes_locatable(ax1)
+    cax1 = divider1.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im1, cax=cax1)
+
+    im2 = ax2.imshow(c[:,:,E], cmap="inferno",vmax=lim, extent = axis_range)
+    divider2 = make_axes_locatable(ax2)
+    cax2 = divider2.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im2, cax=cax2)
+    plt.show()
+
+#plot_illustrations(E=10, lim=0.014)
 
 
 """
