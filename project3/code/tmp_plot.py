@@ -18,8 +18,6 @@ def plots(slice = None, lim = None):
     dm = map.matrix_dm
     comb = map.matrix
 
-    #comb_max =
-
     map.display(gal, slice = slice, lim=lim, save_as=FIG+"galaxy.png")
     map.display(dm, slice = slice, save_as=FIG+"dm.png")
     map.display(comb,slice = slice, lim=lim, save_as=FIG+"combined.png")
