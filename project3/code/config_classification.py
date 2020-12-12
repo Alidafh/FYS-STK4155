@@ -55,7 +55,7 @@ reg =  tf.keras.regularizers.l2(l=0.001)
 ###############################################################################
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 20
+epochs = 1
 batch_size = 20
 
 opt = tf.keras.optimizers.Adam(learning_rate=1e-5)
