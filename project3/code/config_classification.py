@@ -31,6 +31,7 @@ maps, labels, stats = load_data(file=data_file, slice=slice)
                                                 shuffle=True)
 
 label_names = ["clean", "dm"]
+
 ###############################################################################
 # for create_model()
 ###############################################################################
@@ -47,20 +48,45 @@ input_activation  = "relu"
 hidden_activation = "relu"
 output_activation = "softmax"
 
-reg = None #tf.keras.regularizers.l2(l=0.001)
+reg =  tf.keras.regularizers.l2(l=0.001)
 
 ###############################################################################
 # for train_model()
 ###############################################################################
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 1
-batch_size = 50
+epochs = 20
+batch_size = 20
 
-lr = tf.keras.optimizers.schedules.InverseTimeDecay(1e-2, decay_steps=5, decay_rate=10, staircase=False)
 opt = tf.keras.optimizers.Adam(learning_rate=1e-5)
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 
-loss = "categorical_crossentropy"   #loss = "mean_squared_error"
+loss = "categorical_crossentropy"
 metrics = ["accuracy"]              #metrics = ["accuracy", tf.keras.metrics.AUC()]
+
+
+
+"""
+Med reg=l2(l=0.001) og learning_rate=1e-4, bs=(3,3):
+
+
+alida ~/Documents/uio/Master/FYS-STK4155/project3/code master(*&?) $ python CNN.py -cn clas7 -v
+
+Performing 5-Fold cross validation
+________________________________________________________________
+
+Analysis: classification
+________________________________________________________________
+
+Training for fold 1 - loss: 0.5146 - accuracy: 0.5750
+Training for fold 2 - loss: 0.0569 - accuracy: 1.0000
+Training for fold 3 - loss: 0.0371 - accuracy: 1.0000
+Training for fold 4 - loss: 0.0495 - accuracy: 1.0000
+Training for fold 5 - loss: 0.0397 - accuracy: 1.0000
+_________________________________________________________________
+
+avg. loss:     0.1396 (+- 0.1876)
+avg. accuracy: 0.9150 (+- 0.1700)
+
+"""

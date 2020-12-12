@@ -35,7 +35,10 @@ print()
 log_data = pd.read_csv(model_name+'_training.log', sep=',', engine='python')
 
 # plot the loss and r2 vs number of epochs
-history_classification(log_data, title="reg1_history")
+
+history_classification(log_data, title=None)
+
+
 
 plt.show()
 quit()

@@ -9,7 +9,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from tools import r2_score, history_regression, test_predict
+from tools import r2_score, history_regression, test_predict, cross_validation_regression
 import config_regression as conf
 import pandas as pd
 
@@ -35,23 +35,24 @@ log_data = pd.read_csv(model_name+'_training.log', sep=',', engine='python')
 # plot the loss and r2 vs number of epochs
 history_regression(log_data, title="reg1_history")
 
-
 # predict using the test data
 y_pred = model.predict(X_test)
 
 y_pred = y_pred/y_pred.max()
 
-residuals = y_test - y_pred
-RSS = residuals.T @ residuals
-ndf = len(y_pred)-1
-
 # plot the true value vs the predicted
 test_predict(y_test, y_pred, title="reg1_test_predict")
+
+cross_validation_regression(name="reg2", conf=conf, title="kFold_reg2")
 
 plt.show()
 
 
 """
+residuals = y_test - y_pred
+RSS = residuals.T @ residuals
+ndf = len(y_pred)-1
+
 nlayers = len(model.layers)
 layer_outputs = []
 layer_names = []
