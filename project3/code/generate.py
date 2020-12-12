@@ -652,6 +652,8 @@ def load_data(file="", slice = None):
     info = file.split("_")[1:-1]
     info = [eval(elm) for elm in info]
 
+    if len(info) == 3:
+        keys =["ndim", "noise", "walk"]
     if len(info) == 5:
         keys = ["ndim", "noise", "var_plane", "var_gc", "walk"]
 
