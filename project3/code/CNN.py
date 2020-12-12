@@ -132,10 +132,17 @@ def continue_training(X_train, y_train, model_name, val_split=0.2, save_as=None)
     return restored_model
 
 
-def cross_validate(X, y, num_folds=2, verbosity=0):
+
+def cross_validate(X, y, num_folds=2, verbosity=0, save_as=None):
     """K-fold Cross Validation model evaluation"""
 
     from sklearn.model_selection import KFold
+
+
+    if save_as is not None:
+        kfold_path="/kFold_"+conf.type+"/"
+        Path(conf.model_dir+kfold_path).mkdir(parents=True, exist_ok=True)
+
 
     metric_per_fold = []
     loss_per_fold = []
@@ -147,12 +154,16 @@ def cross_validate(X, y, num_folds=2, verbosity=0):
     for train_index, test_index in kf.split(X,y):
         model = create_model()
 
-        print(f"Training for fold {fold_no}...", end='\r', flush=True)
+        if verbosity==0:
+            print(f"Training for fold {fold_no}...", end='\r', flush=True)
+
+
+        name_tmp = kfold_path+save_as+"_"+str(fold_no)
 
         model = train_model(X[train_index], y[train_index], val_split=0.2,
                                                             model=model,
                                                             verbosity=verbosity,
-                                                            save_as=None)
+                                                            save_as=name_tmp)
 
         # Generate generalization metrics
         scores = model.evaluate(X[test_index], y[test_index], verbose=0)
@@ -160,7 +171,9 @@ def cross_validate(X, y, num_folds=2, verbosity=0):
         result1 = f" - {model.metrics_names[0]}: {scores[0]:.4f}"
         result2 = f" - {model.metrics_names[1]}: {scores[1]:.4f}"
 
-        print(f"Training for fold {fold_no}"+result1+result2)
+        if verbosity==0:
+            print(f"Training for fold {fold_no}"+result1+result2)
+
 
         loss_per_fold.append(scores[0])
         metric_per_fold.append(scores[1])
@@ -179,8 +192,6 @@ def cross_validate(X, y, num_folds=2, verbosity=0):
     print(f"avg. {model.metrics_names[1]}: {avg_metric:.4f} (+- {std_metric:.4f})")
 
 
-
-
 def main(conf, name, resume, validate):
     """main script that trains the CNN etc."""
 
@@ -197,14 +208,14 @@ def main(conf, name, resume, validate):
         X = np.concatenate((X_train, X_test), axis=0)
         y = np.concatenate((y_train, y_test), axis=0)
 
-        cross_validate(X, y, num_folds=validate, verbosity=0)
+        cross_validate(X, y, num_folds=validate, verbosity=0, save_as=name)
 
 
 
     elif resume:
         print(f"\nResuming training on: {name}\n"+64*"_"+"\n")
         print(f"Analysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
-        print("resume")
+
         model = continue_training(X_train, y_train, val_split=0.2,
                                                     model_name=name,
                                                     save_as=name)
@@ -215,7 +226,7 @@ def main(conf, name, resume, validate):
 
     else:
         print(64*"_"+"\n"+f"\nAnalysis: {conf.type}\nSave as:  {name}\n"+64*"_"+"\n")
-        print("normal")
+
         model = create_model()
         model = train_model(X_train, y_train, val_split=0.2,
                                                model=model,
@@ -259,13 +270,13 @@ def arguments():
     required.add_argument('-c', action='store_true', help="Classification")
 
     parser.add_argument('-n', type=str, metavar='name', default=None,
-        help='What name to store the model as')
+                        help='What name to store the model as')
 
-    parser.add_argument('-e', type=str, metavar="name", nargs='?', default=None,
-        const=True, help='Continue training on given model')
+    parser.add_argument('-e', type=str, metavar="name", nargs='?', default=None, const=True,
+                        help='Continue training on given model')
 
     parser.add_argument('-v', type=int, nargs='?', default=None, const=5,
-        help='kFold validation, cannot be used with n or e')
+                        help='kFold validation, cannot be used with e')
 
     args = parser.parse_args()
 
@@ -277,9 +288,9 @@ def arguments():
         sys.exit("\nUsage error: You need to choose ONE of the required arguments.")
 
 
-    if v and e or v and n:
+    if v and e:
         parser.print_help()
-        sys.exit("\nUsage error: You cannot use -v with -e or -n")
+        sys.exit("\nUsage error: You cannot use -v with -e ")
 
 
     if e:
@@ -288,13 +299,11 @@ def arguments():
 
         if (not isinstance(e, str) and not n):
             parser.print_help()
-            sys.exit("\nUsage error: You need to specify the name of the model\
-                        you want to resume training on")
+            sys.exit("\nUsage error: You need to specify the name of the model you want to resume training on")
 
         if isinstance(e, str) and n and e != n:
             parser.print_help()
-            sys.exit("\nUsage error: Two different model names were given, can\
-                        only train on one")
+            sys.exit("\nUsage error: Two different model names were given, can only train on one")
 
 
 
