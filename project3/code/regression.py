@@ -44,7 +44,7 @@ plt.xlabel("$f_{dms}$ true")
 plt.ylabel("$f_{dm}$ predicted")
 plt.legend()
 fig.savefig("../figures/reg2_true_vs_predict.png")
-plt.show()
+#plt.show()
 
 
 # get the log file
@@ -62,7 +62,7 @@ ax[1].plot(log_data["r2_score"], color=c[0], label="training")
 ax[1].plot(log_data['val_r2_score'], color=c[1], label = 'validation')
 plt.xlabel('Epoch')
 fig.savefig("../figures/reg2_history.png")
-plt.show()
+#plt.show()
 
 
 # Plot the cross validation
