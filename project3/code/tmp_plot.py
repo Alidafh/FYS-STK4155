@@ -18,7 +18,7 @@ def plots(slice = None, lim = None):
     dm = map.matrix_dm
     comb = map.matrix
 
-    comb_max =
+    #comb_max =
 
     map.display(gal, slice = slice, lim=lim, save_as=FIG+"galaxy.png")
     map.display(dm, slice = slice, save_as=FIG+"dm.png")
@@ -35,7 +35,7 @@ def plots(slice = None, lim = None):
     map2.display(comb2, slice = slice, lim=lim, save_as=FIG+"combined_walk.png")
 
 
-plots(slice=10, lim=0.010)
+#plots(slice=10, lim=0.010)
 
 
 
@@ -71,7 +71,7 @@ def plot_illustrations(E, lim=None):
     fig.colorbar(im2, cax=cax2)
     plt.show()
 
-#plot_illustrations(E=10, lim=0.014)
+plot_illustrations(E=10)
 
 
 """
