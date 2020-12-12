@@ -69,10 +69,24 @@ required arguments:
 
 ```
 
-Example: to use classification do,
+Regression example: The command,
+
 ```
-python CNN.py -cn filename
+$ python CNN.py -rn reg2
+
 ```
+will train a model that is saved as reg2. The path to where the model should be stored and the configuration of the network must be specified in config_regression.py. After training is completed, the model is stored as a folder called reg2, and the history(loss and metric as a function of epochs) is stored in a file called reg2_training.log.\
+
+If you are not satisfied with the results after the given number of epochs, you can resume training on the same model by doing: `python CNN.py -rn reg2 -e` or `python CNN.py -re reg2`.\
+
+If you are satisfied, you can perform 5-fold cross-validation with the command
+
+```
+$ python CNN.py -rn reg2 -v
+
+```
+You can choose a different number of folds by specifying an iteger after the validation flag. If you want 10 folds you would do `python CNN.py -rn reg2 -v 10`. Each model and training log of the folds are stored in the folder kFold_regression.
+
 
 ## Overview of files
 
