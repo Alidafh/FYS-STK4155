@@ -10,11 +10,18 @@ from astropy.io import fits
 import fitsio
 import numpy as np
 from matplotlib.colors import LogNorm
-
-
+import tarfile
+import os
 
 section_width = 10
 section_height = 10
+
+# Extract the file if it hasn't already been extracted
+if not os.path.isfile("fits/IEM_base_v2.fits"):
+    print("Extracting")
+    tar = tarfile.open("fits/IEM_base_v2.tar.xz", "r:xz")
+    tar.extractall("fits/")
+    tar.close()
 
 
 data_dge = fits.open("fits/IEM_base_v2.fits")
