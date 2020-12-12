@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from generate import load_data
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 
 def preprocess(maps, labels, train_size, regress=False, scale=True, seed=None, shuffle=True):
@@ -37,9 +38,12 @@ def r2_score(y_true, y_pred):
     Use R2 score as a measure of how good the model works
     https://jmlb.github.io/ml/2017/03/20/CoeffDetermination_CustomMetric4Keras/
     """
+
     SS_res =  K.sum(K.square(y_true-y_pred))
     SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+
     return (1 - SS_res/(SS_tot + K.epsilon()))
+
 
 
 def history_regression(log_data, title=None):
@@ -59,7 +63,45 @@ def history_regression(log_data, title=None):
 
     if title: fig.savefig("../figures/"+title+".png")
 
+
+def cross_validation_regression(name, conf, title=None):
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
+    ax[0].set_ylabel("Loss MSE")
+    ax[1].set_ylabel("R2-score")
+
+    kfold_path="/kFold_"+conf.type+"/"
+    num_folds = 5
+    c = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple",]
+
+    for i in range(1,num_folds+1):
+        mn = conf.model_dir+kfold_path+name+str(i)
+        log = pd.read_csv(mn+"_training.log", sep=",", engine="python")
+
+        ax[0].plot(log["loss"],         color=c[i-1], label=f"Fold # {i}")
+        ax[0].plot(log["val_loss"],     color=c[i-1], linestyle="dashed")
+        ax[1].plot(log["r2_score"],     color=c[i-1], label=f"Fold # {i}")
+        ax[1].plot(log["val_r2_score"], color=c[i-1], linestyle="dashed")
+
+    plt.xlabel("Epoch")
+    ax[0].legend(loc = "upper right")
+    if title: fig.savefig("../figures/"+title+".png")
+
+
+
+def test_predict(y_pred, y_test, title=None):
+
+    fig = plt.figure()
+    plt.plot(y_test, y_pred, marker="o",linestyle="None", color="tab:gray", label="data")
+    plt.plot(y_test, y_test, linestyle="-", color="tab:red", label="Perfect prediction")
+    plt.xlabel("$f_{dms}$ true")
+    plt.ylabel("$f_{dm}$ predicted")
+    plt.legend()
+
+    if title: fig.savefig("../figures/"+title+".png")
+
+
 def history_classification(log_data, title=None):
+    
     fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
     c = ["tab:blue", "tab:green"]
 
@@ -75,18 +117,6 @@ def history_classification(log_data, title=None):
 
     plt.xlabel('Epoch')
     if title: fig.savefig("../figures/"+title+".png")
-
-
-def test_predict(y_pred, y_test, title=None):
-    fig = plt.figure()
-    plt.plot(y_test, y_pred, marker="o",linestyle="None", color="tab:gray", label="data")
-    plt.plot(y_test, y_test, linestyle="-", color="tab:red", label="Perfect prediction")
-    plt.xlabel("$f_{dms}$ true")
-    plt.ylabel("$f_{dm}$ predicted")
-    plt.legend()
-
-    if title: fig.savefig("../figures/"+title+".png")
-
 
 
 
