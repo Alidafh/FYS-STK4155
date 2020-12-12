@@ -18,7 +18,8 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 
 
 # get the saved model
-model_name = conf.model_dir+"reg2"
+name = "reg2"
+model_name = conf.model_dir+name
 model_reg2 = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model_reg2.summary()
 
@@ -69,12 +70,13 @@ fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained
 ax[0].set_ylabel("Loss MSE")
 ax[1].set_ylabel("R2-score")
 
-kfold_path="/kFold_"+conf.type+"/"
+kfold_path = conf.model_dir+"/kFold_"+conf.type+"/"+name
 num_folds = 5
+
 c = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple",]
 
 for i in range(1,num_folds+1):
-    mn = conf.model_dir+kfold_path+"reg2"+str(i)
+    mn = kfold_path+f"_{i}"
     log = pd.read_csv(mn+"_training.log", sep=",", engine="python")
 
     ax[0].plot(log["loss"],         color=c[i-1], label=f"Fold # {i}")
