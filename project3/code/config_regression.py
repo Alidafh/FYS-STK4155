@@ -36,7 +36,7 @@ maps, labels, stats = load_data(file=data_file, slice=slice)
 
 input_shape = (28, 28, 20)  # Shape of the images, holds the raw pixel values
 
-n_filters = 16              # For the two first Conv2D layers
+n_filters = 16              # For the first Conv2D layer
 kernel_size = (5,5)
 layer_config = [32, 64]         # (layer1, layer2, layer3, ....)
 
