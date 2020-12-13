@@ -64,7 +64,7 @@ class linear_spectrum():
         self.grad = grad
     def func(self,E):
         return self.max_val - self.grad*E
-    
+
 class exponential_spectrum():
     def __init__(self, prefactor=80, exponent=0.5):
         self.prefactor = prefactor
@@ -167,30 +167,30 @@ class SkyMap:
 
     """
 
-    def __init__(self, dim, is_dm=False, dm_strength=1, are_irreg=True, noise_level=0.008, 
-                 variation_plane=0, variation_gc=0, dm_mean = 10, gc_scale = 2e+15):
+    def __init__(self, dim, is_dm=False, dm_strength=1, are_irreg=True, noise_level=0.008,
+                 variation_plane=00.00, variation_gc=0.00, dm_mean = 10, gc_scale = 2e+15):
 
         self.noise_level = noise_level
         self.dim = dim
         self.is_dm=is_dm
         self.are_irreg = are_irreg
         self.dm_strength = dm_strength
-        
-        self.variation_plane = variation_plane
-        self.variation_gc = variation_gc
 
         self.variation_plane = variation_plane
         self.variation_gc = variation_gc
 
-        
+        self.variation_plane = variation_plane
+        self.variation_gc = variation_gc
+
+
         self.galactic_plane_profile = rg.dge(dim=self.dim, scale=0.85 )
 
         self.galactic_plane_spectrum = exponential_spectrum(prefactor=1, exponent = 0.5 )
-  
+
         self.galactic_center_profile = rg.galactic_center_profile(dim=self.dim, scale=1)
-        
+
         self.galactic_center_spectrum = rg.galactic_center_spectrum(scale=gc_scale)
-        
+
         self.dm_profile = rg.dark_matter_profile(dim=self.dim, scale=1)
 
         self.dm_spectrum = gaussian_spectrum(max_val = 0.025,
@@ -229,11 +229,11 @@ class SkyMap:
 
 
         self.generate_galaxy()
-        
+
         # print(np.sum(self.matrix[:,:,19]).clip(min=0))
 
         self.generate_noise()
-        
+
         # print(np.sum(self.matrix[:,:,19]).clip(min=0))
 
         if is_dm: self.generate_dm()
@@ -262,7 +262,7 @@ class SkyMap:
 
         middle_row = int((self.dim[0]+1)/2)
         middle_col = int((self.dim[1]+1)/2)
-       
+
 
         scale_plane =  + self.variation_plane*2*(random.random() - 0.5) + 1
         scale_gc =  + self.variation_gc*2*(random.random() - 0.5) + 1
@@ -340,11 +340,11 @@ class SkyMap:
 
 
             for E in range(self.dim[2]):
-                
+
                 factor = takeover_margin*np.random.randn(1)[0] + 1
 
                 extra = galaxy[take_i, take_j, E]*factor - galaxy[pos_i, pos_j, E]
-    
+
                 if use_gaussian: galaxy[:,:,E] += gaussian_dot(pos_i, pos_j, extra, sigma_dot, (self.dim[0],self.dim[1]), 0)
                 else: galaxy[pos_i, pos_j, E] += extra
 
@@ -497,7 +497,9 @@ class SkyMap:
 
 #=============================================================================
 
-def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True, variation_plane=0, variation_gc=0, shuf=True, PATH=None):
+def generate_data(nMaps, dim, dm_strength=1, noise_level = 0.008, random_walk = True,
+                    variation_plane=0.0, variation_gc=0.0, dm_mean=10, gc_scale=2e+15,
+                    shuf=True, PATH=None):
     """
     Generates nMaps of galaxies with dark matter and nMaps of galaxies without
     dark matter using the SkyMap class. The maps are raveled and stored as
@@ -560,12 +562,14 @@ def generate_data(nMaps, dim, dm_strength=1, noise_level = 0, random_walk = True
 
     if PATH is not None:
         tuple = (2*nMaps, dim[0], dim[1], dim[2])
-        fn = "data_{:}_{:}_{:}_{:}_{:}_{:}_".format(tuple, dm_strength, noise_level, variation_plane, variation_gc, random_walk)
+        fn = "data_{:}_{:}_{:}_{:}_{:}_{:}_{:.0e}_{:}_".format(tuple, dm_strength, noise_level, variation_plane, variation_gc, dm_mean, gc_scale, random_walk)
         np.save(PATH+fn, all)
 
     return all
 
-def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, variation_plane=0, variation_gc=0, shuf=True, PATH=None):
+def generate_data_v2(nMaps, dim, noise_level = 0.008, random_walk = True,
+                    variation_plane=0, variation_gc=0, dm_mean=10,
+                    gc_scale=2e+15, shuf=True, PATH=None):
     """
     Generates nMaps of galaxies with random levels of dark matter strength
     using the SkyMap class. The maps are raveled and stored as a row in a
@@ -617,7 +621,7 @@ def generate_data_v2(nMaps, dim, noise_level = 0, random_walk = True, variation_
 
     if PATH is not None:
         tuple = (nMaps, dim[0], dim[1], dim[2])
-        fn = "maps_{:}_{:}_{:}_{:}_{:}_".format(tuple, noise_level, variation_plane, variation_gc, random_walk)
+        fn = "maps_{:}_{:}_{:}_{:}_{:}_{:.1e}_{:}_".format(tuple, noise_level, variation_plane, variation_gc, dm_mean, gc_scale, random_walk)
         np.save(PATH+fn, all)
 
     return all
@@ -646,12 +650,12 @@ def load_data(file="", slice = None):
 
     if len(info) == 4:
         keys = ["ndim", "dm_strength", "noise", "walk"]
-        
+
     if len(info) == 5:
-        keys = ["ndim", "noise", "var_plane", "var_gc", "walk"]
+        keys = ["ndim", "noise", "var_plane", "var_gc", "dm_mean", "gc_scale", "walk"]
 
     if len(info) == 6:
-        keys = ["ndim", "dm_strength", "noise", "var_plane", "var_gc", "walk"]
+        keys = ["ndim", "dm_strength", "noise", "var_plane", "var_gc", "dm_mean", "gc_scale", "walk"]
 
     # Create dictionary with information from filename
     stats = {keys[i]: info[i] for i in range(len(keys))}
@@ -684,26 +688,41 @@ def arguments():
 
     parser.add_argument('-n', type=int, metavar=' number_of_maps', action='store', default=1000,
                     help='The number of maps to generate')
-    parser.add_argument('-d', type=str, metavar=' dimensions', action='store', default="28,28,10",
+
+    parser.add_argument('-d', type=str, metavar=' dimensions', action='store', default="28,28,20",
                     help="Dimensions of the maps use as: -d dim1,dim2,dim3")
-    parser.add_argument('-dm', type=float, metavar='dm_strength', action='store', default=1,
+
+    parser.add_argument('-dms', type=float, metavar='dm_strength', action='store', default=1,
                     help='Strength of dark matter (only relevant when using v1)')
-    parser.add_argument('-nl', type=float, metavar='noise_level', action='store', default=1,
-                    help='Level of Gaussian nose in data')
+
+    parser.add_argument('-mdm', type=float, metavar="dm_mean", default=0.0,
+                    help='Mean of dark matter spectrum')
+
+    parser.add_argument('-nl', type=float, metavar='noise_level', action='store', default=0.008,
+                    help='Level of Gaussian noise in data')
+
     parser.add_argument('-r', type=str, metavar=' random_walk', action='store', default="True",
                     help='Use random walk')
+
     parser.add_argument('-s', type=str, metavar=' shuffle_maps', action='store', default="True",
                     help='Shuffle the maps before saving')
+
     parser.add_argument('-p', type=str, metavar=' PATH', action='store', default="../data/",
                         help='Path to where the data should be stored')
+
     parser.add_argument('-v', type=int, metavar=' version', action='store', default=1,
                     help='Choose the version of generator, v1:1 or v2:2')
+
     parser.add_argument('-vp', type=float, metavar="variation_plane", default=0.0,
                     help='Random variation in galactic plane normalization (propotion of the standard value)')
-    parser.add_argument('-vgc', type=float, metavar="variation_plane", default=0.0,
-                    help='Random variation in galactic center normalization (propotion of the standard value)')
-    args = parser.parse_args()
 
+    parser.add_argument('-vgc', type=float, metavar="variation_GC", default=0.0,
+                    help='Random variation in galactic center normalization (propotion of the standard value)')
+
+    parser.add_argument('-gcs', type=float, metavar="gc_scale", default=2e+15,
+                    help='Scale of the galactic center')
+
+    args = parser.parse_args()
 
     if args.v != 1:
         if args.v != 2:
@@ -711,23 +730,28 @@ def arguments():
             parser.error(error)
 
 
-    n, d, dm, nl, r = args.n, eval(args.d), args.dm, args.nl, eval(args.r)
+    n, d, dms, nl, r = args.n, eval(args.d), args.dms, args.nl, eval(args.r)
     s, p, v, vp, vgc = eval(args.s), args.p, args.v, args.vp, args.vgc
+    mdm, gcs = args.mdm, args.gcs
 
-    return n, d, dm, nl, r, s, p, v, vp, vgc
+    return n, d, dms, nl, r, s, p, v, vp, vgc, mdm, gcs
 
 
 if __name__ == "__main__":
     from datetime import datetime
     start_time = datetime.now()
 
-    n, d, dm, nl, r, s, p, v, vp, vgc = arguments()
+    n, d, dms, nl, r, s, p, v, vp, vgc, mdm, gcs = arguments()
 
     if v == 1:
-        generate_data(nMaps=n, dim=d, noise_level=nl, random_walk=r, variation_plane=vp, variation_gc=vgc, shuf=s, PATH=p)
+        generate_data(nMaps=n, dim=d, dm_strength=dms, noise_level=nl,
+                    random_walk=r, variation_plane=vp, variation_gc=vgc,
+                    dm_mean=mdm, gc_scale = gcs, shuf=s, PATH=p)
     else:
 
-        generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r, variation_plane=vp, variation_gc=vgc, shuf=s, PATH=p)
+        generate_data_v2(nMaps=n, dim=d, noise_level=nl, random_walk=r,
+                        variation_plane=vp, variation_gc=vgc, dm_mean=mdm,
+                        gc_scale=gcs, shuf=s, PATH=p)
 
 
     time_elapsed = datetime.now() - start_time
