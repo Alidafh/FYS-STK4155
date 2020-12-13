@@ -22,9 +22,7 @@ def preprocess(maps, labels, train_size, regress=False, scale=True, seed=None, s
     """
 
     if regress == False: labels = to_categorical(labels)
-    if scale == True:
-        maps = (maps - maps.min()) / (maps.max()-maps.min())
-
+    if scale == True: maps = (maps - maps.min()) / (maps.max()-maps.min())
 
 
     X_train, X_test, y_train, y_test = train_test_split(maps, labels,
@@ -37,8 +35,8 @@ def preprocess(maps, labels, train_size, regress=False, scale=True, seed=None, s
 
 def r2_score(y_true, y_pred):
     """
-    coeff_determination
-    Use R2 score as a measure of how good the model works
+    Coeff_determination
+    Use R2 score to evaluate the model
     https://jmlb.github.io/ml/2017/03/20/CoeffDetermination_CustomMetric4Keras/
     """
 
@@ -46,6 +44,9 @@ def r2_score(y_true, y_pred):
     SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
 
     return (1 - SS_res/(SS_tot + K.epsilon()))
+
+
+
 
 
 def history_regression(log_data, title=None):

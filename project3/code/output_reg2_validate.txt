@@ -1,0 +1,16 @@
+
+Performing 5-Fold cross validation
+________________________________________________________________
+
+Analysis: regression
+________________________________________________________________
+
+Training for fold 1...Training for fold 1 - loss: 0.0010 - r2_score: 0.9853
+Training for fold 2...Training for fold 2 - loss: 0.0009 - r2_score: 0.9887
+Training for fold 3...Training for fold 3 - loss: 0.0011 - r2_score: 0.9875
+Training for fold 4...Training for fold 4 - loss: 0.0015 - r2_score: 0.9792
+Training for fold 5...Training for fold 5 - loss: 0.0010 - r2_score: 0.9870
+_________________________________________________________________ 
+
+avg. loss:     0.0011 (+- 0.0002)
+avg. r2_score: 0.9855 (+- 0.0034)

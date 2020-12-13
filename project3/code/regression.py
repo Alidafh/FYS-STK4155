@@ -10,6 +10,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tools import r2_score
 import config_regression as conf
 import pandas as pd
@@ -19,24 +20,24 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 # get the saved model
 name = "reg2"
 model_name = conf.model_dir+name
-model_reg2 = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
-model_reg2.summary()
+model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
+model.summary()
 
 
 # easier to use without writing conf all the time
 X_train, X_test = conf.X_train, conf.X_test
 y_train, y_test = conf.y_train, conf.y_test
 
-
 # print the loss and r2 score of the model
-loss, r2 = model_reg2.evaluate(X_test, y_test, verbose=0)
-print("loss(MSE): %.4f" %loss, "r2-score:  %.4f" %r2, sep='\n')
+loss, metric = model.evaluate(X_test, y_test, verbose=0)
+print(f"Loss (MSE): {loss:.4f} - r2_score: {metric:.4f}")
 print()
 
 # predict using the test data and normalize like they do in the paper
-y_pred = model_reg2.predict(X_test)
+y_pred = model.predict(X_test)
 y_pred = y_pred/y_pred.max()
 
+# Plot predicted vs true
 fig = plt.figure()
 plt.plot(y_test, y_pred, marker="o", linestyle="None", color="tab:blue", label="data")
 plt.plot(y_test, y_test, linestyle="dashed", color="k", label="Perfect prediction")
@@ -91,52 +92,103 @@ fig.savefig("../figures/reg2_kfold.png")
 #plt.show()
 
 
-# illustrate the output of the filters
+# illustrate the output of the first filter using the first test image
 
-img   = np.expand_dims(X_test[0], axis=0)
+# Choose the image
+img = np.expand_dims(X_test[0], axis=0)
 f_dms = y_test[0]
 
+"""
+# display the image
+fig = plt.figure()
+ax = plt.gca()
+y_axis = img.shape[0]/2
+x_axis = img.shape[1]/2
+axis_range = [-x_axis,x_axis,-y_axis, y_axis]
+plt.xlabel('Galactic Longitude')
+plt.ylabel('Galactic Latitude')
+im = ax.imshow(img[0,:,:, 0], cmap="inferno", extent = axis_range)
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.05)
+fig.colorbar(im, cax=cax)
+#fig.savefig()
+"""
 
-plt.imshow(img[0,:,:,10], cmap="inferno")
-plt.xlabel(f_dms)
-plt.show()
-quit()
-model = get_model(model_name="GCE")
-
-nlayers = len(model.layers)
-
+# get the convolutional layers
 layer_outputs = []
 layer_names = []
-for i in range(nlayers):
+
+for i in range(len(model.layers)):
     layer = model.layers[i]
-    if "conv2d" not in layer.name: continue
-    print(i, layer.name, layer.output.shape)
     layer_outputs.append(layer.output)
     layer_names.append(layer.name)
 
+activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
 
-activation_model = Model(inputs=model.input, outputs=layer_outputs)
-maps = activation_model.predict(img)
+# make a prediction usin the model
+pred_img = activation_model.predict(img)
 
-n_layers = len(maps)
+for name in layer_names:
+    if "conv" not in name: continue
+    print(name)
+
+quit()
+n_layers = len(pred_img)
 n_filters = 5
 
 fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
 plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
 
 for i in range(n_layers):
-    map = maps[i]
+    map = pred_img[i]
     for j in range(n_filters):
         im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
         ax[0,i].set_title(layer_names[i])
         ax[j,0].set_ylabel("filter {:}".format(j), size='large')
-
 
 fig.colorbar(im, ax=ax.flat)
 plt.show()
 
 
 
+
+
+
+"""
+# get the convolutional layers
+layer_outputs = []
+layer_names = []
+
+for i in range(len(model.layers)):
+    layer = model.layers[i]
+    if "conv" in layer.name or "pool" in layer.name:
+        print(layer.name)
+        layer_outputs.append(layer.output)
+        layer_names.append(layer.name)
+
+activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
+
+# make a prediction usin the model
+pred_img = activation_model.predict(img)
+
+n_layers = len(pred_img)
+n_filters = 5
+
+fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
+plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
+
+for i in range(n_layers):
+    map = pred_img[i]
+    for j in range(n_filters):
+        im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
+        ax[0,i].set_title(layer_names[i])
+        ax[j,0].set_ylabel("filter {:}".format(j), size='large')
+
+fig.colorbar(im, ax=ax.flat)
+plt.show()
+
+
+"""
 
 """
 residuals = y_test - y_pred
