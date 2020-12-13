@@ -654,6 +654,10 @@ def load_data(file="", slice = None):
 
     if len(info) == 3:
         keys =["ndim", "noise", "walk"]
+
+    if len(info) == 4:
+        keys = ["ndim", "dm_strength", "noise", "walk"]
+        
     if len(info) == 5:
         keys = ["ndim", "noise", "var_plane", "var_gc", "walk"]
 

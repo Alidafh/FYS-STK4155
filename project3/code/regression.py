@@ -10,11 +10,10 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from tools import r2_score, history_regression, test_predict, cross_validation_regression
+from tools import r2_score
 import config_regression as conf
 import pandas as pd
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "tab:red", "tab:purple", "tab:orange", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"])
-
 
 
 # get the saved model
@@ -27,6 +26,7 @@ model_reg2.summary()
 # easier to use without writing conf all the time
 X_train, X_test = conf.X_train, conf.X_test
 y_train, y_test = conf.y_train, conf.y_test
+
 
 # print the loss and r2 score of the model
 loss, r2 = model_reg2.evaluate(X_test, y_test, verbose=0)
@@ -88,8 +88,54 @@ plt.xlabel("Epoch")
 ax[0].legend(loc = "upper right")
 
 fig.savefig("../figures/reg2_kfold.png")
+#plt.show()
 
+
+# illustrate the output of the filters
+
+img   = np.expand_dims(X_test[0], axis=0)
+f_dms = y_test[0]
+
+
+plt.imshow(img[0,:,:,10], cmap="inferno")
+plt.xlabel(f_dms)
 plt.show()
+quit()
+model = get_model(model_name="GCE")
+
+nlayers = len(model.layers)
+
+layer_outputs = []
+layer_names = []
+for i in range(nlayers):
+    layer = model.layers[i]
+    if "conv2d" not in layer.name: continue
+    print(i, layer.name, layer.output.shape)
+    layer_outputs.append(layer.output)
+    layer_names.append(layer.name)
+
+
+activation_model = Model(inputs=model.input, outputs=layer_outputs)
+maps = activation_model.predict(img)
+
+n_layers = len(maps)
+n_filters = 5
+
+fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
+plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
+
+for i in range(n_layers):
+    map = maps[i]
+    for j in range(n_filters):
+        im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
+        ax[0,i].set_title(layer_names[i])
+        ax[j,0].set_ylabel("filter {:}".format(j), size='large')
+
+
+fig.colorbar(im, ax=ax.flat)
+plt.show()
+
+
 
 
 """
@@ -124,4 +170,49 @@ print()
 print("mean absolute percent difference: {:5.2f}%".format(mean))
 print("std absolute percent difference: {:5.2f}%".format(std))
 
+
+(X_train, y_train), (X_test, y_test) = gce(d3=False, seed=42, scale=True)
+label_names = ["Clean", "DM"]
+
+img = X_test[0]
+img_type = label_names[int(y_test[0].argmax())]
+img = np.expand_dims(img, axis=0)
+
+plt.imshow(img[0,:,:,9], cmap="inferno")
+plt.xlabel(img_type)
+plt.show()
+
+model = get_model(model_name="GCE")
+
+nlayers = len(model.layers)
+
+layer_outputs = []
+layer_names = []
+for i in range(nlayers):
+    layer = model.layers[i]
+    if "conv2d" not in layer.name: continue
+    print(i, layer.name, layer.output.shape)
+    layer_outputs.append(layer.output)
+    layer_names.append(layer.name)
+
+
+activation_model = Model(inputs=model.input, outputs=layer_outputs)
+maps = activation_model.predict(img)
+
+n_layers = len(maps)
+n_filters = 5
+
+fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
+plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
+
+for i in range(n_layers):
+    map = maps[i]
+    for j in range(n_filters):
+        im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
+        ax[0,i].set_title(layer_names[i])
+        ax[j,0].set_ylabel("filter {:}".format(j), size='large')
+
+
+fig.colorbar(im, ax=ax.flat)
+plt.show()
 """

@@ -20,11 +20,11 @@ X_train, X_test = conf.X_train, conf.X_test
 y_train, y_test = conf.y_train, conf.y_test
 
 # get the saved model
-model_name = conf.model_dir+"clas"
-model = tf.keras.models.load_model(model_name)
-
-# print summary
-model.summary()
+name = "clas"
+model_name = conf.model_dir+name
+model_reg2 = tf.keras.models.load_model(model_name)
+model_reg2.summary()
+quit()
 
 # print the loss and r2 score
 loss, acc = model.evaluate(X_test, y_test, verbose=0)

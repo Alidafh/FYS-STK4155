@@ -22,7 +22,10 @@ def preprocess(maps, labels, train_size, regress=False, scale=True, seed=None, s
     """
 
     if regress == False: labels = to_categorical(labels)
-    if scale == True: maps = maps/maps.max()
+    if scale == True:
+        maps = (maps - maps.min()) / (maps.max()-maps.min())
+
+
 
     X_train, X_test, y_train, y_test = train_test_split(maps, labels,
                                                         train_size=train_size,
@@ -43,7 +46,6 @@ def r2_score(y_true, y_pred):
     SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
 
     return (1 - SS_res/(SS_tot + K.epsilon()))
-
 
 
 def history_regression(log_data, title=None):
@@ -101,7 +103,7 @@ def test_predict(y_pred, y_test, title=None):
 
 
 def history_classification(log_data, title=None):
-    
+
     fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
     c = ["tab:blue", "tab:green"]
 
