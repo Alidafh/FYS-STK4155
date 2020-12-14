@@ -22,7 +22,9 @@ filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_2.0_1.0e+00_True_.npy"
 data_file = path+filename
 slice = None
 
+
 maps, labels, stats = load_data(file=data_file, slice=slice)
+
 
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
@@ -30,6 +32,7 @@ maps, labels, stats = load_data(file=data_file, slice=slice)
                                                 #scale=True,
                                                 seed=42,
                                                 shuffle=True)
+
 
 ###############################################################################
 # for create_model()
