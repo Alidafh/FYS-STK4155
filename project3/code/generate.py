@@ -651,10 +651,10 @@ def load_data(file="", slice = None):
     if len(info) == 4:
         keys = ["ndim", "dm_strength", "noise", "walk"]
 
-    if len(info) == 5:
+    if len(info) == 7:
         keys = ["ndim", "noise", "var_plane", "var_gc", "dm_mean", "gc_scale", "walk"]
 
-    if len(info) == 6:
+    if len(info) == 8:
         keys = ["ndim", "dm_strength", "noise", "var_plane", "var_gc", "dm_mean", "gc_scale", "walk"]
 
     # Create dictionary with information from filename
