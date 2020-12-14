@@ -12,63 +12,101 @@ def plots(slice = None, lim = None):
     FIG ="../figures/"
     dim = (28, 28, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0)
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=1.0, gc_scale=1, dm_mean=2.0)
 
     gal = map.matrix_galaxy
     dm = map.matrix_dm
     comb = map.matrix
 
-    map.display(gal,  slice = slice, lim=lim, save_as=FIG+"galaxy.png")
-    map.display(dm,   slice = slice, save_as=FIG+"dm.png")
-    map.display(comb, slice = slice, lim=lim, save_as=FIG+"combined.png")
+    if not slice:
+        lim = np.sum(comb, axis=2).max()
+        print(lim)
 
-    map2 = SkyMap(dim=dim, is_dm=True, are_irreg=True)
+    map.display(gal,  slice = slice, lim=lim,  save_as=FIG+"galaxy.png")
+    map.display(dm,   slice = slice, lim=None, save_as=FIG+"dm.png")
+    map.display(comb, slice = slice, lim=lim,  save_as=FIG+"combined.png")
+
+    map2 = SkyMap(dim=dim, is_dm=True, are_irreg=True, noise_level=0.008, dm_strength=1.0, gc_scale=1, dm_mean=2.0)
 
     gal2 = map2.matrix_galaxy
     dm2 = map2.matrix_dm
     comb2 = map2.matrix
 
-    map2.display(gal2,  slice = slice, lim=lim, save_as=FIG+"galaxy_walk.png")
-    map2.display(dm2,   slice = slice, save_as=FIG+"dm_walk.png")
-    map2.display(comb2, slice = slice, lim=lim, save_as=FIG+"combined_walk.png")
-
-
-plots(slice=None, lim=None)
+    map2.display(gal2,  slice = slice, lim=lim,  save_as=FIG+"galaxy_walk.png")
+    map2.display(dm2,   slice = slice, lim=None, save_as=FIG+"dm_walk.png")
+    map2.display(comb2, slice = slice, lim=lim,  save_as=FIG+"combined_walk.png")
 
 
 
-
-def plot_illustrations(E, lim=None):
-
+def plots2():
+    PATH="../data/"
+    FIG ="../figures/"
     dim = (28, 28, 20)
-    map = SkyMap(dim=dim, is_dm=True, dm_strength=1, are_irreg=True, noise_level=0, gc_scale=1e-20)
 
-    g = map.matrix_galaxy
-    d = map.matrix_dm
-    c = map.matrix
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=5.0, gc_scale=1, dm_mean=10.0)
 
-    fig, (ax0, ax1, ax2) = plt.subplots(nrows=1, ncols=3,  figsize=(20, 3), sharex=True)
+    g  = np.sum(map.matrix_galaxy.copy(), axis=2)
+    d  = np.sum(map.matrix_dm.copy(), axis=2)
+    c = np.sum(map.matrix.copy(), axis=2)
+
+    map.set_noise(0.008)
+    c2 = np.sum(map.matrix, axis=2)
+
+    map.set_noise(0.0)
+    map.generate_irregularities()
+    c3 = np.sum(map.matrix, axis=2)
+
+    map.set_noise(0.008)
+    c4 = np.sum(map.matrix, axis=2)
+
+    fig, ax = plt.subplots(nrows=2, ncols=3,  figsize=(20, 6))
+
+    lim = c.max()
     y_axis = dim[0]/2
     x_axis = dim[1]/2
     axis_range = [-x_axis,x_axis,-y_axis, y_axis]
 
-    im0 = ax0.imshow(g[:,:,E], cmap="inferno", vmax=lim, extent = axis_range)
-    divider0 = make_axes_locatable(ax0)
+    ax[0,0].set_xlabel("bkg")
+    im0 = ax[0,0].imshow(g, cmap="inferno", vmax=lim, extent = axis_range)
+    divider0 = make_axes_locatable(ax[0,0])
     cax0 = divider0.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im0, cax=cax0)
 
-    im1 = ax1.imshow(d[:,:,E], cmap="inferno",vmax=None, extent = axis_range)
-    divider1 = make_axes_locatable(ax1)
+    ax[0,1].set_xlabel("dm")
+    im1 = ax[0,1].imshow(d, cmap="inferno", vmax=None, extent = axis_range)
+    divider1 = make_axes_locatable(ax[0,1])
     cax1 = divider1.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im1, cax=cax1)
 
-    im2 = ax2.imshow(c[:,:,E], cmap="inferno",vmax=lim, extent = axis_range)
-    divider2 = make_axes_locatable(ax2)
+    ax[0,2].set_xlabel("bkg+dm")
+    im2 = ax[0,2].imshow(c, cmap="inferno", vmax=lim, extent = axis_range)
+    divider2 = make_axes_locatable(ax[0,2])
     cax2 = divider2.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im2, cax=cax2)
-    plt.show()
 
-#plot_illustrations(E=0)
+    ax[1,0].set_xlabel("bkg+dm+noise")
+    im3 = ax[1,0].imshow(c2, cmap="inferno", vmax=None, extent = axis_range)
+    divider3 = make_axes_locatable(ax[1,0])
+    cax3 = divider3.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im3, cax=cax3)
+
+    ax[1,1].set_xlabel("bkg+dm+irreg")
+    im4 = ax[1,1].imshow(c3, cmap="inferno", vmax=None, extent = axis_range)
+    divider4 = make_axes_locatable(ax[1,1])
+    cax4 = divider4.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im4, cax=cax4)
+
+    ax[1,2].set_xlabel("bkg+dm+noise+irreg")
+    im5 = ax[1,2].imshow(c4, cmap="inferno", vmax=None, extent = axis_range)
+    divider5 = make_axes_locatable(ax[1,2])
+    cax5 = divider5.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im5, cax=cax5)
+    plt.show()
+    fig.savefig(FIG+"data_illustration.png")
+
+plots2()
+
+
 
 
 """
