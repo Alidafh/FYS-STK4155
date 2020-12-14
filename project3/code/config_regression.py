@@ -9,7 +9,8 @@ import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 from generate import load_data
-from tools import preprocess, r2_score
+from tools import preprocess, r2_score, multiply_data
+
 
 ###############################################################################
 # Set up the data
@@ -18,18 +19,20 @@ from tools import preprocess, r2_score
 type = "regression"
 
 path = "../data/"
-filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_2.0_1.0e+00_True_.npy"
+filename = "maps_(100, 28, 28, 20)_0.008_0.0_0.0_10.0_1.0e+00_False_.npy"
 data_file = path+filename
 slice = None
 
+#maps, labels, stats = load_data(file=data_file, slice=slice)
 
-maps, labels, stats = load_data(file=data_file, slice=slice)
+from generate import multiple_load_data
+maps, labels, stats = multiple_load_data(data_file, slice, 100)
 
 
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
                                                 regress=True,
-                                                #scale=True,
+                                                scale=True,
                                                 seed=42,
                                                 shuffle=True)
 
@@ -38,14 +41,14 @@ maps, labels, stats = load_data(file=data_file, slice=slice)
 # for create_model()
 ###############################################################################
 
-input_shape = (28, 28, 20)  # Shape of the images, holds the raw pixel values
+input_shape = (28, 28, 20)     # Shape of the images, holds the raw pixel values
 
-n_filters = 16              # For the first Conv2D layer
-kernel_size = (3,3)
-layer_config = None # [32, 64]         # (layer1, layer2, layer3, ....)
+n_filters = 16                  # For the first Conv2D layer
+kernel_size = (5,5)
+layer_config = [32, 64]         # (layer1, layer2, layer3, ....)
 
-connected_neurons = 128      # For the first Dense layer
-n_categories = 1             # For the last Dense layer
+connected_neurons = 128         # For the first Dense layer
+n_categories = 1                # For the last Dense layer
 
 input_activation  = "relu"
 hidden_activation = "relu"
@@ -59,12 +62,10 @@ reg = None  #tf.keras.regularizers.l2(l=0.1)
 
 model_dir = "tmp/"           # Where to save the model
 
-#epochs = 100
-epochs = 50
-batch_size = 20
+epochs = 100
+batch_size = 10
 
-opt = tf.keras.optimizers.Adam(learning_rate=1e-2)
-#opt = tf.keras.optimizers.SGD(learning_rate=1e-2)
+opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 

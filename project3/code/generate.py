@@ -686,6 +686,19 @@ def load_data(file="", slice = None):
     return maps, labels, stats
 
 
+def multiple_load_data(data_file, slice, n):
+    maps, labels, stats = load_data(file=data_file, slice=slice)
+
+    for _ in range(n-1):
+        maps_, labels_, stats = load_data(file=data_file, slice=slice)
+        new_maps = np.vstack((maps, maps_))
+        new_labels = np.vstack((labels, labels_))
+
+        maps = new_maps
+        labels = new_labels
+
+    return maps, labels, stats
+
 def arguments():
     """ Generate data from command-line """
 

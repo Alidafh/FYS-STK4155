@@ -42,9 +42,9 @@ fig = plt.figure()
 plt.plot(y_test, y_pred, marker="o", linestyle="None", color="tab:blue", label="data")
 plt.plot(y_test, y_test, linestyle="dashed", color="k", label="Perfect prediction")
 plt.xlabel("$f_{dms}$ true")
-plt.ylabel("$f_{dm}$ predicted")
+plt.ylabel("$f_{dms}$ predicted")
 plt.legend()
-fig.savefig("../figures/reg1_true_vs_predict.png")
+fig.savefig(f"../figures/{name}_true_vs_predict.png")
 #plt.show()
 
 
@@ -62,7 +62,7 @@ ax[1].set_ylabel("R2-score")
 ax[1].plot(log_data["r2_score"], color=c[0], label="training")
 ax[1].plot(log_data['val_r2_score'], color=c[1], label = 'validation')
 plt.xlabel('Epoch')
-fig.savefig("../figures/reg1_history.png")
+fig.savefig(f"../figures/{name}_history.png")
 #plt.show()
 
 """
@@ -88,7 +88,7 @@ for i in range(1,num_folds+1):
 plt.xlabel("Epoch")
 ax[0].legend(loc = "upper right")
 
-fig.savefig("../figures/reg2_kfold.png")
+fig.savefig(f"../figures/{name}_kfold.png")
 #plt.show()
 """
 
@@ -101,7 +101,7 @@ fig = plt.figure()
 plt.imshow(img[0,:,:,0], cmap="inferno")
 plt.xticks([])
 plt.yticks([])
-fig.savefig("../figures/reg1_img0.png")
+fig.savefig(f"../figures/{name}_img0.png")
 
 
 # get the layers
@@ -136,7 +136,7 @@ for i in range(n_layers):
         ax[j,0].set_ylabel("filter {:}".format(j), size='large')
 
 fig.colorbar(im, ax=ax.flat)
-fig.savefig("../figures/reg1_filters.png")
+fig.savefig(f"../figures/{name}_filters.png")
 plt.show()
 
 

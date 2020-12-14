@@ -192,6 +192,7 @@ def cross_validate(X, y, num_folds=2, verbosity=0, save_as=None):
     print(f"avg. {model.metrics_names[1]}: {avg_metric:.4f} (+- {std_metric:.4f})")
 
 
+
 def main(conf, name, resume, validate):
     """main script that trains the CNN etc."""
 
