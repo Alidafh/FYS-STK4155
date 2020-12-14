@@ -83,7 +83,9 @@ class gaussian_noise():
     def __init__(self, noise_level=1, dim=(50,100,10)):
         self.noise_level = noise_level
         self.dim = dim
+        #print("Gaussian_noise - init: noise level ", self.noise_level)
     def func(self):
+        #print("Gaussian_noise - func: noise level ", self.noise_level)
         return self.noise_level*np.random.randn(self.dim[0],self.dim[1], self.dim[2])
 
 
@@ -198,9 +200,8 @@ class SkyMap:
                                              mean    = dm_mean )
 
 
-        self.noise = gaussian_noise(dim=self.dim, noise_level = noise_level)
-
-
+        #print("INIT: self.noise=gaussian_noise")
+        self.noise = gaussian_noise(dim=self.dim, noise_level = self.noise_level)
 
 
         self.n_steps_frac = 0.5
@@ -389,9 +390,17 @@ class SkyMap:
     def generate_noise(self):
         """ Generate noise """
         self.matrix_noise = self.noise.func()
-
         self.matrix = self.matrix_galaxy + self.matrix_dm + self.matrix_noise
 
+
+    def set_noise(self, noise_level_new):
+        self.noise_level = noise_level_new
+        self.noise.__init__(dim=self.dim, noise_level = self.noise_level)
+        self.generate_noise()
+
+
+    def get_noise(self):
+        return self.matrix_noise
 
 
     def ravel_map(self, matrix):
