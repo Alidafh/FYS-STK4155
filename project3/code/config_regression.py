@@ -9,7 +9,7 @@ import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 import tensorflow as tf
 from generate import load_data
-from tools import preprocess, r2_score, multiply_data
+from tools import preprocess, r2_score
 
 
 ###############################################################################
@@ -19,14 +19,14 @@ from tools import preprocess, r2_score, multiply_data
 type = "regression"
 
 path = "../data/"
-filename = "maps_(100, 28, 28, 20)_0.008_0.0_0.0_10.0_1.0e+00_False_.npy"
+filename = "maps_(100, 28, 28, 20)_0.008_0.0_0.0_10.0_1.0e+00_True_.npy"
 data_file = path+filename
 slice = None
 
 #maps, labels, stats = load_data(file=data_file, slice=slice)
 
 from generate import multiple_load_data
-maps, labels, stats = multiple_load_data(data_file, slice, 100)
+maps, labels, stats = multiple_load_data(data_file, slice, 10)
 
 
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
@@ -36,7 +36,6 @@ maps, labels, stats = multiple_load_data(data_file, slice, 100)
                                                 seed=42,
                                                 shuffle=True)
 
-
 ###############################################################################
 # for create_model()
 ###############################################################################
@@ -44,7 +43,7 @@ maps, labels, stats = multiple_load_data(data_file, slice, 100)
 input_shape = (28, 28, 20)     # Shape of the images, holds the raw pixel values
 
 n_filters = 16                  # For the first Conv2D layer
-kernel_size = (5,5)
+kernel_size = (3,3)
 layer_config = [32, 64]         # (layer1, layer2, layer3, ....)
 
 connected_neurons = 128         # For the first Dense layer
@@ -62,7 +61,7 @@ reg = None  #tf.keras.regularizers.l2(l=0.1)
 
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 100
+epochs = 50
 batch_size = 10
 
 opt = tf.keras.optimizers.Adam(learning_rate=1e-4)

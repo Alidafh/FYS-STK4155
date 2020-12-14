@@ -38,17 +38,17 @@ def plots(slice = None, lim = None):
 
 
 
-def plots2():
+def plots2(save_as=None):
     PATH="../data/"
     FIG ="../figures/"
     dim = (28, 28, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=5.0, gc_scale=1, dm_mean=10.0)
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=1.0, gc_scale=0, dm_mean=0)
 
     g  = np.sum(map.matrix_galaxy.copy(), axis=2)
     d  = np.sum(map.matrix_dm.copy(), axis=2)
     c = np.sum(map.matrix.copy(), axis=2)
-
+    lim = c.max()
     map.set_noise(0.008)
     c2 = np.sum(map.matrix, axis=2)
 
@@ -61,7 +61,6 @@ def plots2():
 
     fig, ax = plt.subplots(nrows=2, ncols=3,  figsize=(20, 6))
 
-    lim = c.max()
     y_axis = dim[0]/2
     x_axis = dim[1]/2
     axis_range = [-x_axis,x_axis,-y_axis, y_axis]
@@ -85,27 +84,54 @@ def plots2():
     fig.colorbar(im2, cax=cax2)
 
     ax[1,0].set_xlabel("bkg+dm+noise")
-    im3 = ax[1,0].imshow(c2, cmap="inferno", vmax=None, extent = axis_range)
+    im3 = ax[1,0].imshow(c2, cmap="inferno", vmax=lim, extent = axis_range)
     divider3 = make_axes_locatable(ax[1,0])
     cax3 = divider3.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im3, cax=cax3)
 
     ax[1,1].set_xlabel("bkg+dm+irreg")
-    im4 = ax[1,1].imshow(c3, cmap="inferno", vmax=None, extent = axis_range)
+    im4 = ax[1,1].imshow(c3, cmap="inferno", vmax=lim, extent = axis_range)
     divider4 = make_axes_locatable(ax[1,1])
     cax4 = divider4.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im4, cax=cax4)
 
     ax[1,2].set_xlabel("bkg+dm+noise+irreg")
-    im5 = ax[1,2].imshow(c4, cmap="inferno", vmax=None, extent = axis_range)
+    im5 = ax[1,2].imshow(c4, cmap="inferno", vmax=lim, extent = axis_range)
     divider5 = make_axes_locatable(ax[1,2])
     cax5 = divider5.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im5, cax=cax5)
     plt.show()
-    fig.savefig(FIG+"data_illustration.png")
+    if save_as: fig.savefig(f"{FIG}{save_as}.png")
 
-plots2()
 
+
+def plots3(save_as=None):
+    PATH="../data/"
+    FIG ="../figures/"
+    dim = (28, 28, 20)
+
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=True, noise_level=0.008, dm_strength=1.0, gc_scale=1, dm_mean=10)
+
+    g = map.matrix_galaxy
+    d = map.matrix_dm
+    c = map.matrix
+
+    energy_bins = np.arange(dim[2])
+
+    sc = np.sum(c, axis = (0,1))
+    sd = np.sum(d, axis = (0,1))
+    sg = np.sum(g, axis = (0,1))
+
+    fig = plt.figure()
+    plt.plot(energy_bins, sg, "--", label="g")
+    plt.plot(energy_bins, sd, "--", label="d")
+    plt.plot(energy_bins, sc, "-", label="c")
+    plt.legend()
+    plt.show()
+    if save_as: fig.savefig(f"{FIG}{save_as}.png")
+
+plots2(save_as="data_illustration")
+plots3(save_as="energy_spectrums")
 
 
 

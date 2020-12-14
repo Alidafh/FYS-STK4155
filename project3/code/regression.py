@@ -18,7 +18,7 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 
 
 # get the saved model
-name = "reg1"
+name = "reg10true3"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model.summary()
@@ -65,33 +65,6 @@ plt.xlabel('Epoch')
 fig.savefig(f"../figures/{name}_history.png")
 #plt.show()
 
-"""
-# Plot the cross validation
-fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
-ax[0].set_ylabel("Loss MSE")
-ax[1].set_ylabel("R2-score")
-
-kfold_path = conf.model_dir+"/kFold_"+conf.type+"/"+name
-num_folds = 5
-
-c = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple",]
-
-for i in range(1,num_folds+1):
-    mn = kfold_path+f"_{i}"
-    log = pd.read_csv(mn+"_training.log", sep=",", engine="python")
-
-    ax[0].plot(log["loss"],         color=c[i-1], label=f"Fold # {i}")
-    ax[0].plot(log["val_loss"],     color=c[i-1], linestyle="dashed")
-    ax[1].plot(log["r2_score"],     color=c[i-1], label=f"Fold # {i}")
-    ax[1].plot(log["val_r2_score"], color=c[i-1], linestyle="dashed")
-
-plt.xlabel("Epoch")
-ax[0].legend(loc = "upper right")
-
-fig.savefig(f"../figures/{name}_kfold.png")
-#plt.show()
-"""
-
 
 # Choose an image from the test set and display it
 img = np.expand_dims(X_test[0], axis=0)
@@ -101,7 +74,8 @@ fig = plt.figure()
 plt.imshow(img[0,:,:,0], cmap="inferno")
 plt.xticks([])
 plt.yticks([])
-fig.savefig(f"../figures/{name}_img0.png")
+plt.xlabel("$f_{dms}:$"+f"{f_dms[0]:.4f}")
+fig.savefig(f"../figures/{name}_test_img.png")
 
 
 # get the layers
@@ -136,8 +110,55 @@ for i in range(n_layers):
         ax[j,0].set_ylabel("filter {:}".format(j), size='large')
 
 fig.colorbar(im, ax=ax.flat)
-fig.savefig(f"../figures/{name}_filters.png")
+fig.savefig(f"../figures/{name}_filters_test_img.png")
 plt.show()
+
+"""
+# Plot the cross validation
+fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
+ax[0].set_ylabel("Loss MSE")
+ax[1].set_ylabel("R2-score")
+
+kfold_path = conf.model_dir+"/kFold_"+conf.type+"/"+name
+num_folds = 5
+
+c = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple",]
+
+for i in range(1,num_folds+1):
+    mn = kfold_path+f"_{i}"
+    log = pd.read_csv(mn+"_training.log", sep=",", engine="python")
+
+    ax[0].plot(log["loss"],         color=c[i-1], label=f"Fold # {i}")
+    ax[0].plot(log["val_loss"],     color=c[i-1], linestyle="dashed")
+    ax[1].plot(log["r2_score"],     color=c[i-1], label=f"Fold # {i}")
+    ax[1].plot(log["val_r2_score"], color=c[i-1], linestyle="dashed")
+
+plt.xlabel("Epoch")
+ax[0].legend(loc = "upper right")
+
+fig.savefig(f"../figures/{name}_kfold.png")
+#plt.show()
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -178,6 +199,23 @@ plt.show()
 
 
 """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 """
 residuals = y_test - y_pred
