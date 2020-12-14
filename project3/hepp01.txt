@@ -1,0 +1,88 @@
+(ML) [haharder@hepp01 code]$ lspci | grep -i nvidia
+81:00.0 3D controller: NVIDIA Corporation GV100GL [Tesla V100 PCIe 32GB] (rev a1)
+
+(ML) [haharder@hepp01 code]$ uname -m
+x86_64
+
+(ML) [haharder@hepp01 code]$ gcc --version
+gcc (GCC) 8.3.1 20191121 (Red Hat 8.3.1-5)
+Copyright (C) 2018 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+(ML) [haharder@hepp01 code]$ uname -r
+4.18.0-193.19.1.el8_2.x86_64
+
+
+(ML) [haharder@hepp01 code]$ cat /proc/driver/nvidia/version
+NVRM version: NVIDIA UNIX x86_64 Kernel Module  455.23.05  Fri Sep 18 19:37:12 UTC 2020
+GCC version:  gcc version 8.3.1 20191121 (Red Hat 8.3.1-5) (GCC) 
+
+
+(ML) [haharder@hepp01 code]$ which nvidia-smi
+/usr/bin/nvidia-smi
+
+(ML) [haharder@hepp01 code]$ nvidia-smi
+Failed to initialize NVML: Driver/library version mismatch
+
+
+(ML) [haharder@hepp01 code]$ modinfo nvidia
+filename:       /lib/modules/4.18.0-193.19.1.el8_2.x86_64/extra/nvidia.ko.xz
+alias:          char-major-195-*
+version:        455.45.01
+supported:      external
+license:        NVIDIA
+rhelversion:    8.2
+srcversion:     25388739E3E5801FFC1ADD1
+alias:          pci:v000010DEd*sv*sd*bc03sc02i00*
+alias:          pci:v000010DEd*sv*sd*bc03sc00i00*
+depends:        
+name:           nvidia
+vermagic:       4.18.0-193.19.1.el8_2.x86_64 SMP mod_unload modversions 
+parm:           NvSwitchRegDwords:NvSwitch regkey (charp)
+parm:           NvSwitchBlacklist:NvSwitchBlacklist=uuid[,uuid...] (charp)
+parm:           nv_cap_enable_devfs:Enable (1) or disable (0) nv-caps devfs support. Default: 1 (int)
+parm:           NVreg_ResmanDebugLevel:int
+parm:           NVreg_RmLogonRC:int
+parm:           NVreg_ModifyDeviceFiles:int
+parm:           NVreg_DeviceFileUID:int
+parm:           NVreg_DeviceFileGID:int
+parm:           NVreg_DeviceFileMode:int
+parm:           NVreg_InitializeSystemMemoryAllocations:int
+parm:           NVreg_UsePageAttributeTable:int
+parm:           NVreg_RegisterForACPIEvents:int
+parm:           NVreg_EnablePCIeGen3:int
+parm:           NVreg_EnableMSI:int
+parm:           NVreg_TCEBypassMode:int
+parm:           NVreg_EnableStreamMemOPs:int
+parm:           NVreg_EnableBacklightHandler:int
+parm:           NVreg_RestrictProfilingToAdminUsers:int
+parm:           NVreg_PreserveVideoMemoryAllocations:int
+parm:           NVreg_DynamicPowerManagement:int
+parm:           NVreg_DynamicPowerManagementVideoMemoryThreshold:int
+parm:           NVreg_EnableUserNUMAManagement:int
+parm:           NVreg_MemoryPoolSize:int
+parm:           NVreg_KMallocHeapMaxSize:int
+parm:           NVreg_VMallocHeapMaxSize:int
+parm:           NVreg_IgnoreMMIOCheck:int
+parm:           NVreg_NvLinkDisable:int
+parm:           NVreg_EnablePCIERelaxedOrderingMode:int
+parm:           NVreg_RegisterPCIDriver:int
+parm:           NVreg_RegistryDwords:charp
+parm:           NVreg_RegistryDwordsPerDevice:charp
+parm:           NVreg_RmMsg:charp
+parm:           NVreg_GpuBlacklist:charp
+parm:           NVreg_TemporaryFilePath:charp
+parm:           NVreg_AssignGpus:charp
+
+
+(ML) [haharder@hepp01 code]$ rpm -qa | grep cuda 
+cuda-license-10-2-10.2.89-1.x86_64
+cuda-nvml-dev-10-2-10.2.89-1.x86_64
+cuda-nsight-compute-11-0-11.0.3-1.x86_64
+cuda-drivers-455.45.01-1.x86_64
+nvidia-driver-cuda-libs-455.45.01-1.el8.x86_64
+nvidia-driver-cuda-455.45.01-1.el8.x86_64
+cuda-driver-dev-10-2-10.2.89-1.x86_64
+
+
