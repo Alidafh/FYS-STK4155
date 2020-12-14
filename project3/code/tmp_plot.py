@@ -10,39 +10,38 @@ from generate import SkyMap, generate_data_v2, generate_data
 def plots(slice = None, lim = None):
     PATH="../data/"
     FIG ="../figures/"
-    dim = (100, 100, 20)
+    dim = (28, 28, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, dm_strength=50, are_irreg=False, noise_level=0, variation_plane=0, variation_gc=0)
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0)
 
     gal = map.matrix_galaxy
     dm = map.matrix_dm
     comb = map.matrix
 
-    map.display(gal, slice = slice, lim=lim, save_as=FIG+"galaxy.png")
-    map.display(dm, slice = slice, save_as=FIG+"dm.png")
-    map.display(comb,slice = slice, lim=lim, save_as=FIG+"combined.png")
+    map.display(gal,  slice = slice, lim=lim, save_as=FIG+"galaxy.png")
+    map.display(dm,   slice = slice, save_as=FIG+"dm.png")
+    map.display(comb, slice = slice, lim=lim, save_as=FIG+"combined.png")
 
-    map2 = SkyMap(dim=dim, is_dm=True, dm_strength=50, are_irreg=True, noise_level=1e-5, variation_plane=0, variation_gc=0)
+    map2 = SkyMap(dim=dim, is_dm=True, are_irreg=True)
 
     gal2 = map2.matrix_galaxy
     dm2 = map2.matrix_dm
     comb2 = map2.matrix
 
-    map2.display(gal2, slice = slice, lim=lim, save_as=FIG+"galaxy_walk.png")
-    map2.display(dm2, slice = slice, save_as=FIG+"dm_walk.png")
+    map2.display(gal2,  slice = slice, lim=lim, save_as=FIG+"galaxy_walk.png")
+    map2.display(dm2,   slice = slice, save_as=FIG+"dm_walk.png")
     map2.display(comb2, slice = slice, lim=lim, save_as=FIG+"combined_walk.png")
 
 
-#plots(slice=10, lim=0.010)
-
+plots(slice=None, lim=None)
 
 
 
 
 def plot_illustrations(E, lim=None):
 
-    dim = (100, 100, 20)
-    map = SkyMap(dim=dim, is_dm=True, dm_strength=50, are_irreg=False, noise_level=1e-5, variation_plane=0, variation_gc=0)
+    dim = (28, 28, 20)
+    map = SkyMap(dim=dim, is_dm=True, dm_strength=1, are_irreg=True, noise_level=0, gc_scale=1e-20)
 
     g = map.matrix_galaxy
     d = map.matrix_dm
@@ -69,7 +68,7 @@ def plot_illustrations(E, lim=None):
     fig.colorbar(im2, cax=cax2)
     plt.show()
 
-plot_illustrations(E=10)
+#plot_illustrations(E=0)
 
 
 """
