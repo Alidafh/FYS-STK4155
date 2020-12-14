@@ -1,6 +1,19 @@
 # Title 1
 Here you will find an overview of the methods used in the project. The data is generated using blablabla
 
+
+## Dependencies
+The following packages are used in this project
+- tensorflow 2.2.0
+- fitsio 1.1.3
+- python 3.8.5
+
+Or if you have conda installed you can activate our conda enviroment using the file `enviroment.yml` by writing:
+
+```
+$ conda env create -f environment.yml
+```
+
 ## How to use
 ### 1. Generate the Galactic Center Excess Pseudo-data
 Generate the GCE pseudo-data by running the generate.py module. The following parameters can be operated from the command line, if no arguments are given the script uses default values.

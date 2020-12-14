@@ -7,6 +7,7 @@ Insert abstract here
 - code: Contains all the code files, the minst data file, a full description of the code can be found in a separate README file in this folder.  
 - data: Contains the data files
 - report: contains the report file
+- figures: Figures
 
 
 ## Credit
