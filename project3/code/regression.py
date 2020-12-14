@@ -18,7 +18,7 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 
 
 # get the saved model
-name = "reg2"
+name = "reg1"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model.summary()
@@ -44,7 +44,7 @@ plt.plot(y_test, y_test, linestyle="dashed", color="k", label="Perfect predictio
 plt.xlabel("$f_{dms}$ true")
 plt.ylabel("$f_{dm}$ predicted")
 plt.legend()
-fig.savefig("../figures/reg2_true_vs_predict.png")
+fig.savefig("../figures/reg1_true_vs_predict.png")
 #plt.show()
 
 
@@ -62,10 +62,10 @@ ax[1].set_ylabel("R2-score")
 ax[1].plot(log_data["r2_score"], color=c[0], label="training")
 ax[1].plot(log_data['val_r2_score'], color=c[1], label = 'validation')
 plt.xlabel('Epoch')
-fig.savefig("../figures/reg2_history.png")
+fig.savefig("../figures/reg1_history.png")
 #plt.show()
 
-
+"""
 # Plot the cross validation
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
 ax[0].set_ylabel("Loss MSE")
@@ -90,31 +90,21 @@ ax[0].legend(loc = "upper right")
 
 fig.savefig("../figures/reg2_kfold.png")
 #plt.show()
+"""
 
 
-# illustrate the output of the first filter using the first test image
-
-# Choose the image
+# Choose an image from the test set and display it
 img = np.expand_dims(X_test[0], axis=0)
 f_dms = y_test[0]
 
-"""
-# display the image
 fig = plt.figure()
-ax = plt.gca()
-y_axis = img.shape[0]/2
-x_axis = img.shape[1]/2
-axis_range = [-x_axis,x_axis,-y_axis, y_axis]
-plt.xlabel('Galactic Longitude')
-plt.ylabel('Galactic Latitude')
-im = ax.imshow(img[0,:,:, 0], cmap="inferno", extent = axis_range)
-divider = make_axes_locatable(ax)
-cax = divider.append_axes("right", size="5%", pad=0.05)
-fig.colorbar(im, cax=cax)
-#fig.savefig()
-"""
+plt.imshow(img[0,:,:,0], cmap="inferno")
+plt.xticks([])
+plt.yticks([])
+fig.savefig("../figures/reg1_img0.png")
 
-# get the convolutional layers
+
+# get the layers
 layer_outputs = []
 layer_names = []
 
@@ -123,32 +113,31 @@ for i in range(len(model.layers)):
     layer_outputs.append(layer.output)
     layer_names.append(layer.name)
 
+# Set up a model
 activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
 
-# make a prediction usin the model
+# make a prediction using the model and the image as input
 pred_img = activation_model.predict(img)
 
-for name in layer_names:
-    if "conv" not in name: continue
-    print(name)
-
-quit()
-n_layers = len(pred_img)
+# the first 6 layers are convolutional and max pooling layers
+conv_pool = pred_img[:6]
+n_layers = len(conv_pool)
 n_filters = 5
 
+# display the first 5 filters of each layer
 fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
 plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
 
 for i in range(n_layers):
-    map = pred_img[i]
+    map = conv_pool[i]
     for j in range(n_filters):
         im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
         ax[0,i].set_title(layer_names[i])
         ax[j,0].set_ylabel("filter {:}".format(j), size='large')
 
 fig.colorbar(im, ax=ax.flat)
+fig.savefig("../figures/reg1_filters.png")
 plt.show()
-
 
 
 
