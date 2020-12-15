@@ -75,10 +75,10 @@ def train_model(X_train, y_train, model, val_split = 0.2, verbosity=1, save_as=N
     # set up history log
     if save_as is not None:
         csv_logger = CSVLogger(conf.model_dir+save_as+'_training.log', separator=',', append=False)
-        callbacks = [csv_logger, conf.early_stop]
+        callbacks = [csv_logger, conf.early_stop, conf.reduce_lr]
 
     else:
-        callbacks = [conf.early_stop]
+        callbacks = [conf.early_stop, conf.reduce_lr]
 
 
     # Train the model
