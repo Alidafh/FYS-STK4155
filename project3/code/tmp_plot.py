@@ -12,7 +12,7 @@ def plots(slice = None, lim = None):
     FIG ="../figures/"
     dim = (28, 28, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=1.0, gc_scale=1, dm_mean=2.0)
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=1.0, gc_scale=1, dm_mean=10.0)
 
     gal = map.matrix_galaxy
     dm = map.matrix_dm
@@ -26,7 +26,7 @@ def plots(slice = None, lim = None):
     map.display(dm,   slice = slice, lim=None, save_as=FIG+"dm.png")
     map.display(comb, slice = slice, lim=lim,  save_as=FIG+"combined.png")
 
-    map2 = SkyMap(dim=dim, is_dm=True, are_irreg=True, noise_level=0.008, dm_strength=1.0, gc_scale=1, dm_mean=2.0)
+    map2 = SkyMap(dim=dim, is_dm=True, are_irreg=True, noise_level=0.008, dm_strength=1.0, gc_scale=1, dm_mean=10.0)
 
     gal2 = map2.matrix_galaxy
     dm2 = map2.matrix_dm
@@ -43,7 +43,7 @@ def plots2(save_as=None):
     FIG ="../figures/"
     dim = (28, 28, 20)
 
-    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=1.0, gc_scale=0, dm_mean=0)
+    map = SkyMap(dim=dim, is_dm=True, are_irreg=False, noise_level=0.0, dm_strength=1.0, gc_scale=1, dm_mean=10)
 
     g  = np.sum(map.matrix_galaxy.copy(), axis=2)
     d  = np.sum(map.matrix_dm.copy(), axis=2)

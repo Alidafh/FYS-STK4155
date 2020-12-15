@@ -13,12 +13,13 @@ import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tools import r2_score
 import config_regression as conf
+from generate import load_data
 import pandas as pd
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "tab:red", "tab:purple", "tab:orange", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"])
 
 
 # get the saved model
-name = "reg10one"
+name = "reg17gauss"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model.summary()
@@ -81,7 +82,12 @@ for i in range(len(model.layers)):
 # Set up a model
 activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
 
-# Choose an image from the test set
+# Get the generated testing image
+#img = np.load("img_mdm_10_gcs_1_dms_07.npy")
+#img = np.expand_dims(img, axis=0)
+#f_dms = 0.7
+
+# Get one of the test images
 img = np.expand_dims(X_test[0], axis=0)
 f_dms = y_test[0][0]
 
@@ -89,7 +95,7 @@ f_dms = y_test[0][0]
 pred_img = activation_model.predict(img)
 f_dms_pred = pred_img[-1][0][0]
 
-diff = f_dms_pred - f_dms
+diff = np.abs(f_dms_pred - f_dms)
 percent_error = (diff/f_dms)*100
 
 

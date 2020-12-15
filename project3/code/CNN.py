@@ -123,14 +123,13 @@ def continue_training(X_train, y_train, model_name, val_split=0.2, save_as=None)
     restored_model.fit(X_train, y_train, batch_size = conf.batch_size,
                                 validation_data=(X_val, y_val),
                                 epochs=conf.epochs,
-                                callbacks = [csv_logger, conf.early_stop])
+                                callbacks = [csv_logger, conf.early_stop, conf.reduce_lr])
 
     # Save the model again
     if save_as is not None:
         restored_model.save(m_name)
 
     return restored_model
-
 
 
 def cross_validate(X, y, num_folds=2, verbosity=0, save_as=None):
