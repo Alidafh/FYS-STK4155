@@ -209,7 +209,7 @@ class SkyMap:
         self.vertical_step = 5
         self.takeover_step = 1
         self.takeover_margin = 0.005
-        self.use_gaussian=True
+        self.use_gaussian=False
         self.sigma_dot=0.8
 
 
@@ -397,10 +397,6 @@ class SkyMap:
         self.noise_level = noise_level_new
         self.noise.__init__(dim=self.dim, noise_level = self.noise_level)
         self.generate_noise()
-
-
-    def get_noise(self):
-        return self.matrix_noise
 
 
     def ravel_map(self, matrix):
