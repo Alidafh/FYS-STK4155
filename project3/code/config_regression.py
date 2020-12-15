@@ -3,6 +3,7 @@
 """
 Configureation file for the regression CNN
 """
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.python.util.deprecation as deprecation
@@ -19,15 +20,11 @@ from tools import preprocess, r2_score
 type = "regression"
 
 path = "../data/"
-filename = "maps_(100, 28, 28, 20)_0.008_0.0_0.0_10.0_1.0e+00_True_.npy"
+filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_10.0_2.0e+15_True_.npy"
 data_file = path+filename
 slice = None
 
-#maps, labels, stats = load_data(file=data_file, slice=slice)
-
-from generate import multiple_load_data
-maps, labels, stats = multiple_load_data(data_file, slice, 10)
-
+maps, labels, stats = load_data(file=data_file, slice=slice)
 
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
@@ -36,24 +33,25 @@ maps, labels, stats = multiple_load_data(data_file, slice, 10)
                                                 seed=42,
                                                 shuffle=True)
 
+
 ###############################################################################
 # for create_model()
 ###############################################################################
 
 input_shape = (28, 28, 20)     # Shape of the images, holds the raw pixel values
 
-n_filters = 16                  # For the first Conv2D layer
-kernel_size = (3,3)
-layer_config = [32, 64]         # (layer1, layer2, layer3, ....)
+n_filters = 16                 # For the first Conv2D layer
+kernel_size = (5, 5)
+layer_config = [32, 64]        # (layer1, layer2, layer3, ....)
 
-connected_neurons = 128         # For the first Dense layer
-n_categories = 1                # For the last Dense layer
+connected_neurons = 128        # For the first Dense layer
+n_categories = 1               # For the last Dense layer
 
 input_activation  = "relu"
 hidden_activation = "relu"
 output_activation = "sigmoid"
 
-reg = None  #tf.keras.regularizers.l2(l=0.1)
+reg = None
 
 ###############################################################################
 # for train_model()
@@ -66,7 +64,9 @@ batch_size = 10
 
 opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
+# callbacks
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=5, min_lr=1e-15)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
 loss = "mean_squared_error"
 metrics = [r2_score]
