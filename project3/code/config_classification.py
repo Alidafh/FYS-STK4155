@@ -17,16 +17,12 @@ from tools import preprocess
 type = "classification"
 
 path = "../data/"
-filename = "data_(200, 28, 28, 20)_1_0.008_0.0_0.0_10.0_1e+00_True_.npy"
+filename = "data_(10000, 28, 28, 20)_1_0.008_0.0_0.0_10.0_1e+00_True_.npy"
+#filename = "data_(10000, 28, 28, 20)_0.5_0.008_0.0_0.0_10.0_1e+00_True_.npy"
 data_file = path+filename
 slice = None
 
-#maps, labels, stats = load_data(file=data_file, slice=slice)
-
-from generate import multiple_load_data
-maps, labels, stats = multiple_load_data(data_file, slice, 50)
-
-#print(maps.shape)
+maps, labels, stats = load_data(file=data_file, slice=slice)
 
 (X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
                                                 train_size = 0.8,
@@ -61,39 +57,13 @@ reg =  None #tf.keras.regularizers.l2(l=0.001)
 ###############################################################################
 model_dir = "tmp/"           # Where to save the model
 
-epochs = 50
+epochs = 100
 batch_size = 10
 
 opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=5, min_lr=1e-15)
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
 
 loss = "binary_crossentropy"
 metrics = ["accuracy"]
-
-
-
-"""
-Med reg=l2(l=0.001) og learning_rate=1e-4, bs=(3,3):
-
-
-alida ~/Documents/uio/Master/FYS-STK4155/project3/code master(*&?) $ python CNN.py -cn clas7 -v
-
-Performing 5-Fold cross validation
-________________________________________________________________
-
-Analysis: classification
-________________________________________________________________
-
-Training for fold 1 - loss: 0.5146 - accuracy: 0.5750
-Training for fold 2 - loss: 0.0569 - accuracy: 1.0000
-Training for fold 3 - loss: 0.0371 - accuracy: 1.0000
-Training for fold 4 - loss: 0.0495 - accuracy: 1.0000
-Training for fold 5 - loss: 0.0397 - accuracy: 1.0000
-_________________________________________________________________
-
-avg. loss:     0.1396 (+- 0.1876)
-avg. accuracy: 0.9150 (+- 0.1700)
-
-"""

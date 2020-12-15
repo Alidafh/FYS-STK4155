@@ -19,7 +19,7 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 
 
 # get the saved model
-name = "reg2default"
+name = "reg17default"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model.summary()
@@ -135,9 +135,7 @@ for i in range(n_layers):
 fig.colorbar(im, ax=ax.flat)
 fig.savefig(f"../figures/{name}_filters_test_img.png")
 
-plt.show()
 
-quit()
 # Plot the cross validation
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
 ax[0].set_ylabel("Loss MSE")

@@ -1,0 +1,318 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Configureation file for the regression CNN
+"""
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
+import tensorflow as tf
+from generate import load_data
+from tools import preprocess, r2_score
+
+
+
+###############################################################################
+# Set up the data
+###############################################################################
+
+type = "regression"
+
+path = "../data/"
+filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_10.0_2.0e+15_True_.npy"
+data_file = path+filename
+slice = None
+
+maps, labels, stats = load_data(file=data_file, slice=slice)
+
+(X_train, y_train), (X_test, y_test) = preprocess(maps, labels,
+                                                train_size = 0.8,
+                                                regress=True,
+                                                scale=True,
+                                                seed=42,
+                                                shuffle=True)
+
+
+###############################################################################
+# for create_model()
+###############################################################################
+
+input_shape = (28, 28, 20)     # Shape of the images, holds the raw pixel values
+
+n_filters = 16                 # For the first Conv2D layer
+kernel_size = (5, 5)
+layer_config = [32, 64]        # (layer1, layer2, layer3, ....)
+
+connected_neurons = 128        # For the first Dense layer
+n_categories = 1               # For the last Dense layer
+
+input_activation  = "relu"
+hidden_activation = "relu"
+output_activation = "sigmoid"
+
+reg = None
+
+###############################################################################
+# for train_model()
+###############################################################################
+
+model_dir = "tmp/"           # Where to save the model
+
+epochs = 100
+batch_size = 10
+
+opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
+
+# callbacks
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=10, min_lr=1e-15)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
+
+loss = "mean_squared_error"
+metrics = [r2_score]
+
+
+
+(ML) [haharder@hepp01 code]$ python CNN.py -rn reg10default_hepp01
+________________________________________________________________
+
+Analysis: regression
+Save as:  reg10default_hepp01
+________________________________________________________________
+
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+conv2d (Conv2D)              (None, 28, 28, 16)        8016
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 14, 14, 16)        0
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 14, 14, 32)        12832
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 7, 7, 32)          0
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 7, 7, 64)          51264
+_________________________________________________________________
+max_pooling2d_2 (MaxPooling2 (None, 3, 3, 64)          0
+_________________________________________________________________
+flatten (Flatten)            (None, 576)               0
+_________________________________________________________________
+dense (Dense)                (None, 128)               73856
+_________________________________________________________________
+dense_1 (Dense)              (None, 1)                 129
+=================================================================
+Total params: 146,097
+Trainable params: 146,097
+Non-trainable params: 0
+_________________________________________________________________
+
+training: 6400 - validation: 1600 - Untrained, r2_score: -1.99%
+_________________________________________________________________
+
+Epoch 1/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0845 - r2_score: -0.1402 - val_loss: 0.0810 - val_r2_score: -0.1276
+Epoch 2/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0844 - r2_score: -0.1622 - val_loss: 0.0812 - val_r2_score: -0.1293
+Epoch 3/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0844 - r2_score: -0.1501 - val_loss: 0.0810 - val_r2_score: -0.1272
+Epoch 4/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0843 - r2_score: -0.1626 - val_loss: 0.0811 - val_r2_score: -0.1282
+Epoch 5/100
+512/512 [==============================] - 5s 9ms/step - loss: 0.0842 - r2_score: -0.1607 - val_loss: 0.0811 - val_r2_score: -0.1280
+Epoch 6/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0827 - r2_score: -0.1449 - val_loss: 0.0744 - val_r2_score: -0.0356
+Epoch 7/100
+512/512 [==============================] - 5s 9ms/step - loss: 0.0484 - r2_score: 0.3160 - val_loss: 0.0223 - val_r2_score: 0.6774
+Epoch 8/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0216 - r2_score: 0.6787 - val_loss: 0.0183 - val_r2_score: 0.7310
+Epoch 9/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0198 - r2_score: 0.7091 - val_loss: 0.0167 - val_r2_score: 0.7550
+Epoch 10/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0174 - r2_score: 0.7427 - val_loss: 0.0162 - val_r2_score: 0.7594
+Epoch 11/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0165 - r2_score: 0.7441 - val_loss: 0.0161 - val_r2_score: 0.7594
+Epoch 12/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0155 - r2_score: 0.7692 - val_loss: 0.0143 - val_r2_score: 0.7872
+Epoch 13/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0152 - r2_score: 0.7689 - val_loss: 0.0186 - val_r2_score: 0.7204
+Epoch 14/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0145 - r2_score: 0.7765 - val_loss: 0.0144 - val_r2_score: 0.7846
+Epoch 15/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0140 - r2_score: 0.7878 - val_loss: 0.0122 - val_r2_score: 0.8173
+Epoch 16/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0136 - r2_score: 0.7917 - val_loss: 0.0117 - val_r2_score: 0.8246
+Epoch 17/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0128 - r2_score: 0.8065 - val_loss: 0.0129 - val_r2_score: 0.8054
+Epoch 18/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0132 - r2_score: 0.8015 - val_loss: 0.0132 - val_r2_score: 0.8010
+Epoch 19/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0128 - r2_score: 0.8142 - val_loss: 0.0117 - val_r2_score: 0.8244
+Epoch 20/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0126 - r2_score: 0.8075 - val_loss: 0.0109 - val_r2_score: 0.8365
+Epoch 21/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0128 - r2_score: 0.8111 - val_loss: 0.0115 - val_r2_score: 0.8269
+Epoch 22/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0113 - r2_score: 0.8304 - val_loss: 0.0102 - val_r2_score: 0.8461
+Epoch 23/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0115 - r2_score: 0.8230 - val_loss: 0.0123 - val_r2_score: 0.8147
+Epoch 24/100
+512/512 [==============================] - 5s 9ms/step - loss: 0.0114 - r2_score: 0.8241 - val_loss: 0.0101 - val_r2_score: 0.8484
+Epoch 25/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0119 - r2_score: 0.8254 - val_loss: 0.0101 - val_r2_score: 0.8495
+Epoch 26/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0104 - r2_score: 0.8402 - val_loss: 0.0097 - val_r2_score: 0.8530
+Epoch 27/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0105 - r2_score: 0.8437 - val_loss: 0.0095 - val_r2_score: 0.8560
+Epoch 28/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0108 - r2_score: 0.8335 - val_loss: 0.0124 - val_r2_score: 0.8122
+Epoch 29/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0101 - r2_score: 0.8448 - val_loss: 0.0098 - val_r2_score: 0.8529
+Epoch 30/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0103 - r2_score: 0.8506 - val_loss: 0.0095 - val_r2_score: 0.8560
+Epoch 31/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0100 - r2_score: 0.8466 - val_loss: 0.0112 - val_r2_score: 0.8324
+Epoch 32/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0107 - r2_score: 0.8446 - val_loss: 0.0112 - val_r2_score: 0.8295
+Epoch 33/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0102 - r2_score: 0.8470 - val_loss: 0.0106 - val_r2_score: 0.8394
+Epoch 34/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0099 - r2_score: 0.8493 - val_loss: 0.0090 - val_r2_score: 0.8650
+Epoch 35/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0089 - r2_score: 0.8629 - val_loss: 0.0123 - val_r2_score: 0.8135
+Epoch 36/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0104 - r2_score: 0.8495 - val_loss: 0.0122 - val_r2_score: 0.8171
+Epoch 37/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0098 - r2_score: 0.8452 - val_loss: 0.0110 - val_r2_score: 0.8335
+Epoch 38/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0101 - r2_score: 0.8432 - val_loss: 0.0093 - val_r2_score: 0.8598
+Epoch 39/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0094 - r2_score: 0.8538 - val_loss: 0.0091 - val_r2_score: 0.8630
+Epoch 40/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0093 - r2_score: 0.8554 - val_loss: 0.0105 - val_r2_score: 0.8414
+Epoch 41/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0090 - r2_score: 0.8676 - val_loss: 0.0194 - val_r2_score: 0.7044
+Epoch 42/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0095 - r2_score: 0.8618 - val_loss: 0.0088 - val_r2_score: 0.8683
+Epoch 43/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0087 - r2_score: 0.8680 - val_loss: 0.0087 - val_r2_score: 0.8677
+Epoch 44/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0085 - r2_score: 0.8774 - val_loss: 0.0175 - val_r2_score: 0.7314
+Epoch 45/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0092 - r2_score: 0.8650 - val_loss: 0.0109 - val_r2_score: 0.8340
+Epoch 46/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0084 - r2_score: 0.8707 - val_loss: 0.0102 - val_r2_score: 0.8449
+Epoch 47/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0081 - r2_score: 0.8789 - val_loss: 0.0099 - val_r2_score: 0.8501
+Epoch 48/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0085 - r2_score: 0.8743 - val_loss: 0.0088 - val_r2_score: 0.8678
+Epoch 49/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0091 - r2_score: 0.8647 - val_loss: 0.0132 - val_r2_score: 0.7992
+Epoch 50/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0080 - r2_score: 0.8775 - val_loss: 0.0088 - val_r2_score: 0.8673
+Epoch 51/100
+512/512 [==============================] - 5s 9ms/step - loss: 0.0080 - r2_score: 0.8744 - val_loss: 0.0087 - val_r2_score: 0.8690
+Epoch 52/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0078 - r2_score: 0.8833 - val_loss: 0.0093 - val_r2_score: 0.8588
+Epoch 53/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0084 - r2_score: 0.8778 - val_loss: 0.0102 - val_r2_score: 0.8447
+Epoch 54/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0079 - r2_score: 0.8798 - val_loss: 0.0119 - val_r2_score: 0.8198
+Epoch 55/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0085 - r2_score: 0.8706 - val_loss: 0.0130 - val_r2_score: 0.8045
+Epoch 56/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0078 - r2_score: 0.8818 - val_loss: 0.0087 - val_r2_score: 0.8694
+Epoch 57/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0076 - r2_score: 0.8848 - val_loss: 0.0113 - val_r2_score: 0.8293
+Epoch 58/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0076 - r2_score: 0.8866 - val_loss: 0.0099 - val_r2_score: 0.8508
+Epoch 59/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0075 - r2_score: 0.8886 - val_loss: 0.0136 - val_r2_score: 0.7939
+Epoch 60/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0076 - r2_score: 0.8812 - val_loss: 0.0135 - val_r2_score: 0.7963
+Epoch 61/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0073 - r2_score: 0.8944 - val_loss: 0.0086 - val_r2_score: 0.8698
+Epoch 62/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0056 - r2_score: 0.9126 - val_loss: 0.0085 - val_r2_score: 0.8725
+Epoch 63/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0056 - r2_score: 0.9176 - val_loss: 0.0085 - val_r2_score: 0.8721
+Epoch 64/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0056 - r2_score: 0.9149 - val_loss: 0.0085 - val_r2_score: 0.8712
+Epoch 65/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0056 - r2_score: 0.9150 - val_loss: 0.0084 - val_r2_score: 0.8727
+Epoch 66/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0056 - r2_score: 0.9159 - val_loss: 0.0084 - val_r2_score: 0.8728
+Epoch 67/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9152 - val_loss: 0.0084 - val_r2_score: 0.8729
+Epoch 68/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9152 - val_loss: 0.0084 - val_r2_score: 0.8728
+Epoch 69/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9172 - val_loss: 0.0086 - val_r2_score: 0.8694
+Epoch 70/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9168 - val_loss: 0.0084 - val_r2_score: 0.8732
+Epoch 71/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9179 - val_loss: 0.0084 - val_r2_score: 0.8733
+Epoch 72/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9167 - val_loss: 0.0084 - val_r2_score: 0.8732
+Epoch 73/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9155 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 74/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9174 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 75/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9182 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 76/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9173 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 77/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9177 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 78/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9170 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 79/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9184 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 80/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9199 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 81/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9185 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 82/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9155 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 83/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9170 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 84/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9153 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 85/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9180 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 86/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9179 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 87/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9180 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 88/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9176 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 89/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9172 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 90/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9183 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 91/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9149 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 92/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9192 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 93/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9148 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 94/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9198 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 95/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9153 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 96/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9180 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 97/100
+512/512 [==============================] - 4s 9ms/step - loss: 0.0055 - r2_score: 0.9144 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 98/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9192 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 99/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9201 - val_loss: 0.0084 - val_r2_score: 0.8734
+Epoch 100/100
+512/512 [==============================] - 4s 8ms/step - loss: 0.0055 - r2_score: 0.9173 - val_loss: 0.0084 - val_r2_score: 0.8734
+_________________________________________________________________
+
+r2_score: 88.60%
+_________________________________________________________________
+(ML) [haharder@hepp01 code]$
