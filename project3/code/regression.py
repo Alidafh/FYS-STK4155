@@ -19,7 +19,7 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 
 
 # get the saved model
-name = "reg17gauss"
+name = "reg2default"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model.summary()

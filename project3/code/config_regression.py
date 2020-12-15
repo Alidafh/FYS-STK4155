@@ -13,6 +13,7 @@ from generate import load_data
 from tools import preprocess, r2_score
 
 
+
 ###############################################################################
 # Set up the data
 ###############################################################################
@@ -20,7 +21,7 @@ from tools import preprocess, r2_score
 type = "regression"
 
 path = "../data/"
-filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_2.0_2.0e+15_True_.npy"
+filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_17.0_2.0e+15_True_.npy"
 data_file = path+filename
 slice = None
 
@@ -65,8 +66,8 @@ batch_size = 10
 opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
 # callbacks
-reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=5, min_lr=1e-15)
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=10, min_lr=1e-15)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
 
 loss = "mean_squared_error"
 metrics = [r2_score]

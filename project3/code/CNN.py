@@ -155,7 +155,8 @@ def cross_validate(X, y, num_folds=2, verbosity=0, save_as=None):
 
         if verbosity==0:
             print(f"Training for fold {fold_no}...", end='\r', flush=True)
-
+        else:
+            print(f"Training for fold {fold_no}...")
 
         name_tmp = kfold_path+save_as+"_"+str(fold_no)
 
@@ -205,10 +206,10 @@ def main(conf, name, resume, validate):
         print(f"Analysis: {conf.type}\n"+64*"_"+"\n")
 
         # Merge inputs and targets
-        X = np.concatenate((X_train, X_test), axis=0)
-        y = np.concatenate((y_train, y_test), axis=0)
+        #X = np.concatenate((X_train, X_test), axis=0)
+        #y = np.concatenate((y_train, y_test), axis=0)
 
-        cross_validate(X, y, num_folds=validate, verbosity=0, save_as=name)
+        cross_validate(X_train, y_train, num_folds=validate, verbosity=1, save_as=name)
 
 
 

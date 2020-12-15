@@ -11,10 +11,34 @@ reg10one - r2_score: 86.18% -
          - diff:             0.0780
          - % error:          15.0198
 
+
+reg10one100: (ML) [haharder@hepp01 code]$ python CNN.py -rn reg10one100 -v
+
+         Performing 5-Fold cross validation
+         ________________________________________________________________
+
+         Analysis: regression
+         ________________________________________________________________
+
+         Training for fold 1 - loss: 0.0094 - r2_score: 0.8757
+         Training for fold 2 - loss: 0.0807 - r2_score: -0.0385
+         Training for fold 3 - loss: 0.0831 - r2_score: -0.0261
+         Training for fold 4 - loss: 0.0838 - r2_score: -0.0417
+         Training for fold 5 - loss: 0.0831 - r2_score: -0.0395
+         _________________________________________________________________
+
+         avg. loss:     0.0680 (+- 0.0293)
+         avg. r2_score: 0.1460 (+- 0.3649)
+
 -------------------------------------------------------------------------------
 maps_(10000, 28, 28, 20)_0.008_0.0_0.0_2.0_2.0e+15_True_.npy
 -------------------------------------------------------------------------------
-reg2default -
+reg2default - r2_score: 86.33%
+            - Loss (MSE): 0.0104 - r2_score: 0.8633
+            - predicted f_dms:  0.7786
+            - true      f_dms:  0.8485
+            - diff:             0.0700
+            - % error:          8.2449
 
 
 -------------------------------------------------------------------------------
@@ -26,6 +50,44 @@ reg10default - r2_score: 88.07%
              - true      f_dms:  0.7249
              - diff:             0.0450
              - % error:          6.2119
+
+
+reg10default100: (ML) [haharder@hepp01 code]$ python CNN.py -rn reg10default100 -v
+
+             Performing 5-Fold cross validation
+             ________________________________________________________________
+
+             Analysis: regression
+             ________________________________________________________________
+
+             Training for fold 1 - loss: 0.0110 - r2_score: 0.8585
+             Training for fold 2 - loss: 0.0815 - r2_score: -0.0288
+             Training for fold 3 - loss: 0.0843 - r2_score: -0.0235
+             Training for fold 4 - loss: 0.0836 - r2_score: -0.0428
+             Training for fold 5 - loss: 0.0860 - r2_score: -0.0348
+             _________________________________________________________________
+
+             avg. loss:     0.0693 (+- 0.0292)
+             avg. r2_score: 0.1457 (+- 0.3564)
+
+
+reg10default50: (ML) [haharder@hepp01 code]$ python CNN.py -rn reg10default50 -v
+
+             Performing 5-Fold cross validation
+             ________________________________________________________________
+
+             Analysis: regression
+             ________________________________________________________________
+
+             Training for fold 1 - loss: 0.0096 - r2_score: 0.8813
+             Training for fold 2 - loss: 0.0834 - r2_score: -0.0363
+             Training for fold 3 - loss: 0.0808 - r2_score: -0.0408
+             Training for fold 4 - loss: 0.0839 - r2_score: -0.0422
+             Training for fold 5 - loss: 0.0839 - r2_score: -0.0210
+             _________________________________________________________________
+
+             avg. loss:     0.0683 (+- 0.0294)
+             avg. r2_score: 0.1482 (+- 0.3666)
 
 -------------------------------------------------------------------------------
 maps_(10000, 28, 28, 20)_0.008_0.0_0.0_17.0_2.0e+15_True_.npy
