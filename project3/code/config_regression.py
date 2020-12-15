@@ -1,18 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Configureation file for the regression CNN
-"""
-
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import tensorflow.python.util.deprecation as deprecation
-deprecation._PRINT_DEPRECATION_WARNINGS = False
-import tensorflow as tf
-from generate import load_data
-from tools import preprocess, r2_score
-
-
 
 ###############################################################################
 # Set up the data
@@ -66,8 +51,8 @@ batch_size = 10
 opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
 # callbacks
-reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=10, min_lr=1e-15)
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=500, min_lr=1e-15)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
 
 loss = "mean_squared_error"
 metrics = [r2_score]

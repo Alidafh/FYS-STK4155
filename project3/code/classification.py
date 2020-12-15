@@ -18,7 +18,7 @@ from sklearn.metrics import roc_curve, auc, confusion_matrix, plot_confusion_mat
 
 
 # get the saved model
-name = "clas10binary"
+name = "clas10one"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name)
 model.summary()
