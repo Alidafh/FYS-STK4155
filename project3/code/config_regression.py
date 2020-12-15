@@ -21,7 +21,7 @@ from tools import preprocess, r2_score
 type = "regression"
 
 path = "../data/"
-filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_17.0_2.0e+15_True_.npy"
+filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_10.0_1.0e+00_True_.npy"
 data_file = path+filename
 slice = None
 
