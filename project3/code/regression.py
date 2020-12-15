@@ -18,7 +18,7 @@ mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "ta
 
 
 # get the saved model
-name = "reg10true3"
+name = "reg10one"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
 model.summary()
@@ -30,7 +30,9 @@ y_train, y_test = conf.y_train, conf.y_test
 
 # print the loss and r2 score of the model
 loss, metric = model.evaluate(X_test, y_test, verbose=0)
+print()
 print(f"Loss (MSE): {loss:.4f} - r2_score: {metric:.4f}")
+print(65*"_")
 print()
 
 # predict using the test data and normalize like they do in the paper
@@ -40,12 +42,11 @@ y_pred = y_pred/y_pred.max()
 # Plot predicted vs true
 fig = plt.figure()
 plt.plot(y_test, y_pred, marker="o", linestyle="None", color="tab:blue", label="data")
-plt.plot(y_test, y_test, linestyle="dashed", color="k", label="Perfect prediction")
+plt.plot(y_test, y_test, linestyle="solid", color="k", label="Perfect prediction")
 plt.xlabel("$f_{dms}$ true")
 plt.ylabel("$f_{dms}$ predicted")
 plt.legend()
 fig.savefig(f"../figures/{name}_true_vs_predict.png")
-#plt.show()
 
 
 # get the log file
@@ -63,20 +64,10 @@ ax[1].plot(log_data["r2_score"], color=c[0], label="training")
 ax[1].plot(log_data['val_r2_score'], color=c[1], label = 'validation')
 plt.xlabel('Epoch')
 fig.savefig(f"../figures/{name}_history.png")
-#plt.show()
 
 
-# Choose an image from the test set and display it
-img = np.expand_dims(X_test[0], axis=0)
-f_dms = y_test[0]
 
-fig = plt.figure()
-plt.imshow(img[0,:,:,0], cmap="inferno")
-plt.xticks([])
-plt.yticks([])
-plt.xlabel("$f_{dms}:$"+f"{f_dms[0]:.4f}")
-fig.savefig(f"../figures/{name}_test_img.png")
-
+# Test the model on a ramdom image and see what the filters are
 
 # get the layers
 layer_outputs = []
@@ -90,8 +81,34 @@ for i in range(len(model.layers)):
 # Set up a model
 activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
 
-# make a prediction using the model and the image as input
+# Choose an image from the test set
+img = np.expand_dims(X_test[0], axis=0)
+f_dms = y_test[0][0]
+
+# make a prediction using the model and the image
 pred_img = activation_model.predict(img)
+f_dms_pred = pred_img[-1][0][0]
+
+diff = f_dms_pred - f_dms
+percent_error = (diff/f_dms)*100
+
+
+print("FOR THE CHOSEN IMAGE:")
+print(65*"_", "\n")
+print(f"predicted f_dms:  {f_dms_pred:.4f}")
+print(f"true      f_dms:  {f_dms:.4f}")
+print(f"diff:             {diff:.4f}")
+print(f"% error:          {percent_error:.4f}")
+print()
+
+# display the image
+fig = plt.figure()
+plt.imshow(img[0,:,:,0], cmap="inferno")
+plt.xticks([])
+plt.yticks([])
+plt.xlabel("True $f_{dms}$:"+f" {f_dms:.4f}\n"+"Predicted $f_{dms}$:"+f" {f_dms_pred:.4f}")
+fig.savefig(f"../figures/{name}_test_img.png")
+
 
 # the first 6 layers are convolutional and max pooling layers
 conv_pool = pred_img[:6]
@@ -111,9 +128,10 @@ for i in range(n_layers):
 
 fig.colorbar(im, ax=ax.flat)
 fig.savefig(f"../figures/{name}_filters_test_img.png")
+
 plt.show()
 
-"""
+quit()
 # Plot the cross validation
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
 ax[0].set_ylabel("Loss MSE")
@@ -137,9 +155,10 @@ plt.xlabel("Epoch")
 ax[0].legend(loc = "upper right")
 
 fig.savefig(f"../figures/{name}_kfold.png")
-#plt.show()
-"""
 
+
+
+plt.show()
 
 
 
