@@ -174,7 +174,9 @@ def cross_validate(X, y, num_folds=2, verbosity=0, save_as=None):
         if verbosity==0:
             print(f"Training for fold {fold_no}"+result1+result2)
 
-
+        else:
+            print(f"Training for fold {fold_no}"+result1+result2)
+            
         loss_per_fold.append(scores[0])
         metric_per_fold.append(scores[1])
 
