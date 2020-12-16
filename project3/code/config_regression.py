@@ -1,12 +1,27 @@
 
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Configureation file for the regression CNN
+"""
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
+import tensorflow as tf
+from generate import load_data
+from tools import preprocess, r2_score
+
 ###############################################################################
 # Set up the data
 ###############################################################################
 
+
 type = "regression"
 
 path = "../data/"
-filename = "maps_(10000, 28, 28, 20)_0.008_0.0_0.0_10.0_1.0e+00_True_.npy"
+filename = "gaussianmaps_(10000, 28, 28, 20)_0.008_0.0_0.0_2.0_1.0e+00_True_.npy"
 data_file = path+filename
 slice = None
 
@@ -52,7 +67,7 @@ opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
 # callbacks
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=500, min_lr=1e-15)
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=30)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
 
 loss = "mean_squared_error"
 metrics = [r2_score]
