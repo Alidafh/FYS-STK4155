@@ -113,3 +113,4 @@ You can choose a different number of folds by specifying an iteger after the val
 | config_classification.py |variables for the classification problem |
 | regression.py | main script for regression plotting |
 | classification.py | main script for classsification plotting |
+| quickplot.py | class for plotting |
