@@ -17,8 +17,8 @@ from tools import preprocess
 type = "classification"
 
 path = "../data/"
-filename = "data_(10000, 28, 28, 20)_1_0.008_0.0_0.0_10.0_1e+00_True_.npy"
-#filename = "data_(10000, 28, 28, 20)_0.5_0.008_0.0_0.0_10.0_1e+00_True_.npy"
+#filename = "data_(10000, 28, 28, 20)_1_0.008_0.0_0.0_10.0_1e+00_True_.npy"
+filename = "data_(10000, 28, 28, 20)_0.5_0.008_0.0_0.0_10.0_1e+00_True_.npy"
 data_file = path+filename
 slice = None
 
@@ -62,7 +62,7 @@ batch_size = 10
 
 opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
-reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=5, min_lr=1e-15)
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=500, min_lr=1e-15)
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
 
 loss = "binary_crossentropy"
