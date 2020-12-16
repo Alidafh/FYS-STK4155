@@ -51,7 +51,7 @@ The two configuration files:
 - Regression: config_regression.py
 - Classification: config_classification.py
 
-Holds the configurations for the regression and classification analysis that will be used for the CNN. To change dataset or some parts of the configuration such as number of epochs, layer configuration etc, edit these config scripts. Train the network by running the script CNN.py with flag c for classification and r for regression. If you want to save the model, use the n flag followed by the filename.
+Holds the configurations for the regression and classification analysis that will be used for the CNN. To change dataset or some parts of the configuration such as number of epochs, layer configuration etc, edit these config scripts. Train the network by running the script CNN.py with flag c for classification and r for regression. If you want to save the model, use the n flag followed by the filename. The a folder called "tmp"(or whatever you call it in the config file) will be created it it does not exist already. 
 
 ```
 $ python CNN.py -h
@@ -114,3 +114,4 @@ You can choose a different number of folds by specifying an iteger after the val
 | regression.py | main script for regression plotting |
 | classification.py | main script for classsification plotting |
 | quickplot.py | class for plotting |
+| tools.py | small scripts used for preprocessing etc. |
