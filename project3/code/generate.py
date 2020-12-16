@@ -112,16 +112,30 @@ class SkyMap:
     noise_level: float, default=1
         The level of the Gaussian noise added to the GC object.
 
+    variation_plane: float, defualt=0.00
+        Random variation in galactic plane normalization (propotion of the
+        standard value)
+
+    variation_gc: float, default = 0.00
+        Random variation in galactic center normalization (propotion of the
+        standard value)
+
+    dm_mean: float, default=10
+        what energy bin the dark matter spectum should be centered around
+
+    gc_scale: float, default=2e+15
+        Scale of the galactic center'
+
     Attributes:
     -----------
     matrix: ndarray, shape (h,w,e)
-        Description of what this is
+        The combined galaxy+DM+noise map
 
     matrix_galaxy: ndarray, shape (h,w,e)
-        Description of what this is
+        The simulated galaxy background
 
     matrix_dm: ndarray, shape (h,w,e)
-        Description of what this is
+        The simulated dark matter component
 
 
     Methods:

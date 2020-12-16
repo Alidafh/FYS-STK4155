@@ -1,6 +1,5 @@
-# Title 1
-Here you will find an overview of the methods used in the project. The data is generated using blablabla
-
+# Description of how to simulate data and how to run the code
+Here you will find an overview of the methods used in the project.
 
 ## Dependencies
 The following packages are used in this project
@@ -101,8 +100,8 @@ If you are satisfied, you can perform 5-fold cross-validation with the command
 $ python CNN.py -rn reg2 -v
 
 ```
-You can choose a different number of folds by specifying an iteger after the validation flag. If you want 10 folds you would do `python CNN.py -rn reg2 -v 10`. Each model and training log of the folds are stored in the folder kFold_regression.
 
+You can choose a different number of folds by specifying an iteger after the validation flag. If you want 10 folds you would do `python CNN.py -rn reg2 -v 10`. Each model and training log of the folds are stored in the folder kFold_regression. The files called `regression.py` and `classification.py` are scripts that create the plots that are used in the report. The model name must be specified on line 23, and make sure the datafile in config_* is the one you wish to use as the testing data.  
 
 ## Overview of files
 
