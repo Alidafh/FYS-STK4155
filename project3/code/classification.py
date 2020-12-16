@@ -18,7 +18,7 @@ from sklearn.metrics import roc_curve, auc, confusion_matrix, plot_confusion_mat
 
 
 # get the saved model
-name = "clas10one"
+name = "clas10_05"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name)
 model.summary()
@@ -37,6 +37,7 @@ y_pred = model.predict(X_test)
 # get roc and auc
 false_pr, true_pr, thresholds = roc_curve(y_test, y_pred)
 auc = auc(false_pr, true_pr)
+print("AUC:", auc)
 
 fig = plt.figure()
 plt.plot([0, 1], [0, 1], 'k--')
@@ -81,11 +82,6 @@ for i in range(25):
     plt.xlabel(l)
 
 fig.savefig(f"../figures/{name}_results.png")
-
-
-c_matrix = confusion_matrix(y_test.ravel(), y_pred.ravel())
-print(c_matrix)
-
 
 # Plot the cross validation
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)

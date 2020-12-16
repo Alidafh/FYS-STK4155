@@ -15,14 +15,15 @@ from tools import r2_score
 import config_regression as conf
 from generate import load_data
 import pandas as pd
+import matplotlib as mpl
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["tab:blue", "tab:green", "tab:red", "tab:purple", "tab:orange", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"])
 
 
 # get the saved model
-name = "reg17default"
+name = "reg10gass"
 model_name = conf.model_dir+name
 model = tf.keras.models.load_model(model_name, custom_objects={"r2_score": r2_score})
-model.summary()
+#model.summary()
 
 
 # easier to use without writing conf all the time
@@ -39,6 +40,17 @@ print()
 # predict using the test data and normalize like they do in the paper
 y_pred = model.predict(X_test)
 y_pred = y_pred/y_pred.max()
+
+residual = y_test - y_pred
+RSS = residual.T @ residual
+mean_res = np.mean(y_test - y_pred)
+std_res = np.std(y_test - y_pred)
+
+print(65*"_")
+print("avg. residual: ", mean_res)
+print("std. residual: ", std_res)
+print(65*"_")
+
 
 # Plot predicted vs true
 fig = plt.figure()
@@ -163,158 +175,3 @@ fig.savefig(f"../figures/{name}_kfold.png")
 
 
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-# get the convolutional layers
-layer_outputs = []
-layer_names = []
-
-for i in range(len(model.layers)):
-    layer = model.layers[i]
-    if "conv" in layer.name or "pool" in layer.name:
-        print(layer.name)
-        layer_outputs.append(layer.output)
-        layer_names.append(layer.name)
-
-activation_model = tf.keras.Model(inputs=model.input, outputs=layer_outputs)
-
-# make a prediction usin the model
-pred_img = activation_model.predict(img)
-
-n_layers = len(pred_img)
-n_filters = 5
-
-fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
-plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
-
-for i in range(n_layers):
-    map = pred_img[i]
-    for j in range(n_filters):
-        im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
-        ax[0,i].set_title(layer_names[i])
-        ax[j,0].set_ylabel("filter {:}".format(j), size='large')
-
-fig.colorbar(im, ax=ax.flat)
-plt.show()
-
-
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-residuals = y_test - y_pred
-RSS = residuals.T @ residuals
-ndf = len(y_pred)-1
-
-nlayers = len(model.layers)
-layer_outputs = []
-layer_names = []
-for i in range(nlayers):
-    layer = model.layers[i]
-    print(i, layer.name, layer.output.shape)
-    layer_outputs.append(layer.output)
-    layer_names.append(layer.name)
-
-
-
-y_pred = model.predict(X_test)
-print(y_pred.shape, y_test.shape)
-y_pred = y_pred.ravel()
-y_test = y_test.ravel()
-print(y_pred.shape, y_test.shape)
-
-residual = y_pred - y_test
-
-Pdiff = (residual/y_test)*100
-absPdiff = np.abs(Pdiff)
-mean = np.mean(absPdiff)
-std = np.std(absPdiff)
-print()
-print("mean absolute percent difference: {:5.2f}%".format(mean))
-print("std absolute percent difference: {:5.2f}%".format(std))
-
-
-(X_train, y_train), (X_test, y_test) = gce(d3=False, seed=42, scale=True)
-label_names = ["Clean", "DM"]
-
-img = X_test[0]
-img_type = label_names[int(y_test[0].argmax())]
-img = np.expand_dims(img, axis=0)
-
-plt.imshow(img[0,:,:,9], cmap="inferno")
-plt.xlabel(img_type)
-plt.show()
-
-model = get_model(model_name="GCE")
-
-nlayers = len(model.layers)
-
-layer_outputs = []
-layer_names = []
-for i in range(nlayers):
-    layer = model.layers[i]
-    if "conv2d" not in layer.name: continue
-    print(i, layer.name, layer.output.shape)
-    layer_outputs.append(layer.output)
-    layer_names.append(layer.name)
-
-
-activation_model = Model(inputs=model.input, outputs=layer_outputs)
-maps = activation_model.predict(img)
-
-n_layers = len(maps)
-n_filters = 5
-
-fig, ax = plt.subplots(nrows=n_filters, ncols=n_layers, figsize=(20,20))
-plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
-
-for i in range(n_layers):
-    map = maps[i]
-    for j in range(n_filters):
-        im = ax[j,i].imshow(map[0,:,:,j], cmap="inferno")
-        ax[0,i].set_title(layer_names[i])
-        ax[j,0].set_ylabel("filter {:}".format(j), size='large')
-
-
-fig.colorbar(im, ax=ax.flat)
-plt.show()
-"""

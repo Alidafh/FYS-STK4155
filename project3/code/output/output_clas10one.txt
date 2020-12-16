@@ -18,7 +18,6 @@ type = "classification"
 
 path = "../data/"
 filename = "data_(10000, 28, 28, 20)_1_0.008_0.0_0.0_10.0_1e+00_True_.npy"
-#filename = "data_(10000, 28, 28, 20)_0.5_0.008_0.0_0.0_10.0_1e+00_True_.npy"
 data_file = path+filename
 slice = None
 

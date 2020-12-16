@@ -4,11 +4,11 @@ Here you will find an overview of the methods used in the project. The data is g
 
 ## Dependencies
 The following packages are used in this project
-- tensorflow 2.2.0
+- tensorflow 2.2.0 (or tensorflow-gpu 2.2.0)
 - fitsio 1.1.3
 - python 3.8.5
 
-Or if you have conda installed you can activate our conda enviroment using the file `enviroment.yml` by writing:
+If you have conda installed you can activate our conda enviroment using the file `enviroment.yml` by writing:
 
 ```
 $ conda env create -f environment.yml
@@ -112,5 +112,5 @@ You can choose a different number of folds by specifying an iteger after the val
 | CNN.py | contains the convolutional neural network |
 | config_regression.py |variables for the regression problem |
 | config_classification.py |variables for the classification problem |
-| regression.py | main script for regression |
-| classification.py | main script for classsification |
+| regression.py | main script for regression plotting |
+| classification.py | main script for classsification plotting |
