@@ -115,3 +115,4 @@ You can choose a different number of folds by specifying an iteger after the val
 | classification.py | main script for classsification plotting |
 | quickplot.py | class for plotting |
 | tools.py | small scripts used for preprocessing etc. |
+| enviroment.yml | conda enviroment used in this project(does not contain tensorflow-gpu) | 
