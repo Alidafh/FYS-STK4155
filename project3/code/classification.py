@@ -86,7 +86,7 @@ fig.savefig(f"../figures/{name}_results.png")
 c_matrix = confusion_matrix(y_test.ravel(), y_pred.ravel())
 print(c_matrix)
 
-quit()
+
 # Plot the cross validation
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex="col", sharey=False, constrained_layout=True)
 ax[0].set_ylabel("Loss")
